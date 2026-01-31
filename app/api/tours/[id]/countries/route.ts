@@ -3,8 +3,9 @@ import { supabaseAdmin } from '@/app/lib/supabase'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const { data: configs, error } = await supabaseAdmin
       .from('tour_country_configs')
@@ -12,7 +13,7 @@ export async function GET(
         *,
         org (*)
       `)
-      .eq('tour_id', params.id)
+      .eq('tour_id', id)
       .order('country_code')
 
     if (error) {
@@ -31,8 +32,9 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const { country_code, org_id, enabled = true, priority = 10 } = await request.json()
 
@@ -54,7 +56,7 @@ export async function POST(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: config, error } = await (supabaseAdmin.from('tour_country_configs') as any)
       .insert({
-        tour_id: params.id,
+        tour_id: id,
         country_code: country_code.toUpperCase(),
         org_id,
         enabled,

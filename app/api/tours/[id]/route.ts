@@ -6,8 +6,9 @@ type TourUpdate = Database['public']['Tables']['tours']['Update']
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const { data: tour, error } = await supabaseAdmin
       .from('tours')
@@ -19,7 +20,7 @@ export async function GET(
           org (*)
         )
       `)
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (error) {
@@ -44,8 +45,9 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const body = await request.json()
 
@@ -80,7 +82,7 @@ export async function PUT(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: tour, error } = await (supabaseAdmin.from('tours') as any)
       .update(updates)
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single()
 
@@ -106,13 +108,14 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const { error } = await supabaseAdmin
       .from('tours')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
 
     if (error) {
       throw error
