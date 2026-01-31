@@ -45,46 +45,52 @@ CREATE TABLE IF NOT EXISTS public.artists (
     name VARCHAR(255) NOT NULL,
     enabled BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    -- Slug must be URL-safe: lowercase alphanumeric and hyphens only
+    CONSTRAINT artists_slug_format CHECK (slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$')
 );
 
 -- Tours table
 CREATE TABLE IF NOT EXISTS public.tours (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    artist_id UUID NOT NULL REFERENCES public.artists(id) ON DELETE CASCADE,
+    artist_id UUID NOT NULL REFERENCES public.artists(id) ON DELETE RESTRICT,
     name VARCHAR(255) NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
-    pre_tour_window_days INTEGER DEFAULT 0,  -- Days before start_date to begin routing
-    post_tour_window_days INTEGER DEFAULT 0, -- Days after end_date to continue routing
     enabled BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    CONSTRAINT tours_date_order CHECK (end_date >= start_date)
+    CONSTRAINT tours_date_order CHECK (end_date >= start_date),
+    CONSTRAINT tours_window_days_positive CHECK (pre_tour_window_days >= 0 AND post_tour_window_days >= 0)
 );
 
 -- Tour Country Configurations table
 CREATE TABLE IF NOT EXISTS public.tour_country_configs (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    tour_id UUID NOT NULL REFERENCES public.tours(id) ON DELETE CASCADE,
+    tour_id UUID NOT NULL REFERENCES public.tours(id) ON DELETE RESTRICT,
     country_code VARCHAR(2) NOT NULL, -- ISO 3166-1 alpha-2 country codes
-    org_id UUID NOT NULL REFERENCES public.org(id) ON DELETE CASCADE,
+    org_id UUID NOT NULL REFERENCES public.org(id) ON DELETE RESTRICT,
     enabled BOOLEAN DEFAULT true,
     priority INTEGER DEFAULT 10, -- Future-proofing for conflict resolution
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    UNIQUE(tour_id, country_code) -- One org per country per tour
+    UNIQUE(tour_id, country_code), -- One org per country per tour
+    -- Country code must be exactly 2 uppercase letters (ISO 3166-1 alpha-2)
+    CONSTRAINT tour_country_configs_country_code_format CHECK (country_code ~ '^[A-Z]{2}$')
 );
 
--- Router Analytics table for tracking routing decisions (no PII per contract §2)
+-- Router Analytics table for tracking routing decisions and performance
 CREATE TABLE IF NOT EXISTS public.router_analytics (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     artist_slug VARCHAR(255) NOT NULL,
     country_code VARCHAR(2),
     org_id UUID REFERENCES public.org(id),
     tour_id UUID REFERENCES public.tours(id),
-    reason_code VARCHAR(255), -- resolution path: "success", "no_artist", "no_active_tour", "no_country_match", "org_paused"
+    fallback_reason VARCHAR(255), -- reason if routing fell back (e.g., "no_active_tour", "org_paused", "country_not_configured")
     destination_url TEXT, -- final URL user was sent to
+    user_agent TEXT,
+    ip_address INET, -- for debugging, not for tracking users
+    session_id UUID DEFAULT gen_random_uuid(), -- anonymous session tracking
     timestamp TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -92,7 +98,7 @@ CREATE TABLE IF NOT EXISTS public.router_analytics (
 -- This preserves clear ownership boundaries between Router and MDEDB
 CREATE TABLE IF NOT EXISTS public.router_org_overrides (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    org_id UUID NOT NULL REFERENCES public.org(id) ON DELETE CASCADE,
+    org_id UUID NOT NULL REFERENCES public.org(id) ON DELETE RESTRICT,
     enabled BOOLEAN DEFAULT true,
     reason TEXT, -- Optional reason for disable: "capacity_exceeded", "partnership_paused"
     updated_by TEXT, -- Who made the change
@@ -100,21 +106,6 @@ CREATE TABLE IF NOT EXISTS public.router_org_overrides (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     UNIQUE(org_id) -- One override record per org
 );
-
--- Global router configuration settings
-CREATE TABLE IF NOT EXISTS public.router_config (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    key VARCHAR(255) UNIQUE NOT NULL,
-    value TEXT,
-    updated_by TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
-);
-
--- Insert default config value
-INSERT INTO public.router_config (key, value) VALUES
-    ('fallback_url', 'https://www.musicdeclares.net/amplify')
-ON CONFLICT (key) DO NOTHING;
 
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_artists_slug ON public.artists(slug);
@@ -136,8 +127,6 @@ CREATE INDEX IF NOT EXISTS idx_router_analytics_org_id ON public.router_analytic
 
 CREATE INDEX IF NOT EXISTS idx_router_org_overrides_org_id ON public.router_org_overrides(org_id);
 CREATE INDEX IF NOT EXISTS idx_router_org_overrides_enabled ON public.router_org_overrides(enabled);
-
-CREATE INDEX IF NOT EXISTS idx_router_config_key ON public.router_config(key);
 
 -- Create updated_at trigger function if it doesn't exist
 CREATE OR REPLACE FUNCTION public.set_updated_at()
@@ -174,13 +163,57 @@ CREATE TRIGGER set_router_config_updated_at
     BEFORE UPDATE ON public.router_config
     FOR EACH ROW EXECUTE PROCEDURE public.set_updated_at();
 
+-- Prevent overlapping tours for the same artist
+-- Tours are considered overlapping if their active windows overlap
+-- Active window = (start_date - pre_tour_window_days) to (end_date + post_tour_window_days)
+CREATE OR REPLACE FUNCTION public.check_tour_overlap()
+RETURNS TRIGGER AS $$
+DECLARE
+    new_active_start DATE;
+    new_active_end DATE;
+    overlapping_count INTEGER;
+BEGIN
+    -- Only check enabled tours
+    IF NOT NEW.enabled THEN
+        RETURN NEW;
+    END IF;
+
+    -- Calculate new tour's active window
+    new_active_start := NEW.start_date - NEW.pre_tour_window_days;
+    new_active_end := NEW.end_date + NEW.post_tour_window_days;
+
+    -- Check for overlapping enabled tours for the same artist
+    SELECT COUNT(*) INTO overlapping_count
+    FROM public.tours
+    WHERE artist_id = NEW.artist_id
+      AND enabled = true
+      AND id != COALESCE(NEW.id, '00000000-0000-0000-0000-000000000000'::uuid)
+      AND (
+          -- New tour's active window overlaps with existing tour's active window
+          (start_date - pre_tour_window_days, end_date + post_tour_window_days)
+          OVERLAPS
+          (new_active_start, new_active_end)
+      );
+
+    IF overlapping_count > 0 THEN
+        RAISE EXCEPTION 'Tour active windows cannot overlap for the same artist. Disable conflicting tours first.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS check_tour_overlap_trigger ON public.tours;
+CREATE TRIGGER check_tour_overlap_trigger
+    BEFORE INSERT OR UPDATE ON public.tours
+    FOR EACH ROW EXECUTE PROCEDURE public.check_tour_overlap();
+
 -- Enable Row Level Security
 ALTER TABLE public.artists ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tours ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tour_country_configs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.router_analytics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.router_org_overrides ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.router_config ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies - Service-level access control
 -- Both Router and MDEDB apps use same service key, but RLS provides separation
@@ -188,11 +221,10 @@ ALTER TABLE public.router_config ENABLE ROW LEVEL SECURITY;
 -- Router tables: Allow all operations with service role (bypass RLS for simplicity)
 -- User-level permissions will be added when UI is built
 CREATE POLICY "service_access_artists" ON public.artists FOR ALL TO service_role USING (true);
-CREATE POLICY "service_access_tours" ON public.tours FOR ALL TO service_role USING (true); 
+CREATE POLICY "service_access_tours" ON public.tours FOR ALL TO service_role USING (true);
 CREATE POLICY "service_access_tour_configs" ON public.tour_country_configs FOR ALL TO service_role USING (true);
 CREATE POLICY "service_access_analytics" ON public.router_analytics FOR ALL TO service_role USING (true);
 CREATE POLICY "service_access_org_overrides" ON public.router_org_overrides FOR ALL TO service_role USING (true);
-CREATE POLICY "service_access_router_config" ON public.router_config FOR ALL TO service_role USING (true);
 
--- Note: User-level RLS policies (artist can only edit own tours, etc.) 
+-- Note: User-level RLS policies (artist can only edit own tours, etc.)
 -- will be added in future migration when building admin/artist UI
