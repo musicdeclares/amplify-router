@@ -1,47 +1,51 @@
-import { Database } from './database'
+import { Database } from "./database";
 
-export type Artist = Database['public']['Tables']['artists']['Row']
-export type Tour = Database['public']['Tables']['tours']['Row']
-export type TourCountryConfig = Database['public']['Tables']['tour_country_configs']['Row']
-export type Organization = Database['public']['Tables']['org']['Row']
-export type RouterAnalytics = Database['public']['Tables']['router_analytics']['Row']
-export type RouterOrgOverride = Database['public']['Tables']['router_org_overrides']['Row']
-export type RouterConfig = Database['public']['Tables']['router_config']['Row']
+export type Artist = Database["public"]["Tables"]["artists"]["Row"];
+export type Tour = Database["public"]["Tables"]["tours"]["Row"];
+export type TourCountryConfig =
+  Database["public"]["Tables"]["tour_country_configs"]["Row"];
+export type Organization = Database["public"]["Tables"]["org"]["Row"];
+export type RouterAnalytics =
+  Database["public"]["Tables"]["router_analytics"]["Row"];
 
 export interface RouterRequest {
-  artistSlug: string
-  countryCode?: string
+  artistSlug: string;
+  countryCode?: string;
+  userAgent?: string;
+  ipAddress?: string;
 }
 
 export interface RouterResult {
-  success: boolean
-  destinationUrl: string
-  orgId?: string
-  tourId?: string
-  reasonCode?: ReasonCode
+  success: boolean;
+  destinationUrl: string;
+  orgId?: string;
+  tourId?: string;
+  fallbackReason?: string;
   analytics: {
-    artist_slug: string
-    country_code?: string
-    org_id?: string
-    tour_id?: string
-    reason_code?: string
-    destination_url: string
-  }
+    artist_slug: string;
+    country_code?: string;
+    org_id?: string;
+    tour_id?: string;
+    fallback_reason?: string;
+    destination_url: string;
+    user_agent?: string;
+    ip_address?: string;
+  };
 }
 
-// Reason codes for analytics - "success" for successful routing, others for fallback paths
-export type ReasonCode =
-  | 'success'
-  | 'artist_not_found'
-  | 'no_active_tour'
-  | 'country_not_configured'
-  | 'org_not_approved'
-  | 'org_paused'
+export type FallbackReason =
+  | "artist_not_found"
+  | "no_active_tour"
+  | "country_not_configured"
+  | "org_not_active"
+  | "org_paused"
+  | "org_no_website";
 
 export interface TourWithConfigs extends Tour {
-  tour_country_configs: (TourCountryConfig & { org: Organization })[]
+  // org can be null if the org is not in org_public_view (not approved)
+  tour_country_configs: (TourCountryConfig & { org: Organization | null })[];
 }
 
 export interface ArtistWithTours extends Artist {
-  tours: TourWithConfigs[]
+  tours: TourWithConfigs[];
 }
