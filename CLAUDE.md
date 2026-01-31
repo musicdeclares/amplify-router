@@ -1,7 +1,5 @@
 # AMPLIFY Router – Product Strategy & Technical Brief
 
-> **Note:** This document must remain aligned with `docs/contract.md`, which defines foundational guarantees and evolvable specifications. When in doubt, the contract is authoritative.
-
 ## Audience
 
 Coding AI agent responsible for designing and implementing the AMPLIFY Router MVP and its extensible architecture.
@@ -32,19 +30,15 @@ Enable a **single, evergreen artist AMPLIFY link** that:
 
 ## Non-Goals (MVP)
 
-Explicitly out of scope (per contract):
+Explicitly out of scope for initial build:
 
-- Fan or volunteer data collection
-- City- or venue-level routing
-- Multiple organizations per country
-- Partner capacity management
-- Real-time capacity detection
 - Outcome tracking or attribution analytics
 - Auto-recommendation of orgs
 - On-demand asset generation
-- Artist dashboards or CMS tooling
+- Fine-grained geo (city-level, GPS)
+- Real-time capacity detection
 
-These may exist as separate products. Architecture _should not block_ future additions.
+Architecture _should not block_ these later.
 
 ## User Types
 
@@ -70,30 +64,30 @@ These may exist as separate products. Architecture _should not block_ future add
 
 Order of resolution (deterministic, debuggable):
 
-1. **Artist exists?** → If no, fallback
-2. **Within active routing window?** → If no, fallback
-   - `active_start` = `start_date` - `pre_tour_window_days`
-   - `active_end` = `end_date` + `post_tour_window_days`
-   - Check: `active_start` ≤ `now` ≤ `active_end`
-3. **Country match configured?** → If no, fallback
-4. **Organization active and allowed?** → If no (paused/terminated via `router_org_overrides`), fallback
-5. **Route** → Redirect to org destination URL
+1. **Artist exists?**
+    - If no → default AMPLIFY landing
+2. **Is there an active tour?**
+    - `now` between `tour_start` and `tour_end`
+3. **Does tour have a country match?**
+    - Match inferred country → configured org
+4. **Is org active + allowed?**
+    - Not paused, not terminated
+5. **Route**
+    - Success → org destination URL
+    - Failure → fallback AMPLIFY page
 
-Outside the active window, the link routes to the fallback page and _never_ implies a tour-specific partnership.
+> Outside tour dates, the link should _never_ imply a tour-specific partnership.
 
 ## Context Signals (MVP)
 
-Automatically inferred at request time:
+- **Country**: inferred at a coarse level (IP → country)
+- **Time**: server-side current date
 
-- **artist_slug**: Stable artist identifier for routing and fallback contextualization
-- **request_country**: Country-level location inferred via network data (no precise location stored)
-- **request_timestamp**: UTC timestamp for routing eligibility
+### Explicit Constraints
 
-### Data Boundary
-
-- Country inferred transiently from request headers; IP address is **not stored**
-- No fan-identifying data persisted (no cookies, no user agents, no PII)
-- Context used only transiently for routing decision
+- No precise location storage
+- No fan-identifying data persisted
+- Context used only transiently for routing
 
 ## Product Constraints from MOU
 
@@ -111,14 +105,13 @@ This implies:
 
 ## Fallback Philosophy
 
-Fallbacks are _intentional product states_, not errors. The Router redirects to a **single canonical AMPLIFY fallback page** whenever routing cannot succeed.
+Fallbacks are _intentional product states_, not errors.
 
-The fallback page (outside Router scope) may:
-- Render artist-aware copy when artist context is present
-- Surface a global fallback partner as a default safety net
-- Provide general climate action guidance
+Examples:
 
-The Router's only job is to redirect to this page. What happens on the page is managed separately.
+- Neutral AMPLIFY explainer page
+- Country-agnostic climate action page
+- “This tour has ended” messaging
 
 The Router must **always return a valid destination**.
 
@@ -138,7 +131,7 @@ The Router must **always return a valid destination**.
 
 ### Data Model (MVP)
 
-**Database Integration**: Extends existing MDEDB Supabase schema. Leverages existing `org` table with approved partner organizations.
+**Database Integration**: Extends existing MDEDB Supabase schema. Accesses partner organizations via `org_public_view` (a view exposing only approved orgs with sensitive fields hidden).
 
 **New Tables Required:**
 
@@ -151,19 +144,16 @@ enabled BOOLEAN DEFAULT true
 created_at TIMESTAMP DEFAULT NOW()
 ```
 
-**tours**
+**tours** 
 ```sql
 id UUID PRIMARY KEY
 artist_id UUID REFERENCES artists(id)
 name VARCHAR
 start_date DATE
-end_date DATE
-pre_tour_window_days INTEGER DEFAULT 0  -- Days before start_date to begin routing
-post_tour_window_days INTEGER DEFAULT 0  -- Days after end_date to continue routing
+end_date DATE  
 enabled BOOLEAN DEFAULT true  -- Manual disable override
 created_at TIMESTAMP DEFAULT NOW()
--- Active window: (start_date - pre_tour_window_days) to (end_date + post_tour_window_days)
--- "completed" status derived from end_date + post_tour_window_days < CURRENT_DATE
+-- Note: "completed" status derived from end_date < CURRENT_DATE
 ```
 
 **tour_country_configs**
@@ -171,7 +161,7 @@ created_at TIMESTAMP DEFAULT NOW()
 id UUID PRIMARY KEY
 tour_id UUID REFERENCES tours(id)
 country_code VARCHAR(2)  -- ISO 3166-1 alpha-2
-org_id UUID REFERENCES org(id)  -- Links to existing MDEDB org table
+org_id UUID REFERENCES org(id)  -- FK to org table; router joins via org_public_view
 enabled BOOLEAN DEFAULT true
 priority INTEGER DEFAULT 10  -- For future conflict resolution
 created_at TIMESTAMP DEFAULT NOW()
@@ -197,10 +187,11 @@ updated_at TIMESTAMP DEFAULT NOW()
 ```
 - `fallback_url`: The single canonical AMPLIFY fallback page URL (editable by admins without redeploy)
 
-**Existing org table** (no modifications):
-- Uses existing `approval_status = 'approved'` for routing eligibility
-- Uses existing `website` field as destination URL
-- Uses existing `country_code` for geographic matching
+**Existing org_public_view** (read-only access):
+- View filters to `approval_status = 'approved'` — router never sees unapproved orgs
+- Uses `website` field as destination URL
+- Uses `country_code` for geographic matching
+- Hides sensitive fields: `contact`, `email`, `created_by`, `updated_by`, `approval_status`
 - Router-specific controls managed separately via `router_org_overrides`
 
 ### Admin Control Surface
@@ -234,9 +225,14 @@ Even if UI comes later, system must support:
 **Database Role Separation**:
 ```sql
 -- Strict table-level isolation
-router_service_role: Full CRUD on Router tables, SELECT on approved orgs
-mdedb_service_role: Full CRUD on MDEDB tables (no Router access)
+router_service_role: Full CRUD on Router tables, SELECT on org_public_view only
+mdedb_service_role: Full CRUD on MDEDB tables including org (no Router access)
 ```
+
+**Access Pattern**: The router queries `org_public_view`, not the `org` table directly. This ensures:
+- Router only sees approved organizations
+- Sensitive fields (contact, email, approval_status) are hidden
+- No risk of exposing unapproved or pending organizations
 
 **Cross-System Access**: None initially. Add specific permissions only when concrete use cases emerge.
 
@@ -252,20 +248,13 @@ No client-side logic required.
 
 ## Observability (Minimal)
 
-**Logged per request:**
-- artist_slug
-- request_country
-- resolved_url
-- reason_code (which resolution branch)
-- timestamp
+For MVP:
 
-**Never stored:**
-- IP addresses
-- User agents
-- Cookies
-- Any fan-identifying information
+- Request count
+- Resolution path (which branch)
+- Error logging
 
-This aligns with the contract's data boundary: no PII, no fan identification.
+Avoid user-level analytics.
 
 ## Future Schema Evolution (Do Not Block MVP)
 
