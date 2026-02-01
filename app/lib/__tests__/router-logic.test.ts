@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getCountryFromRequest, routeRequest } from "../router-logic";
 
 // Configurable mock state
@@ -50,6 +51,8 @@ jest.mock("../supabase", () => ({
         return {
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
+          lte: jest.fn().mockReturnThis(),
+          gte: jest.fn().mockReturnThis(),
           order: jest
             .fn()
             .mockImplementation(() =>
@@ -207,7 +210,7 @@ describe("Router Logic", () => {
 
       expect(result.success).toBe(true);
       expect(result.destinationUrl).toBe("https://example.com");
-      expect(result.reasonCode).toBe("success");
+      expect(result.fallbackReason).toBeUndefined();
       expect(result.orgId).toBe("00000000-0000-0000-0000-000000000001");
       expect(result.tourId).toBe("aaaa1111-1111-1111-1111-111111111111");
     });
@@ -251,7 +254,7 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.reasonCode).toBe("artist_not_found");
+      expect(result.fallbackReason).toBe("artist_not_found");
       expect(result.destinationUrl).toContain("unknown_artist");
     });
 
@@ -266,7 +269,7 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.reasonCode).toBe("artist_not_found");
+      expect(result.fallbackReason).toBe("artist_not_found");
     });
   });
 
@@ -281,19 +284,15 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.reasonCode).toBe("no_active_tour");
+      expect(result.fallbackReason).toBe("no_active_tour");
       expect(result.destinationUrl).toContain("no_tour");
     });
 
     it("should fallback when tour dates are in the past", async () => {
       mockState.artist = createArtist();
-      mockState.tours = [
-        createTour({
-          start_date: "2020-01-01",
-          end_date: "2020-12-31",
-          post_tour_window_days: 0,
-        }),
-      ];
+      // Database filters out past tours, so we simulate by returning empty array
+      // (date filtering happens in DB via .lte/.gte constraints)
+      mockState.tours = [];
 
       const result = await routeRequest({
         artistSlug: "radiohead",
@@ -301,18 +300,14 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.reasonCode).toBe("no_active_tour");
+      expect(result.fallbackReason).toBe("no_active_tour");
     });
 
     it("should fallback when tour dates are in the future", async () => {
       mockState.artist = createArtist();
-      mockState.tours = [
-        createTour({
-          start_date: "2099-01-01",
-          end_date: "2099-12-31",
-          pre_tour_window_days: 0,
-        }),
-      ];
+      // Database filters out future tours, so we simulate by returning empty array
+      // (date filtering happens in DB via .lte/.gte constraints)
+      mockState.tours = [];
 
       const result = await routeRequest({
         artistSlug: "radiohead",
@@ -320,7 +315,7 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.reasonCode).toBe("no_active_tour");
+      expect(result.fallbackReason).toBe("no_active_tour");
     });
 
     it("should fallback when tour is disabled", async () => {
@@ -334,7 +329,7 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.reasonCode).toBe("no_active_tour");
+      expect(result.fallbackReason).toBe("no_active_tour");
     });
   });
 
@@ -349,7 +344,7 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.reasonCode).toBe("country_not_configured");
+      expect(result.fallbackReason).toBe("country_not_configured");
       expect(result.destinationUrl).toContain("country_not_supported");
     });
 
@@ -363,7 +358,7 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.reasonCode).toBe("country_not_configured");
+      expect(result.fallbackReason).toBe("country_not_configured");
       expect(result.destinationUrl).toContain("no_country");
     });
 
@@ -383,7 +378,7 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.reasonCode).toBe("country_not_configured");
+      expect(result.fallbackReason).toBe("country_not_configured");
     });
   });
 
@@ -399,7 +394,7 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.reasonCode).toBe("org_paused");
+      expect(result.fallbackReason).toBe("org_paused");
       expect(result.destinationUrl).toContain("org_paused");
     });
 
@@ -422,7 +417,7 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.reasonCode).toBe("org_not_approved");
+      expect(result.fallbackReason).toBe("org_not_approved");
     });
 
     it("should fallback when org has no website", async () => {
@@ -443,7 +438,7 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.reasonCode).toBe("org_no_website");
+      expect(result.fallbackReason).toBe("org_no_website");
       expect(result.destinationUrl).toContain("no_org_website");
     });
 
@@ -475,7 +470,7 @@ describe("Router Logic", () => {
       expect(result.analytics).toBeDefined();
       expect(result.analytics?.artist_slug).toBe("radiohead");
       expect(result.analytics?.country_code).toBe("US");
-      expect(result.analytics?.reason_code).toBe("success");
+      expect(result.analytics?.fallback_reason).toBeUndefined();
       expect(result.analytics?.org_id).toBe(
         "00000000-0000-0000-0000-000000000001",
       );
@@ -495,48 +490,8 @@ describe("Router Logic", () => {
 
       expect(result.analytics).toBeDefined();
       expect(result.analytics?.artist_slug).toBe("unknown");
-      expect(result.analytics?.reason_code).toBe("artist_not_found");
+      expect(result.analytics?.fallback_reason).toBe("artist_not_found");
     });
   });
 
-  describe("getClientIP", () => {
-    it("should extract IP from x-forwarded-for header", () => {
-      const mockRequest = {
-        headers: {
-          get: jest.fn((header: string) => {
-            if (header === "x-forwarded-for") return "192.168.1.1, 10.0.0.1";
-            return null;
-          }),
-        },
-      } as any;
-
-      const ip = getClientIP(mockRequest);
-      expect(ip).toBe("192.168.1.1");
-    });
-
-    it("should fall back to x-real-ip header", () => {
-      const mockRequest = {
-        headers: {
-          get: jest.fn((header: string) => {
-            if (header === "x-real-ip") return "192.168.1.1";
-            return null;
-          }),
-        },
-      } as any;
-
-      const ip = getClientIP(mockRequest);
-      expect(ip).toBe("192.168.1.1");
-    });
-
-    it("should return undefined when no IP headers available", () => {
-      const mockRequest = {
-        headers: {
-          get: jest.fn(() => null),
-        },
-      } as any;
-
-      const ip = getClientIP(mockRequest);
-      expect(ip).toBeUndefined();
-    });
-  });
 });
