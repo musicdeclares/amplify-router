@@ -18,24 +18,28 @@ export interface RouterResult {
   destinationUrl: string;
   orgId?: string;
   tourId?: string;
-  fallbackReason?: string;
+  fallbackReason?: FallbackReason;
   analytics: {
     artist_slug: string;
     country_code?: string;
     org_id?: string;
     tour_id?: string;
-    fallback_reason?: string;
     destination_url: string;
+    // fallback info is derived from destination_url ref= param via generated column
   };
 }
 
+// These values are used as ref= query params in destination URLs
+// and extracted into fallback_ref column for analytics
 export type FallbackReason =
   | "artist_not_found"
-  | "no_active_tour"
-  | "country_not_configured"
-  | "org_not_approved"
+  | "no_tour"
+  | "no_country"
+  | "country_not_supported"
+  | "org_not_found"
   | "org_paused"
-  | "org_no_website";
+  | "org_no_website"
+  | "error";
 
 export interface TourWithConfigs extends Tour {
   // org can be null if the org is not in org_public_view (not approved)

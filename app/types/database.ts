@@ -112,8 +112,8 @@ export interface Database {
           country_code: string | null
           org_id: string | null
           tour_id: string | null
-          fallback_reason: string | null
-          destination_url: string | null
+          destination_url: string
+          fallback_ref: string | null  // Generated column - extracted from destination_url ref= param
           timestamp: string
         }
         Insert: {
@@ -122,8 +122,8 @@ export interface Database {
           country_code?: string | null
           org_id?: string | null
           tour_id?: string | null
-          fallback_reason?: string | null
-          destination_url?: string | null
+          destination_url: string
+          // fallback_ref is generated, not insertable
           timestamp?: string
         }
         Update: {
@@ -132,8 +132,8 @@ export interface Database {
           country_code?: string | null
           org_id?: string | null
           tour_id?: string | null
-          fallback_reason?: string | null
-          destination_url?: string | null
+          destination_url?: string
+          // fallback_ref is generated, not updatable
           timestamp?: string
         }
       }

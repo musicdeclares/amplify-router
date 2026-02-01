@@ -8,8 +8,10 @@ import {
 } from "@/app/types/router";
 import { Database } from "@/app/types/database";
 
-type RouterOrgOverride = Database["public"]["Tables"]["router_org_overrides"]["Row"];
-type RouterAnalyticsInsert = Database["public"]["Tables"]["router_analytics"]["Insert"];
+type RouterOrgOverride =
+  Database["public"]["Tables"]["router_org_overrides"]["Row"];
+type RouterAnalyticsInsert =
+  Database["public"]["Tables"]["router_analytics"]["Insert"];
 
 const DEFAULT_FALLBACK_URL = "https://musicdeclares.net/amplify";
 
@@ -20,18 +22,18 @@ export async function routeRequest(
 
   try {
     // Step 1: Find the artist
-    const { data: artist, error: artistError } = await supabaseAdmin
+    const { data: artist, error: artistError } = (await supabaseAdmin
       .from("artists")
       .select("*")
       .eq("slug", artistSlug)
       .eq("enabled", true)
-      .single() as { data: Artist | null; error: unknown };
+      .single()) as { data: Artist | null; error: unknown };
 
     if (artistError || !artist) {
       return createFallbackResult(
         request,
         "artist_not_found",
-        `${DEFAULT_FALLBACK_URL}?ref=unknown_artist`,
+        `${DEFAULT_FALLBACK_URL}?ref=artist_not_found`,
       );
     }
 
@@ -41,7 +43,7 @@ export async function routeRequest(
 
     // Note: We join org_public_view (not org) to match production access patterns.
     // The view only exposes approved orgs and hides sensitive fields.
-    const { data: tours, error: toursError } = await supabaseAdmin
+    const { data: tours, error: toursError } = (await supabaseAdmin
       .from("tours")
       .select(
         `
@@ -56,7 +58,10 @@ export async function routeRequest(
       .eq("enabled", true)
       .lte("start_date", today)
       .gte("end_date", today)
-      .order("start_date", { ascending: false }) as { data: TourWithConfigs[] | null; error: unknown };
+      .order("start_date", { ascending: false })) as {
+      data: TourWithConfigs[] | null;
+      error: unknown;
+    };
 
     if (toursError) {
       throw new Error(`Database error: ${(toursError as Error).message}`);
@@ -65,8 +70,8 @@ export async function routeRequest(
     if (!tours || tours.length === 0) {
       return createFallbackResult(
         request,
-        "no_active_tour",
-        `${DEFAULT_FALLBACK_URL}?artist=${encodeURIComponent(artist.name)}&ref=no_tour`,
+        "no_tour",
+        `${DEFAULT_FALLBACK_URL}?artist=${artist.slug}&ref=no_tour`,
         undefined,
         artist.id,
       );
@@ -79,8 +84,8 @@ export async function routeRequest(
     if (!countryCode) {
       return createFallbackResult(
         request,
-        "country_not_configured",
-        `${DEFAULT_FALLBACK_URL}?artist=${encodeURIComponent(artist.name)}&ref=no_country`,
+        "no_country",
+        `${DEFAULT_FALLBACK_URL}?artist=${artist.slug}&ref=no_country`,
         activeTour.id,
         artist.id,
       );
@@ -95,8 +100,8 @@ export async function routeRequest(
     if (!countryConfig) {
       return createFallbackResult(
         request,
-        "country_not_configured",
-        `${DEFAULT_FALLBACK_URL}?artist=${encodeURIComponent(artist.name)}&country=${countryCode}&ref=country_not_supported`,
+        "country_not_supported",
+        `${DEFAULT_FALLBACK_URL}?artist=${artist.slug}&country=${countryCode}&ref=country_not_supported`,
         activeTour.id,
         artist.id,
       );
@@ -111,26 +116,29 @@ export async function routeRequest(
       // Org not in view = not approved or doesn't exist
       return createFallbackResult(
         request,
-        "org_not_approved",
-        `${DEFAULT_FALLBACK_URL}?artist=${encodeURIComponent(artist.name)}&country=${countryCode}&ref=org_not_approved`,
+        "org_not_found",
+        `${DEFAULT_FALLBACK_URL}?artist=${artist.slug}&country=${countryCode}&ref=org_not_found`,
         activeTour.id,
         artist.id,
       );
     }
 
     // Check router_org_overrides table for router-specific controls
-    const { data: orgOverride } = await supabaseAdmin
+    const { data: orgOverride } = (await supabaseAdmin
       .from("router_org_overrides")
       .select("enabled")
       .eq("org_id", organization.id)
-      .single() as { data: Pick<RouterOrgOverride, "enabled"> | null; error: unknown };
+      .single()) as {
+      data: Pick<RouterOrgOverride, "enabled"> | null;
+      error: unknown;
+    };
 
     // If override exists and is disabled, route to fallback
     if (orgOverride && !orgOverride.enabled) {
       return createFallbackResult(
         request,
         "org_paused",
-        `${DEFAULT_FALLBACK_URL}?artist=${encodeURIComponent(artist.name)}&country=${countryCode}&ref=org_paused`,
+        `${DEFAULT_FALLBACK_URL}?artist=${artist.slug}&country=${countryCode}&ref=org_paused`,
         activeTour.id,
         artist.id,
       );
@@ -140,7 +148,7 @@ export async function routeRequest(
       return createFallbackResult(
         request,
         "org_no_website",
-        `${DEFAULT_FALLBACK_URL}?artist=${encodeURIComponent(artist.name)}&country=${countryCode}&ref=no_org_website`,
+        `${DEFAULT_FALLBACK_URL}?artist=${artist.slug}&country=${countryCode}&ref=org_no_website`,
         activeTour.id,
         artist.id,
       );
@@ -169,7 +177,7 @@ export async function routeRequest(
     console.error("Router error:", error);
     return createFallbackResult(
       request,
-      "artist_not_found", // Generic fallback for unexpected errors
+      "error",
       `${DEFAULT_FALLBACK_URL}?ref=error`,
     );
   }
@@ -191,7 +199,6 @@ function createFallbackResult(
       artist_slug: request.artistSlug,
       country_code: request.countryCode,
       tour_id: tourId,
-      fallback_reason: reason,
       destination_url: fallbackUrl,
     },
   };
@@ -211,7 +218,6 @@ async function logAnalytics(
       country_code: analytics.country_code,
       org_id: analytics.org_id,
       tour_id: analytics.tour_id,
-      fallback_reason: analytics.fallback_reason,
       destination_url: analytics.destination_url,
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -238,4 +244,3 @@ export function getCountryFromRequest(request: Request): string | undefined {
   // No reliable country detection available
   return undefined;
 }
-

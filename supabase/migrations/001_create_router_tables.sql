@@ -88,11 +88,12 @@ CREATE TABLE IF NOT EXISTS public.router_analytics (
     country_code VARCHAR(2),
     org_id UUID REFERENCES public.org(id),
     tour_id UUID REFERENCES public.tours(id),
-    fallback_reason VARCHAR(255), -- reason if routing fell back (e.g., "no_active_tour", "org_paused", "country_not_configured")
-    destination_url TEXT, -- final URL user was sent to
-    user_agent TEXT,
-    ip_address INET, -- for debugging, not for tracking users
-    session_id UUID DEFAULT gen_random_uuid(), -- anonymous session tracking
+    destination_url TEXT NOT NULL, -- final URL user was sent to (includes ref= param for fallback tracking)
+    -- Generated column extracts ref= value from destination_url for efficient querying
+    -- e.g., "https://example.com?ref=no_tour" -> "no_tour"
+    fallback_ref TEXT GENERATED ALWAYS AS (
+        substring(destination_url from 'ref=([^&]+)')
+    ) STORED,
     timestamp TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -126,6 +127,7 @@ CREATE INDEX IF NOT EXISTS idx_router_analytics_timestamp ON public.router_analy
 CREATE INDEX IF NOT EXISTS idx_router_analytics_artist_slug ON public.router_analytics(artist_slug);
 CREATE INDEX IF NOT EXISTS idx_router_analytics_country ON public.router_analytics(country_code);
 CREATE INDEX IF NOT EXISTS idx_router_analytics_org_id ON public.router_analytics(org_id);
+CREATE INDEX IF NOT EXISTS idx_router_analytics_fallback_ref ON public.router_analytics(fallback_ref);
 
 CREATE INDEX IF NOT EXISTS idx_router_org_overrides_org_id ON public.router_org_overrides(org_id);
 CREATE INDEX IF NOT EXISTS idx_router_org_overrides_enabled ON public.router_org_overrides(enabled);
@@ -159,6 +161,22 @@ DROP TRIGGER IF EXISTS set_router_org_overrides_updated_at ON public.router_org_
 CREATE TRIGGER set_router_org_overrides_updated_at
     BEFORE UPDATE ON public.router_org_overrides
     FOR EACH ROW EXECUTE PROCEDURE public.set_updated_at();
+
+-- Prevent artist slug modifications after creation (slug is used in URLs)
+CREATE OR REPLACE FUNCTION public.prevent_slug_update()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.slug IS DISTINCT FROM NEW.slug THEN
+        RAISE EXCEPTION 'Artist slug cannot be modified after creation';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS prevent_artist_slug_update ON public.artists;
+CREATE TRIGGER prevent_artist_slug_update
+    BEFORE UPDATE ON public.artists
+    FOR EACH ROW EXECUTE PROCEDURE public.prevent_slug_update();
 
 -- Prevent overlapping tours for the same artist
 -- Tours are considered overlapping if their active windows overlap

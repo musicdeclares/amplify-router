@@ -47,8 +47,8 @@ curl -I "http://localhost:3000/a/{slug}" -H "x-vercel-ip-country: {COUNTRY}"
 
 | Test | Command | Expected |
 |------|---------|----------|
-| Unknown artist | `curl -I "http://localhost:3000/a/unknown-artist"` | `?ref=unknown_artist` |
-| Disabled artist | `curl -I "http://localhost:3000/a/disabled-artist" -H "x-vercel-ip-country: US"` | `?ref=unknown_artist` |
+| Unknown artist | `curl -I "http://localhost:3000/a/unknown-artist"` | `?ref=artist_not_found` |
+| Disabled artist | `curl -I "http://localhost:3000/a/disabled-artist" -H "x-vercel-ip-country: US"` | `?ref=artist_not_found` |
 
 ### Tour Failures
 
@@ -71,8 +71,8 @@ curl -I "http://localhost:3000/a/{slug}" -H "x-vercel-ip-country: {COUNTRY}"
 | Test | Command | Expected |
 |------|---------|----------|
 | Org paused | `curl -I "http://localhost:3000/a/arctic-monkeys" -H "x-vercel-ip-country: DE"` | `?ref=org_paused` |
-| Org not approved | `curl -I "http://localhost:3000/a/gorillaz" -H "x-vercel-ip-country: JP"` | `?ref=org_not_approved` |
-| Org no website | `curl -I "http://localhost:3000/a/daft-punk" -H "x-vercel-ip-country: FR"` | `?ref=no_org_website` |
+| Org not found | `curl -I "http://localhost:3000/a/gorillaz" -H "x-vercel-ip-country: JP"` | `?ref=org_not_found` |
+| Org no website | `curl -I "http://localhost:3000/a/daft-punk" -H "x-vercel-ip-country: FR"` | `?ref=org_no_website` |
 
 ---
 
@@ -101,7 +101,7 @@ open http://127.0.0.1:54330
 
 # Or via psql
 psql postgresql://postgres:postgres@127.0.0.1:54332/postgres \
-  -c "SELECT artist_slug, country_code, reason_code, destination_url FROM router_analytics ORDER BY timestamp DESC LIMIT 10;"
+  -c "SELECT artist_slug, country_code, fallback_ref, destination_url FROM router_analytics ORDER BY timestamp DESC LIMIT 10;"
 ```
 
 ---
@@ -159,11 +159,11 @@ See `supabase/seed.sql` for the full list of test artists, tours, and configurat
 | Artist | Tour Status | Country | Org Status | Expected Result |
 |--------|-------------|---------|------------|-----------------|
 | radiohead | Active (2026) | US, GB | Approved | Success |
-| coldplay | Past (2024) | DE | Approved | no_active_tour |
-| billie-eilish | Future (2028) | AU | Approved | no_active_tour |
+| coldplay | Past (2024) | DE | Approved | no_tour |
+| billie-eilish | Future (2028) | AU | Approved | no_tour |
 | disabled-artist | Active | US | Approved | artist_not_found |
-| taylor-swift | Disabled | US | Approved | no_active_tour |
+| taylor-swift | Disabled | US | Approved | no_tour |
 | daft-punk | Active | FR | No website | org_no_website |
-| gorillaz | Active | JP | Pending | org_not_approved |
+| gorillaz | Active | JP | Pending | org_not_found |
 | arctic-monkeys | Active | DE | Paused | org_paused |
-| the-strokes | Active | US (disabled) | Approved | country_not_configured |
+| the-strokes | Active | US (disabled) | Approved | country_not_supported |

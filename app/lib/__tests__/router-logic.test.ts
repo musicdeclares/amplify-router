@@ -37,14 +37,12 @@ jest.mock("../supabase", () => ({
         return {
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
-          single: jest
-            .fn()
-            .mockImplementation(() =>
-              Promise.resolve({
-                data: mockState.artist,
-                error: mockState.artistError,
-              }),
-            ),
+          single: jest.fn().mockImplementation(() =>
+            Promise.resolve({
+              data: mockState.artist,
+              error: mockState.artistError,
+            }),
+          ),
         };
       }
       if (table === "tours") {
@@ -53,14 +51,12 @@ jest.mock("../supabase", () => ({
           eq: jest.fn().mockReturnThis(),
           lte: jest.fn().mockReturnThis(),
           gte: jest.fn().mockReturnThis(),
-          order: jest
-            .fn()
-            .mockImplementation(() =>
-              Promise.resolve({
-                data: mockState.tours,
-                error: mockState.toursError,
-              }),
-            ),
+          order: jest.fn().mockImplementation(() =>
+            Promise.resolve({
+              data: mockState.tours,
+              error: mockState.toursError,
+            }),
+          ),
         };
       }
       if (table === "router_org_overrides") {
@@ -255,7 +251,7 @@ describe("Router Logic", () => {
 
       expect(result.success).toBe(false);
       expect(result.fallbackReason).toBe("artist_not_found");
-      expect(result.destinationUrl).toContain("unknown_artist");
+      expect(result.destinationUrl).toContain("ref=artist_not_found");
     });
 
     it("should fallback when artist is disabled", async () => {
@@ -284,7 +280,7 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.fallbackReason).toBe("no_active_tour");
+      expect(result.fallbackReason).toBe("no_tour");
       expect(result.destinationUrl).toContain("no_tour");
     });
 
@@ -300,7 +296,7 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.fallbackReason).toBe("no_active_tour");
+      expect(result.fallbackReason).toBe("no_tour");
     });
 
     it("should fallback when tour dates are in the future", async () => {
@@ -315,7 +311,7 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.fallbackReason).toBe("no_active_tour");
+      expect(result.fallbackReason).toBe("no_tour");
     });
 
     it("should fallback when tour is disabled", async () => {
@@ -329,7 +325,7 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.fallbackReason).toBe("no_active_tour");
+      expect(result.fallbackReason).toBe("no_tour");
     });
   });
 
@@ -344,8 +340,8 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.fallbackReason).toBe("country_not_configured");
-      expect(result.destinationUrl).toContain("country_not_supported");
+      expect(result.fallbackReason).toBe("country_not_supported");
+      expect(result.destinationUrl).toContain("ref=country_not_supported");
     });
 
     it("should fallback when no country provided", async () => {
@@ -358,8 +354,8 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.fallbackReason).toBe("country_not_configured");
-      expect(result.destinationUrl).toContain("no_country");
+      expect(result.fallbackReason).toBe("no_country");
+      expect(result.destinationUrl).toContain("ref=no_country");
     });
 
     it("should fallback when tour country config is disabled", async () => {
@@ -378,7 +374,7 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.fallbackReason).toBe("country_not_configured");
+      expect(result.fallbackReason).toBe("country_not_supported");
     });
   });
 
@@ -417,7 +413,7 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.fallbackReason).toBe("org_not_approved");
+      expect(result.fallbackReason).toBe("org_not_found");
     });
 
     it("should fallback when org has no website", async () => {
@@ -439,7 +435,7 @@ describe("Router Logic", () => {
 
       expect(result.success).toBe(false);
       expect(result.fallbackReason).toBe("org_no_website");
-      expect(result.destinationUrl).toContain("no_org_website");
+      expect(result.destinationUrl).toContain("ref=org_no_website");
     });
 
     it("should succeed when org override exists but is enabled", async () => {
@@ -470,13 +466,14 @@ describe("Router Logic", () => {
       expect(result.analytics).toBeDefined();
       expect(result.analytics?.artist_slug).toBe("radiohead");
       expect(result.analytics?.country_code).toBe("US");
-      expect(result.analytics?.fallback_reason).toBeUndefined();
       expect(result.analytics?.org_id).toBe(
         "00000000-0000-0000-0000-000000000001",
       );
       expect(result.analytics?.tour_id).toBe(
         "aaaa1111-1111-1111-1111-111111111111",
       );
+      // No ref= param on success - destination is the org website
+      expect(result.analytics?.destination_url).toBe("https://example.com");
     });
 
     it("should include analytics data on fallback", async () => {
@@ -490,8 +487,10 @@ describe("Router Logic", () => {
 
       expect(result.analytics).toBeDefined();
       expect(result.analytics?.artist_slug).toBe("unknown");
-      expect(result.analytics?.fallback_reason).toBe("artist_not_found");
+      // fallback_ref is derived from destination_url ref= param (generated column in DB)
+      expect(result.analytics?.destination_url).toContain(
+        "ref=artist_not_found",
+      );
     });
   });
-
 });
