@@ -68,26 +68,30 @@ ON CONFLICT (id) DO NOTHING;
 
 -- =============================================================================
 -- TOURS
+-- Uses relative dates so test data stays valid over time:
+-- - Active tours: CURRENT_DATE - 30 days to CURRENT_DATE + 30 days
+-- - Past tours: 1 year ago (outside any post-window)
+-- - Future tours: 6 months from now (outside any pre-window)
 -- =============================================================================
 INSERT INTO public.tours (id, artist_id, name, start_date, end_date, pre_tour_window_days, post_tour_window_days, enabled) VALUES
--- Radiohead: Active tour (2026 is current year in test context)
-('aaaa1111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', 'Radiohead World Tour 2026', '2026-01-01', '2026-12-31', 7, 3, true),
--- Coldplay: Past tour (ended, outside post-window)
-('bbbb2222-2222-2222-2222-222222222222', '22222222-2222-2222-2222-222222222222', 'Coldplay Past Tour', '2024-01-01', '2024-06-30', 0, 0, true),
--- Billie Eilish: Future tour (hasn't started, outside pre-window)
-('cccc3333-3333-3333-3333-333333333333', '33333333-3333-3333-3333-333333333333', 'Billie Eilish Future Tour', '2028-03-01', '2028-09-30', 14, 7, true),
+-- Radiohead: Active tour (brackets current date)
+('aaaa1111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', 'Radiohead World Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true),
+-- Coldplay: Past tour (ended 1 year ago, outside post-window)
+('bbbb2222-2222-2222-2222-222222222222', '22222222-2222-2222-2222-222222222222', 'Coldplay Past Tour', CURRENT_DATE - INTERVAL '1 year' - INTERVAL '6 months', CURRENT_DATE - INTERVAL '1 year', 0, 0, true),
+-- Billie Eilish: Future tour (starts in 6 months, outside pre-window)
+('cccc3333-3333-3333-3333-333333333333', '33333333-3333-3333-3333-333333333333', 'Billie Eilish Future Tour', CURRENT_DATE + INTERVAL '6 months', CURRENT_DATE + INTERVAL '1 year', 14, 7, true),
 -- Disabled Artist: Has a tour but artist is disabled
-('dddd4444-4444-4444-4444-444444444444', '44444444-4444-4444-4444-444444444444', 'Disabled Artist Tour', '2026-01-01', '2026-12-31', 7, 3, true),
+('dddd4444-4444-4444-4444-444444444444', '44444444-4444-4444-4444-444444444444', 'Disabled Artist Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true),
 -- Taylor Swift: Tour exists but is disabled
-('eeee5555-5555-5555-5555-555555555555', '55555555-5555-5555-5555-555555555555', 'Taylor Swift Disabled Tour', '2026-01-01', '2026-12-31', 7, 3, false),
+('eeee5555-5555-5555-5555-555555555555', '55555555-5555-5555-5555-555555555555', 'Taylor Swift Disabled Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, false),
 -- Daft Punk: Tour with org that has no website
-('ffff6666-6666-6666-6666-666666666666', '66666666-6666-6666-6666-666666666666', 'Daft Punk Tour', '2026-01-01', '2026-12-31', 7, 3, true),
+('ffff6666-6666-6666-6666-666666666666', '66666666-6666-6666-6666-666666666666', 'Daft Punk Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true),
 -- Gorillaz: Tour with pending org (not in org_public_view)
-('aaaa7777-7777-7777-7777-777777777777', '77777777-7777-7777-7777-777777777777', 'Gorillaz Tour', '2026-01-01', '2026-12-31', 7, 3, true),
+('aaaa7777-7777-7777-7777-777777777777', '77777777-7777-7777-7777-777777777777', 'Gorillaz Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true),
 -- Arctic Monkeys: Tour with paused org override
-('bbbb8888-8888-8888-8888-888888888888', '88888888-8888-8888-8888-888888888888', 'Arctic Monkeys Tour', '2026-01-01', '2026-12-31', 7, 3, true),
+('bbbb8888-8888-8888-8888-888888888888', '88888888-8888-8888-8888-888888888888', 'Arctic Monkeys Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true),
 -- The Strokes: Tour with disabled country config
-('cccc9999-9999-9999-9999-999999999999', '99999999-9999-9999-9999-999999999999', 'The Strokes Tour', '2026-01-01', '2026-12-31', 7, 3, true)
+('cccc9999-9999-9999-9999-999999999999', '99999999-9999-9999-9999-999999999999', 'The Strokes Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true)
 ON CONFLICT (id) DO NOTHING;
 
 -- =============================================================================

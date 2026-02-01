@@ -57,6 +57,8 @@ CREATE TABLE IF NOT EXISTS public.tours (
     name VARCHAR(255) NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
+    pre_tour_window_days INTEGER DEFAULT 0,
+    post_tour_window_days INTEGER DEFAULT 0,
     enabled BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
@@ -156,11 +158,6 @@ CREATE TRIGGER set_tour_country_configs_updated_at
 DROP TRIGGER IF EXISTS set_router_org_overrides_updated_at ON public.router_org_overrides;
 CREATE TRIGGER set_router_org_overrides_updated_at
     BEFORE UPDATE ON public.router_org_overrides
-    FOR EACH ROW EXECUTE PROCEDURE public.set_updated_at();
-
-DROP TRIGGER IF EXISTS set_router_config_updated_at ON public.router_config;
-CREATE TRIGGER set_router_config_updated_at
-    BEFORE UPDATE ON public.router_config
     FOR EACH ROW EXECUTE PROCEDURE public.set_updated_at();
 
 -- Prevent overlapping tours for the same artist
