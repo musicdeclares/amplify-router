@@ -4,14 +4,19 @@ import {
   RouterResult,
   FallbackReason,
   TourWithConfigs,
+  Artist,
 } from "@/app/types/router";
+import { Database } from "@/app/types/database";
+
+type RouterOrgOverride = Database["public"]["Tables"]["router_org_overrides"]["Row"];
+type RouterAnalyticsInsert = Database["public"]["Tables"]["router_analytics"]["Insert"];
 
 const DEFAULT_FALLBACK_URL = "https://musicdeclares.net/amplify";
 
 export async function routeRequest(
   request: RouterRequest,
 ): Promise<RouterResult> {
-  const { artistSlug, countryCode, userAgent, ipAddress } = request;
+  const { artistSlug, countryCode } = request;
 
   try {
     // Step 1: Find the artist
@@ -19,8 +24,8 @@ export async function routeRequest(
       .from("artists")
       .select("*")
       .eq("slug", artistSlug)
-      .eq("active", true)
-      .single();
+      .eq("enabled", true)
+      .single() as { data: Artist | null; error: unknown };
 
     if (artistError || !artist) {
       return createFallbackResult(
@@ -31,7 +36,8 @@ export async function routeRequest(
     }
 
     // Step 2: Find active tour (considering pre/post windows)
-    const now = new Date();
+    // Use ISO date string (YYYY-MM-DD) for DATE column comparison
+    const today = new Date().toISOString().split("T")[0];
 
     // Note: We join org_public_view (not org) to match production access patterns.
     // The view only exposes approved orgs and hides sensitive fields.
@@ -47,13 +53,13 @@ export async function routeRequest(
       `,
       )
       .eq("artist_id", artist.id)
-      .eq("active", true)
-      .lte("start_date", now)
-      .gte("end_date", now)
-      .order("start_date", { ascending: false });
+      .eq("enabled", true)
+      .lte("start_date", today)
+      .gte("end_date", today)
+      .order("start_date", { ascending: false }) as { data: TourWithConfigs[] | null; error: unknown };
 
     if (toursError) {
-      throw new Error(`Database error: ${toursError.message}`);
+      throw new Error(`Database error: ${(toursError as Error).message}`);
     }
 
     if (!tours || tours.length === 0) {
@@ -83,7 +89,7 @@ export async function routeRequest(
     const countryConfig = activeTour.tour_country_configs.find(
       (config) =>
         config.country_code.toLowerCase() === countryCode.toLowerCase() &&
-        config.active,
+        config.enabled,
     );
 
     if (!countryConfig) {
@@ -106,8 +112,7 @@ export async function routeRequest(
       return createFallbackResult(
         request,
         "org_not_approved",
-        `${fallbackUrl}?artist=${encodeURIComponent(artist.name)}&country=${countryCode}&ref=org_not_approved`,
-        fallbackUrl,
+        `${DEFAULT_FALLBACK_URL}?artist=${encodeURIComponent(artist.name)}&country=${countryCode}&ref=org_not_approved`,
         activeTour.id,
         artist.id,
       );
@@ -118,7 +123,7 @@ export async function routeRequest(
       .from("router_org_overrides")
       .select("enabled")
       .eq("org_id", organization.id)
-      .single();
+      .single() as { data: Pick<RouterOrgOverride, "enabled"> | null; error: unknown };
 
     // If override exists and is disabled, route to fallback
     if (orgOverride && !orgOverride.enabled) {
@@ -135,8 +140,7 @@ export async function routeRequest(
       return createFallbackResult(
         request,
         "org_no_website",
-        `${fallbackUrl}?artist=${encodeURIComponent(artist.name)}&country=${countryCode}&ref=no_org_website`,
-        fallbackUrl,
+        `${DEFAULT_FALLBACK_URL}?artist=${encodeURIComponent(artist.name)}&country=${countryCode}&ref=no_org_website`,
         activeTour.id,
         artist.id,
       );
@@ -154,8 +158,6 @@ export async function routeRequest(
         org_id: organization.id,
         tour_id: activeTour.id,
         destination_url: organization.website,
-        user_agent: userAgent,
-        ip_address: ipAddress,
       },
     };
 
@@ -178,7 +180,7 @@ function createFallbackResult(
   reason: FallbackReason,
   fallbackUrl: string,
   tourId?: string,
-  artistId?: string,
+  _artistId?: string,
 ): RouterResult {
   const result: RouterResult = {
     success: false,
@@ -191,8 +193,6 @@ function createFallbackResult(
       tour_id: tourId,
       fallback_reason: reason,
       destination_url: fallbackUrl,
-      user_agent: request.userAgent,
-      ip_address: request.ipAddress,
     },
   };
 
@@ -206,7 +206,16 @@ async function logAnalytics(
   analytics: RouterResult["analytics"],
 ): Promise<void> {
   try {
-    await supabaseAdmin.from("router_analytics").insert(analytics);
+    const insertData: RouterAnalyticsInsert = {
+      artist_slug: analytics.artist_slug,
+      country_code: analytics.country_code,
+      org_id: analytics.org_id,
+      tour_id: analytics.tour_id,
+      fallback_reason: analytics.fallback_reason,
+      destination_url: analytics.destination_url,
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabaseAdmin.from("router_analytics") as any).insert(insertData);
   } catch (error) {
     console.error("Analytics logging error:", error);
     // Don't throw - analytics failures shouldn't break routing
@@ -230,22 +239,3 @@ export function getCountryFromRequest(request: Request): string | undefined {
   return undefined;
 }
 
-export function getClientIP(request: Request): string | undefined {
-  // Try various headers for client IP
-  const forwardedFor = request.headers.get("x-forwarded-for");
-  if (forwardedFor) {
-    return forwardedFor.split(",")[0].trim();
-  }
-
-  const realIP = request.headers.get("x-real-ip");
-  if (realIP) {
-    return realIP;
-  }
-
-  const vercelForwardedFor = request.headers.get("x-vercel-forwarded-for");
-  if (vercelForwardedFor) {
-    return vercelForwardedFor.split(",")[0].trim();
-  }
-
-  return undefined;
-}

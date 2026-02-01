@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/app/lib/supabase'
+import { Database } from '@/app/types/database'
+
+type Organization = Database["public"]["Tables"]["org"]["Row"]
+type RouterOrgOverride = Database["public"]["Tables"]["router_org_overrides"]["Row"]
 
 export async function GET(
   request: NextRequest,
@@ -8,10 +12,10 @@ export async function GET(
   const { id } = await params
   try {
     const { data: organization, error } = await supabaseAdmin
-      .from('organizations')
+      .from('org')
       .select('*')
       .eq('id', id)
-      .single()
+      .single() as { data: Organization | null; error: { code?: string; message?: string } | null }
 
     if (error) {
       if (error.code === 'PGRST116') {
@@ -23,15 +27,12 @@ export async function GET(
       throw error
     }
 
-<<<<<<< Updated upstream
-    return NextResponse.json({ organization })
-=======
     // Fetch router override if exists
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: override } = await (supabaseAdmin.from('router_org_overrides') as any)
+    const { data: override } = await supabaseAdmin
+      .from('router_org_overrides')
       .select('enabled, reason')
       .eq('org_id', id)
-      .single()
+      .single() as { data: Pick<RouterOrgOverride, 'enabled' | 'reason'> | null; error: unknown }
 
     return NextResponse.json({
       organization: {
@@ -40,7 +41,6 @@ export async function GET(
         router_pause_reason: override?.reason ?? null
       }
     })
->>>>>>> Stashed changes
   } catch (error) {
     console.error('Error fetching organization:', error)
     return NextResponse.json(
@@ -56,33 +56,16 @@ export async function PUT(
 ) {
   const { id } = await params
   try {
-    const updates = await request.json()
-    delete updates.id
-    delete updates.created_at
+    const body = await request.json()
+    const { enabled, reason } = body
 
-    // Only allow router-specific updates for now
-    // (prevents accidentally modifying MDEDB data)
-    const allowedFields = ['router_active']
-    const routerUpdates = Object.keys(updates)
-      .filter(key => allowedFields.includes(key))
-      .reduce((obj, key) => {
-        obj[key] = updates[key]
-        return obj
-      }, {} as any)
-
-    if (Object.keys(routerUpdates).length === 0) {
+    if (typeof enabled !== 'boolean') {
       return NextResponse.json(
-        { error: 'No valid updates provided. Only router_active can be updated.' },
+        { error: 'enabled field (boolean) is required' },
         { status: 400 }
       )
     }
 
-<<<<<<< Updated upstream
-    const { data: organization, error } = await supabaseAdmin
-      .from('organizations')
-      .update(routerUpdates)
-      .eq('id', params.id)
-=======
     // Upsert router_org_override
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: override, error } = await (supabaseAdmin.from('router_org_overrides') as any)
@@ -91,29 +74,19 @@ export async function PUT(
         enabled,
         reason: reason || null
       }, { onConflict: 'org_id' })
->>>>>>> Stashed changes
       .select()
-      .single()
+      .single() as { data: RouterOrgOverride | null; error: unknown }
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        return NextResponse.json(
-          { error: 'Organization not found' },
-          { status: 404 }
-        )
-      }
       throw error
     }
 
-<<<<<<< Updated upstream
-    return NextResponse.json({ organization })
-=======
     // Fetch the org to return complete data
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: organization } = await (supabaseAdmin.from('org') as any)
+    const { data: organization } = await supabaseAdmin
+      .from('org')
       .select('*')
       .eq('id', id)
-      .single()
+      .single() as { data: Organization | null; error: unknown }
 
     return NextResponse.json({
       organization: {
@@ -122,7 +95,6 @@ export async function PUT(
         router_pause_reason: override?.reason
       }
     })
->>>>>>> Stashed changes
   } catch (error) {
     console.error('Error updating organization:', error)
     return NextResponse.json(

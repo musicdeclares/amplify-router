@@ -30,4 +30,4 @@ export async function GET(
   }
 }
 
-export const runtime = 'edge'
+// export const runtime = 'edge' // Disabled: Supabase admin client requires Node.js runtime
