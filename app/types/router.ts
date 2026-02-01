@@ -11,8 +11,6 @@ export type RouterAnalytics =
 export interface RouterRequest {
   artistSlug: string;
   countryCode?: string;
-  userAgent?: string;
-  ipAddress?: string;
 }
 
 export interface RouterResult {
@@ -28,8 +26,6 @@ export interface RouterResult {
     tour_id?: string;
     fallback_reason?: string;
     destination_url: string;
-    user_agent?: string;
-    ip_address?: string;
   };
 }
 
@@ -37,7 +33,7 @@ export type FallbackReason =
   | "artist_not_found"
   | "no_active_tour"
   | "country_not_configured"
-  | "org_not_active"
+  | "org_not_approved"
   | "org_paused"
   | "org_no_website";
 

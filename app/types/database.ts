@@ -112,7 +112,7 @@ export interface Database {
           country_code: string | null
           org_id: string | null
           tour_id: string | null
-          reason_code: string | null
+          fallback_reason: string | null
           destination_url: string | null
           timestamp: string
         }
@@ -122,7 +122,7 @@ export interface Database {
           country_code?: string | null
           org_id?: string | null
           tour_id?: string | null
-          reason_code?: string | null
+          fallback_reason?: string | null
           destination_url?: string | null
           timestamp?: string
         }
@@ -132,7 +132,7 @@ export interface Database {
           country_code?: string | null
           org_id?: string | null
           tour_id?: string | null
-          reason_code?: string | null
+          fallback_reason?: string | null
           destination_url?: string | null
           timestamp?: string
         }
@@ -253,7 +253,21 @@ export interface Database {
       }
     }
     Views: {
-      [_ in never]: never
+      org_public_view: {
+        Row: {
+          id: string
+          org_name: string
+          country_code: string
+          website: string | null
+          type_of_work: string | null
+          mission_statement: string | null
+          instagram: string | null
+          twitter: string | null
+          facebook: string | null
+          linkedin: string | null
+          tags: string[] | null
+        }
+      }
     }
     Functions: {
       [_ in never]: never
