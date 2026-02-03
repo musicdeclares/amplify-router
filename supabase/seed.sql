@@ -133,6 +133,110 @@ INSERT INTO public.router_org_overrides (id, org_id, enabled, reason) VALUES
 ('ffff4444-4444-4444-4444-444444444444', '00000000-0000-0000-0000-000000000003', false, 'Testing pause functionality')
 ON CONFLICT (org_id) DO UPDATE SET enabled = false, reason = 'Testing pause functionality';
 
+-- =============================================================================
+-- ANALYTICS SEED DATA
+-- Simulates ~70 routing events across the last 14 days for dashboard testing
+-- Uses CURRENT_DATE offsets so data stays valid over time
+-- fallback_ref is a GENERATED column — it extracts the ref= param from destination_url
+-- =============================================================================
+INSERT INTO public.router_analytics (id, artist_handle, country_code, org_id, tour_id, destination_url, override_org_fallthrough, attempted_override_org_id, timestamp) VALUES
+-- === SUCCESSFUL ROUTES (no ref= param → fallback_ref will be NULL) ===
+-- Radiohead US success (artist override) — spread across days
+('aa000000-0000-0000-0000-000000000001', 'radiohead', 'US', '00000000-0000-0000-0000-000000000001', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.com', false, NULL, CURRENT_TIMESTAMP - INTERVAL '1 day'),
+('aa000000-0000-0000-0000-000000000002', 'radiohead', 'US', '00000000-0000-0000-0000-000000000001', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.com', false, NULL, CURRENT_TIMESTAMP - INTERVAL '1 day' - INTERVAL '3 hours'),
+('aa000000-0000-0000-0000-000000000003', 'radiohead', 'US', '00000000-0000-0000-0000-000000000001', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.com', false, NULL, CURRENT_TIMESTAMP - INTERVAL '2 days'),
+('aa000000-0000-0000-0000-000000000004', 'radiohead', 'US', '00000000-0000-0000-0000-000000000001', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.com', false, NULL, CURRENT_TIMESTAMP - INTERVAL '3 days'),
+('aa000000-0000-0000-0000-000000000005', 'radiohead', 'US', '00000000-0000-0000-0000-000000000001', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.com', false, NULL, CURRENT_TIMESTAMP - INTERVAL '4 days'),
+('aa000000-0000-0000-0000-000000000006', 'radiohead', 'US', '00000000-0000-0000-0000-000000000001', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.com', false, NULL, CURRENT_TIMESTAMP - INTERVAL '5 days'),
+-- Radiohead GB success (artist override)
+('aa000000-0000-0000-0000-000000000007', 'radiohead', 'GB', '00000000-0000-0000-0000-000000000002', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.co.uk', false, NULL, CURRENT_TIMESTAMP - INTERVAL '1 day'),
+('aa000000-0000-0000-0000-000000000008', 'radiohead', 'GB', '00000000-0000-0000-0000-000000000002', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.co.uk', false, NULL, CURRENT_TIMESTAMP - INTERVAL '2 days'),
+('aa000000-0000-0000-0000-000000000009', 'radiohead', 'GB', '00000000-0000-0000-0000-000000000002', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.co.uk', false, NULL, CURRENT_TIMESTAMP - INTERVAL '3 days'),
+('aa000000-0000-0000-0000-000000000010', 'radiohead', 'GB', '00000000-0000-0000-0000-000000000002', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.co.uk', false, NULL, CURRENT_TIMESTAMP - INTERVAL '6 days'),
+-- Tame Impala US success (MDE default)
+('aa000000-0000-0000-0000-000000000011', 'tame-impala', 'US', '00000000-0000-0000-0000-000000000007', 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'https://mde-default-us.org', false, NULL, CURRENT_TIMESTAMP - INTERVAL '1 day'),
+('aa000000-0000-0000-0000-000000000012', 'tame-impala', 'US', '00000000-0000-0000-0000-000000000007', 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'https://mde-default-us.org', false, NULL, CURRENT_TIMESTAMP - INTERVAL '2 days'),
+('aa000000-0000-0000-0000-000000000013', 'tame-impala', 'US', '00000000-0000-0000-0000-000000000007', 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'https://mde-default-us.org', false, NULL, CURRENT_TIMESTAMP - INTERVAL '4 days'),
+('aa000000-0000-0000-0000-000000000014', 'tame-impala', 'US', '00000000-0000-0000-0000-000000000007', 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'https://mde-default-us.org', false, NULL, CURRENT_TIMESTAMP - INTERVAL '7 days'),
+-- Tame Impala GB success (MDE default)
+('aa000000-0000-0000-0000-000000000015', 'tame-impala', 'GB', '00000000-0000-0000-0000-000000000008', 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'https://mde-default-gb.org', false, NULL, CURRENT_TIMESTAMP - INTERVAL '1 day'),
+('aa000000-0000-0000-0000-000000000016', 'tame-impala', 'GB', '00000000-0000-0000-0000-000000000008', 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'https://mde-default-gb.org', false, NULL, CURRENT_TIMESTAMP - INTERVAL '3 days'),
+('aa000000-0000-0000-0000-000000000017', 'tame-impala', 'GB', '00000000-0000-0000-0000-000000000008', 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'https://mde-default-gb.org', false, NULL, CURRENT_TIMESTAMP - INTERVAL '5 days'),
+-- Gorillaz US success (fallthrough to MDE default — override org failed)
+('aa000000-0000-0000-0000-000000000018', 'gorillaz', 'US', '00000000-0000-0000-0000-000000000007', 'aaaa7777-7777-7777-7777-777777777777', 'https://mde-default-us.org', true, '00000000-0000-0000-0000-000000000005', CURRENT_TIMESTAMP - INTERVAL '2 days'),
+('aa000000-0000-0000-0000-000000000019', 'gorillaz', 'US', '00000000-0000-0000-0000-000000000007', 'aaaa7777-7777-7777-7777-777777777777', 'https://mde-default-us.org', true, '00000000-0000-0000-0000-000000000005', CURRENT_TIMESTAMP - INTERVAL '5 days'),
+-- The Strokes US success (inactive override → MDE default)
+('aa000000-0000-0000-0000-000000000020', 'the-strokes', 'US', '00000000-0000-0000-0000-000000000007', 'cccc9999-9999-9999-9999-999999999999', 'https://mde-default-us.org', false, NULL, CURRENT_TIMESTAMP - INTERVAL '3 days'),
+('aa000000-0000-0000-0000-000000000021', 'the-strokes', 'US', '00000000-0000-0000-0000-000000000007', 'cccc9999-9999-9999-9999-999999999999', 'https://mde-default-us.org', false, NULL, CURRENT_TIMESTAMP - INTERVAL '8 days'),
+-- Bjork IS success routes from older dates
+('aa000000-0000-0000-0000-000000000022', 'bjork', 'GB', '00000000-0000-0000-0000-000000000008', 'eeeebbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'https://mde-default-gb.org', false, NULL, CURRENT_TIMESTAMP - INTERVAL '9 days'),
+-- Arctic Monkeys DE success (from before org was paused, historic data)
+('aa000000-0000-0000-0000-000000000023', 'arctic-monkeys', 'DE', '00000000-0000-0000-0000-000000000003', 'bbbb8888-8888-8888-8888-888888888888', 'https://example.de', false, NULL, CURRENT_TIMESTAMP - INTERVAL '12 days'),
+('aa000000-0000-0000-0000-000000000024', 'arctic-monkeys', 'DE', '00000000-0000-0000-0000-000000000003', 'bbbb8888-8888-8888-8888-888888888888', 'https://example.de', false, NULL, CURRENT_TIMESTAMP - INTERVAL '13 days'),
+-- More Radiohead routes spread across older dates for trend chart shape
+('aa000000-0000-0000-0000-000000000025', 'radiohead', 'US', '00000000-0000-0000-0000-000000000001', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.com', false, NULL, CURRENT_TIMESTAMP - INTERVAL '7 days'),
+('aa000000-0000-0000-0000-000000000026', 'radiohead', 'US', '00000000-0000-0000-0000-000000000001', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.com', false, NULL, CURRENT_TIMESTAMP - INTERVAL '8 days'),
+('aa000000-0000-0000-0000-000000000027', 'radiohead', 'US', '00000000-0000-0000-0000-000000000001', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.com', false, NULL, CURRENT_TIMESTAMP - INTERVAL '8 days' - INTERVAL '6 hours'),
+('aa000000-0000-0000-0000-000000000028', 'radiohead', 'GB', '00000000-0000-0000-0000-000000000002', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.co.uk', false, NULL, CURRENT_TIMESTAMP - INTERVAL '9 days'),
+('aa000000-0000-0000-0000-000000000029', 'radiohead', 'GB', '00000000-0000-0000-0000-000000000002', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.co.uk', false, NULL, CURRENT_TIMESTAMP - INTERVAL '10 days'),
+('aa000000-0000-0000-0000-000000000030', 'radiohead', 'US', '00000000-0000-0000-0000-000000000001', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.com', false, NULL, CURRENT_TIMESTAMP - INTERVAL '10 days'),
+('aa000000-0000-0000-0000-000000000031', 'radiohead', 'US', '00000000-0000-0000-0000-000000000001', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.com', false, NULL, CURRENT_TIMESTAMP - INTERVAL '11 days'),
+('aa000000-0000-0000-0000-000000000032', 'radiohead', 'GB', '00000000-0000-0000-0000-000000000002', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.co.uk', false, NULL, CURRENT_TIMESTAMP - INTERVAL '11 days'),
+('aa000000-0000-0000-0000-000000000033', 'tame-impala', 'US', '00000000-0000-0000-0000-000000000007', 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'https://mde-default-us.org', false, NULL, CURRENT_TIMESTAMP - INTERVAL '9 days'),
+('aa000000-0000-0000-0000-000000000034', 'tame-impala', 'GB', '00000000-0000-0000-0000-000000000008', 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'https://mde-default-gb.org', false, NULL, CURRENT_TIMESTAMP - INTERVAL '10 days'),
+('aa000000-0000-0000-0000-000000000035', 'tame-impala', 'US', '00000000-0000-0000-0000-000000000007', 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'https://mde-default-us.org', false, NULL, CURRENT_TIMESTAMP - INTERVAL '12 days'),
+('aa000000-0000-0000-0000-000000000036', 'gorillaz', 'US', '00000000-0000-0000-0000-000000000007', 'aaaa7777-7777-7777-7777-777777777777', 'https://mde-default-us.org', true, '00000000-0000-0000-0000-000000000005', CURRENT_TIMESTAMP - INTERVAL '10 days'),
+('aa000000-0000-0000-0000-000000000037', 'the-strokes', 'US', '00000000-0000-0000-0000-000000000007', 'cccc9999-9999-9999-9999-999999999999', 'https://mde-default-us.org', false, NULL, CURRENT_TIMESTAMP - INTERVAL '11 days'),
+('aa000000-0000-0000-0000-000000000038', 'tame-impala', 'AU', '00000000-0000-0000-0000-000000000006', 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'https://example.com.au', false, NULL, CURRENT_TIMESTAMP - INTERVAL '6 days'),
+('aa000000-0000-0000-0000-000000000039', 'tame-impala', 'AU', '00000000-0000-0000-0000-000000000006', 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'https://example.com.au', false, NULL, CURRENT_TIMESTAMP - INTERVAL '13 days'),
+('aa000000-0000-0000-0000-000000000040', 'radiohead', 'US', '00000000-0000-0000-0000-000000000001', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.com', false, NULL, CURRENT_TIMESTAMP - INTERVAL '14 days'),
+
+-- === FALLBACK EVENTS (destination_url contains ref= → fallback_ref is generated) ===
+-- artist_not_found
+('aa000000-0000-0000-0000-000000000041', 'unknown-artist', NULL, NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?ref=artist_not_found', false, NULL, CURRENT_TIMESTAMP - INTERVAL '1 day'),
+('aa000000-0000-0000-0000-000000000042', 'typo-artsit', NULL, NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?ref=artist_not_found', false, NULL, CURRENT_TIMESTAMP - INTERVAL '4 days'),
+('aa000000-0000-0000-0000-000000000043', 'inactive-artist', NULL, NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?ref=artist_not_found', false, NULL, CURRENT_TIMESTAMP - INTERVAL '7 days'),
+-- no_tour
+('aa000000-0000-0000-0000-000000000044', 'coldplay', 'DE', NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?artist=coldplay&ref=no_tour', false, NULL, CURRENT_TIMESTAMP - INTERVAL '2 days'),
+('aa000000-0000-0000-0000-000000000045', 'billie-eilish', 'AU', NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?artist=billie-eilish&ref=no_tour', false, NULL, CURRENT_TIMESTAMP - INTERVAL '3 days'),
+('aa000000-0000-0000-0000-000000000046', 'taylor-swift', 'US', NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?artist=taylor-swift&ref=no_tour', false, NULL, CURRENT_TIMESTAMP - INTERVAL '6 days'),
+('aa000000-0000-0000-0000-000000000047', 'coldplay', 'GB', NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?artist=coldplay&ref=no_tour', false, NULL, CURRENT_TIMESTAMP - INTERVAL '9 days'),
+-- no_country
+('aa000000-0000-0000-0000-000000000048', 'radiohead', NULL, NULL, 'aaaa1111-1111-1111-1111-111111111111', 'https://www.musicdeclares.net/us/take-action/amplify?artist=radiohead&ref=no_country', false, NULL, CURRENT_TIMESTAMP - INTERVAL '1 day'),
+('aa000000-0000-0000-0000-000000000049', 'tame-impala', NULL, NULL, 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'https://www.musicdeclares.net/us/take-action/amplify?artist=tame-impala&ref=no_country', false, NULL, CURRENT_TIMESTAMP - INTERVAL '5 days'),
+-- org_not_specified
+('aa000000-0000-0000-0000-000000000050', 'bjork', 'IS', NULL, 'eeeebbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'https://www.musicdeclares.net/us/take-action/amplify?artist=bjork&country=IS&ref=org_not_specified', false, NULL, CURRENT_TIMESTAMP - INTERVAL '1 day'),
+('aa000000-0000-0000-0000-000000000051', 'bjork', 'IS', NULL, 'eeeebbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'https://www.musicdeclares.net/us/take-action/amplify?artist=bjork&country=IS&ref=org_not_specified', false, NULL, CURRENT_TIMESTAMP - INTERVAL '3 days'),
+('aa000000-0000-0000-0000-000000000052', 'radiohead', 'JP', NULL, 'aaaa1111-1111-1111-1111-111111111111', 'https://www.musicdeclares.net/us/take-action/amplify?artist=radiohead&country=JP&ref=org_not_specified', false, NULL, CURRENT_TIMESTAMP - INTERVAL '8 days'),
+-- org_paused
+('aa000000-0000-0000-0000-000000000053', 'arctic-monkeys', 'DE', NULL, 'bbbb8888-8888-8888-8888-888888888888', 'https://www.musicdeclares.net/us/take-action/amplify?artist=arctic-monkeys&country=DE&ref=org_paused', false, NULL, CURRENT_TIMESTAMP - INTERVAL '2 days'),
+('aa000000-0000-0000-0000-000000000054', 'arctic-monkeys', 'DE', NULL, 'bbbb8888-8888-8888-8888-888888888888', 'https://www.musicdeclares.net/us/take-action/amplify?artist=arctic-monkeys&country=DE&ref=org_paused', false, NULL, CURRENT_TIMESTAMP - INTERVAL '6 days'),
+-- org_no_website
+('aa000000-0000-0000-0000-000000000055', 'daft-punk', 'FR', NULL, 'ffff6666-6666-6666-6666-666666666666', 'https://www.musicdeclares.net/us/take-action/amplify?artist=daft-punk&country=FR&ref=org_no_website', false, NULL, CURRENT_TIMESTAMP - INTERVAL '3 days'),
+('aa000000-0000-0000-0000-000000000056', 'daft-punk', 'FR', NULL, 'ffff6666-6666-6666-6666-666666666666', 'https://www.musicdeclares.net/us/take-action/amplify?artist=daft-punk&country=FR&ref=org_no_website', false, NULL, CURRENT_TIMESTAMP - INTERVAL '7 days'),
+-- org_not_found (org exists but not in org_public_view — e.g. pending approval)
+('aa000000-0000-0000-0000-000000000057', 'gorillaz', 'US', NULL, 'aaaa7777-7777-7777-7777-777777777777', 'https://www.musicdeclares.net/us/take-action/amplify?artist=gorillaz&country=US&ref=org_not_found', true, '00000000-0000-0000-0000-000000000005', CURRENT_TIMESTAMP - INTERVAL '11 days'),
+-- error
+('aa000000-0000-0000-0000-000000000058', 'radiohead', 'US', NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?ref=error', false, NULL, CURRENT_TIMESTAMP - INTERVAL '10 days'),
+-- Additional successful routes for volume/shape
+('aa000000-0000-0000-0000-000000000059', 'radiohead', 'US', '00000000-0000-0000-0000-000000000001', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.com', false, NULL, CURRENT_TIMESTAMP - INTERVAL '2 days' - INTERVAL '5 hours'),
+('aa000000-0000-0000-0000-000000000060', 'radiohead', 'GB', '00000000-0000-0000-0000-000000000002', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.co.uk', false, NULL, CURRENT_TIMESTAMP - INTERVAL '4 days'),
+('aa000000-0000-0000-0000-000000000061', 'tame-impala', 'US', '00000000-0000-0000-0000-000000000007', 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'https://mde-default-us.org', false, NULL, CURRENT_TIMESTAMP - INTERVAL '6 days'),
+('aa000000-0000-0000-0000-000000000062', 'radiohead', 'US', '00000000-0000-0000-0000-000000000001', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.com', false, NULL, CURRENT_TIMESTAMP - INTERVAL '12 days'),
+('aa000000-0000-0000-0000-000000000063', 'tame-impala', 'GB', '00000000-0000-0000-0000-000000000008', 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'https://mde-default-gb.org', false, NULL, CURRENT_TIMESTAMP - INTERVAL '7 days'),
+('aa000000-0000-0000-0000-000000000064', 'radiohead', 'US', '00000000-0000-0000-0000-000000000001', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.com', false, NULL, CURRENT_TIMESTAMP - INTERVAL '13 days'),
+('aa000000-0000-0000-0000-000000000065', 'radiohead', 'GB', '00000000-0000-0000-0000-000000000002', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.co.uk', false, NULL, CURRENT_TIMESTAMP - INTERVAL '14 days'),
+-- More fallbacks for additional shape
+('aa000000-0000-0000-0000-000000000066', 'bjork', 'IS', NULL, 'eeeebbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'https://www.musicdeclares.net/us/take-action/amplify?artist=bjork&country=IS&ref=org_not_specified', false, NULL, CURRENT_TIMESTAMP - INTERVAL '10 days'),
+('aa000000-0000-0000-0000-000000000067', 'coldplay', 'US', NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?artist=coldplay&ref=no_tour', false, NULL, CURRENT_TIMESTAMP - INTERVAL '12 days'),
+('aa000000-0000-0000-0000-000000000068', 'arctic-monkeys', 'DE', NULL, 'bbbb8888-8888-8888-8888-888888888888', 'https://www.musicdeclares.net/us/take-action/amplify?artist=arctic-monkeys&country=DE&ref=org_paused', false, NULL, CURRENT_TIMESTAMP - INTERVAL '11 days'),
+('aa000000-0000-0000-0000-000000000069', 'unknown-band', NULL, NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?ref=artist_not_found', false, NULL, CURRENT_TIMESTAMP - INTERVAL '13 days'),
+('aa000000-0000-0000-0000-000000000070', 'daft-punk', 'FR', NULL, 'ffff6666-6666-6666-6666-666666666666', 'https://www.musicdeclares.net/us/take-action/amplify?artist=daft-punk&country=FR&ref=org_no_website', false, NULL, CURRENT_TIMESTAMP - INTERVAL '14 days'),
+-- Recent org_not_found and error events (within default 7-day window)
+('aa000000-0000-0000-0000-000000000071', 'gorillaz', 'US', NULL, 'aaaa7777-7777-7777-7777-777777777777', 'https://www.musicdeclares.net/us/take-action/amplify?artist=gorillaz&country=US&ref=org_not_found', true, '00000000-0000-0000-0000-000000000005', CURRENT_TIMESTAMP - INTERVAL '2 days'),
+('aa000000-0000-0000-0000-000000000072', 'radiohead', 'US', NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?ref=error', false, NULL, CURRENT_TIMESTAMP - INTERVAL '4 days')
+ON CONFLICT (id) DO NOTHING;
+
 -- Copy of production org db for local testing
 INSERT INTO "public"."org" ("id", "org_name", "country_code", "website", "contact", "email", "type_of_work", "mission_statement", "years_active", "notable_success", "capacity", "cta_notes", "logo", "tags", "approval_status", "created_at", "updated_at", "created_by", "updated_by", "banner", "instagram", "twitter", "facebook", "tiktok", "linkedin", "youtube") VALUES ('0504e745-51cb-4909-8cf2-87fc934cf1d8', 'Amnesty International Canada', 'CA', 'https://amnesty.ca/', null, 'media@amnesty.ca', 'Human rights advocacy, including environmental justice', 'Works to protect human rights globally', '1961–present
 ', 'Policy wins, global campaigns, Nobel Peace Prize organization', null, 'https://amnesty.ca/what-you-can-do/
