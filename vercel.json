@@ -1,6 +1,6 @@
 {
   "functions": {
-    "app/api/a/[slug]/route.ts": {
+    "app/api/a/[handle]/route.ts": {
       "runtime": "@vercel/edge"
     }
   },
