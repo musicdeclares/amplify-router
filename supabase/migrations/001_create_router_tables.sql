@@ -31,13 +31,6 @@ CREATE TABLE IF NOT EXISTS public.org (
     updated_by VARCHAR(255)
 );
 
--- Add some test data for development
-INSERT INTO public.org (id, org_name, country_code, website, approval_status) VALUES
-('00000000-0000-0000-0000-000000000001', 'Test Climate Org US', 'US', 'https://example.com', 'approved'),
-('00000000-0000-0000-0000-000000000002', 'Test Climate Org UK', 'GB', 'https://example.co.uk', 'approved'),
-('00000000-0000-0000-0000-000000000003', 'Test Climate Org DE', 'DE', 'https://example.de', 'approved')
-ON CONFLICT (id) DO NOTHING;
-
 -- Create org_public_view if it doesn't exist (for local development)
 -- In production, this view is created and maintained by MDEDB
 -- This block is safe for production - it won't touch anything if the view already exists

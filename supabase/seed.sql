@@ -1,42 +1,15 @@
 -- Test data for local development
--- Run this after applying the migration
-
--- Create org_public_view to simulate production access patterns
--- In production, the router only has access to this view (not the org table directly)
--- This view only exposes approved orgs and hides sensitive fields
-CREATE OR REPLACE VIEW public.org_public_view AS
-SELECT
-    id,
-    org_name,
-    country_code,
-    website,
-    type_of_work,
-    mission_statement,
-    years_active,
-    notable_success,
-    capacity,
-    cta_notes,
-    logo,
-    tags,
-    banner,
-    instagram,
-    twitter,
-    facebook,
-    tiktok,
-    linkedin,
-    youtube,
-    created_at,
-    updated_at
-FROM org
-WHERE approval_status = 'approved';
+-- Run this after applying the migration (via `supabase db reset`)
+-- Note: org_public_view is created by the migration (IF NOT EXISTS)
 
 -- =============================================================================
--- EDGE CASE TEST DATA
--- Each artist/tour combination tests a specific routing scenario
+-- TEST ORGANIZATIONS
+-- These simulate the orgs that exist in MDEDB's org table on prod
 -- =============================================================================
-
--- Test orgs for edge cases (in addition to orgs from migration)
 INSERT INTO public.org (id, org_name, country_code, website, approval_status) VALUES
+('00000000-0000-0000-0000-000000000001', 'Test Climate Org US', 'US', 'https://example.com', 'approved'),
+('00000000-0000-0000-0000-000000000002', 'Test Climate Org UK', 'GB', 'https://example.co.uk', 'approved'),
+('00000000-0000-0000-0000-000000000003', 'Test Climate Org DE', 'DE', 'https://example.de', 'approved'),
 ('00000000-0000-0000-0000-000000000004', 'Test Org No Website', 'FR', NULL, 'approved'),
 ('00000000-0000-0000-0000-000000000005', 'Test Org Pending US', 'US', 'https://example-pending.us', 'pending'),
 ('00000000-0000-0000-0000-000000000006', 'Test Org AU', 'AU', 'https://example.com.au', 'approved'),
@@ -44,6 +17,11 @@ INSERT INTO public.org (id, org_name, country_code, website, approval_status) VA
 ('00000000-0000-0000-0000-000000000008', 'MDE Default Org GB', 'GB', 'https://mde-default-gb.org', 'approved'),
 ('00000000-0000-0000-0000-000000000009', 'MDE Default Org DE', 'DE', 'https://mde-default-de.org', 'approved')
 ON CONFLICT (id) DO NOTHING;
+
+-- =============================================================================
+-- EDGE CASE TEST DATA
+-- Each artist/tour combination tests a specific routing scenario
+-- =============================================================================
 
 -- =============================================================================
 -- ROUTER COUNTRY DEFAULTS (MDE Recommended Orgs)
