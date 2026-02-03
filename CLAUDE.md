@@ -374,6 +374,10 @@ This allows building one UI that evolves from admin configuration tool to artist
 
 The following features are intentionally deferred from MVP. They should be revisited after pilot testing with real artists.
 
+**Asset generation**
+- Artist URL QR code generation using QR code library (e.g., `qrcode` npm package), including branding (e.g., logo overlay, colors)
+- Social media post templates
+
 **Analytics Dashboard**
 - Visualize routing performance data from `router_analytics` table
 - Show metrics: routes by country, fallback rates, org distribution
