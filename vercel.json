@@ -1,7 +1,0 @@
-{
-  "functions": {
-    "app/api/a/[handle]/route.ts": {
-      "runtime": "@vercel/edge"
-    }
-  }
-}
