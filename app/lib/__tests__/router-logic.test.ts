@@ -8,6 +8,8 @@ const mockState = {
   tours: [] as unknown[],
   toursError: null as unknown,
   orgOverride: null as unknown,
+  countryDefault: null as unknown,
+  countryDefaultError: null as unknown,
 };
 
 // Helper to reset mock state
@@ -17,6 +19,8 @@ function resetMockState() {
   mockState.tours = [];
   mockState.toursError = null;
   mockState.orgOverride = null;
+  mockState.countryDefault = null;
+  mockState.countryDefaultError = null;
 }
 
 // Mock Supabase with configurable responses
@@ -33,7 +37,7 @@ jest.mock("../supabase", () => ({
           }),
         };
       }
-      if (table === "artists") {
+      if (table === "router_artists") {
         return {
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
@@ -45,7 +49,7 @@ jest.mock("../supabase", () => ({
           ),
         };
       }
-      if (table === "tours") {
+      if (table === "router_tours") {
         return {
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
@@ -55,6 +59,23 @@ jest.mock("../supabase", () => ({
             Promise.resolve({
               data: mockState.tours,
               error: mockState.toursError,
+            }),
+          ),
+        };
+      }
+      if (table === "router_country_defaults") {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          not: jest.fn().mockReturnThis(),
+          lte: jest.fn().mockReturnThis(),
+          or: jest.fn().mockReturnThis(),
+          is: jest.fn().mockReturnThis(),
+          limit: jest.fn().mockReturnThis(),
+          single: jest.fn().mockImplementation(() =>
+            Promise.resolve({
+              data: mockState.countryDefault,
+              error: mockState.countryDefaultError,
             }),
           ),
         };
@@ -87,7 +108,7 @@ jest.mock("../supabase", () => ({
 // Test fixtures
 const createArtist = (overrides = {}) => ({
   id: "11111111-1111-1111-1111-111111111111",
-  slug: "radiohead",
+  handle: "radiohead",
   name: "Radiohead",
   enabled: true,
   ...overrides,
@@ -102,7 +123,7 @@ const createOrg = (overrides = {}) => ({
   ...overrides,
 });
 
-const createTourCountryConfig = (overrides = {}) => ({
+const createTourOverride = (overrides = {}) => ({
   id: "cccc1111-1111-1111-1111-111111111111",
   tour_id: "aaaa1111-1111-1111-1111-111111111111",
   country_code: "US",
@@ -121,9 +142,9 @@ const createTour = (overrides = {}) => ({
   pre_tour_window_days: 7,
   post_tour_window_days: 3,
   enabled: true,
-  tour_country_configs: [
-    createTourCountryConfig(),
-    createTourCountryConfig({
+  router_tour_overrides: [
+    createTourOverride(),
+    createTourOverride({
       id: "dddd2222-2222-2222-2222-222222222222",
       country_code: "GB",
       org_id: "00000000-0000-0000-0000-000000000002",
@@ -135,6 +156,16 @@ const createTour = (overrides = {}) => ({
       }),
     }),
   ],
+  ...overrides,
+});
+
+const createCountryDefault = (overrides = {}) => ({
+  id: "eeee1111-1111-1111-1111-111111111111",
+  country_code: "US",
+  org_id: "00000000-0000-0000-0000-000000000001",
+  effective_from: null,
+  effective_to: null,
+  org: createOrg(),
   ...overrides,
 });
 
@@ -195,12 +226,12 @@ describe("Router Logic", () => {
   });
 
   describe("routeRequest - Success Cases", () => {
-    it("should route to org URL when artist, tour, and country match", async () => {
+    it("should route to artist-selected org when configured", async () => {
       mockState.artist = createArtist();
       mockState.tours = [createTour()];
 
       const result = await routeRequest({
-        artistSlug: "radiohead",
+        artistHandle: "radiohead",
         countryCode: "US",
       });
 
@@ -216,7 +247,7 @@ describe("Router Logic", () => {
       mockState.tours = [createTour()];
 
       const result = await routeRequest({
-        artistSlug: "radiohead",
+        artistHandle: "radiohead",
         countryCode: "GB",
       });
 
@@ -230,12 +261,68 @@ describe("Router Logic", () => {
       mockState.tours = [createTour()];
 
       const result = await routeRequest({
-        artistSlug: "radiohead",
+        artistHandle: "radiohead",
         countryCode: "us", // lowercase
       });
 
       expect(result.success).toBe(true);
       expect(result.destinationUrl).toBe("https://example.com");
+    });
+
+    it("should route to MDE default when no artist override configured", async () => {
+      mockState.artist = createArtist();
+      mockState.tours = [
+        createTour({
+          router_tour_overrides: [], // No artist overrides
+        }),
+      ];
+      mockState.countryDefault = createCountryDefault({
+        country_code: "US",
+        org: createOrg({
+          org_name: "MDE Default Org",
+          website: "https://mde-default.org",
+        }),
+      });
+
+      const result = await routeRequest({
+        artistHandle: "radiohead",
+        countryCode: "US",
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.destinationUrl).toBe("https://mde-default.org");
+    });
+
+    it("should fall through to MDE default when artist-selected org not in view", async () => {
+      mockState.artist = createArtist();
+      mockState.tours = [
+        createTour({
+          router_tour_overrides: [
+            createTourOverride({
+              org_id: "00000000-0000-0000-0000-000000000099",
+              org: null, // Org not in org_public_view
+            }),
+          ],
+        }),
+      ];
+      mockState.countryDefault = createCountryDefault({
+        org: createOrg({
+          org_name: "MDE Fallback Org",
+          website: "https://mde-fallback.org",
+        }),
+      });
+
+      const result = await routeRequest({
+        artistHandle: "radiohead",
+        countryCode: "US",
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.destinationUrl).toBe("https://mde-fallback.org");
+      expect(result.analytics.override_org_fallthrough).toBe(true);
+      expect(result.analytics.attempted_override_org_id).toBe(
+        "00000000-0000-0000-0000-000000000099",
+      );
     });
   });
 
@@ -245,7 +332,7 @@ describe("Router Logic", () => {
       mockState.artistError = { code: "PGRST116" };
 
       const result = await routeRequest({
-        artistSlug: "unknown-artist",
+        artistHandle: "unknown-artist",
         countryCode: "US",
       });
 
@@ -260,7 +347,7 @@ describe("Router Logic", () => {
       mockState.artistError = { code: "PGRST116" };
 
       const result = await routeRequest({
-        artistSlug: "disabled-artist",
+        artistHandle: "disabled-artist",
         countryCode: "US",
       });
 
@@ -275,7 +362,7 @@ describe("Router Logic", () => {
       mockState.tours = []; // No tours
 
       const result = await routeRequest({
-        artistSlug: "radiohead",
+        artistHandle: "radiohead",
         countryCode: "US",
       });
 
@@ -284,14 +371,25 @@ describe("Router Logic", () => {
       expect(result.destinationUrl).toContain("no_tour");
     });
 
-    it("should fallback when tour dates are in the past", async () => {
+    it("should fallback when tour dates are in the past (outside post-window)", async () => {
       mockState.artist = createArtist();
-      // Database filters out past tours, so we simulate by returning empty array
-      // (date filtering happens in DB via .lte/.gte constraints)
-      mockState.tours = [];
+      // Tour ended 30 days ago with only 3-day post-window
+      const pastDate = new Date();
+      pastDate.setDate(pastDate.getDate() - 30);
+      const endDate = new Date(pastDate);
+      const startDate = new Date(pastDate);
+      startDate.setDate(startDate.getDate() - 60);
+
+      mockState.tours = [
+        createTour({
+          start_date: startDate.toISOString().split("T")[0],
+          end_date: endDate.toISOString().split("T")[0],
+          post_tour_window_days: 3, // Not enough to reach today
+        }),
+      ];
 
       const result = await routeRequest({
-        artistSlug: "radiohead",
+        artistHandle: "radiohead",
         countryCode: "US",
       });
 
@@ -299,14 +397,25 @@ describe("Router Logic", () => {
       expect(result.fallbackReason).toBe("no_tour");
     });
 
-    it("should fallback when tour dates are in the future", async () => {
+    it("should fallback when tour dates are in the future (outside pre-window)", async () => {
       mockState.artist = createArtist();
-      // Database filters out future tours, so we simulate by returning empty array
-      // (date filtering happens in DB via .lte/.gte constraints)
-      mockState.tours = [];
+      // Tour starts 30 days from now with only 7-day pre-window
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 30);
+      const startDate = new Date(futureDate);
+      const endDate = new Date(futureDate);
+      endDate.setDate(endDate.getDate() + 60);
+
+      mockState.tours = [
+        createTour({
+          start_date: startDate.toISOString().split("T")[0],
+          end_date: endDate.toISOString().split("T")[0],
+          pre_tour_window_days: 7, // Not enough to reach today
+        }),
+      ];
 
       const result = await routeRequest({
-        artistSlug: "radiohead",
+        artistHandle: "radiohead",
         countryCode: "US",
       });
 
@@ -320,7 +429,7 @@ describe("Router Logic", () => {
       mockState.tours = [];
 
       const result = await routeRequest({
-        artistSlug: "radiohead",
+        artistHandle: "radiohead",
         countryCode: "US",
       });
 
@@ -329,19 +438,174 @@ describe("Router Logic", () => {
     });
   });
 
-  describe("routeRequest - Country Failures", () => {
-    it("should fallback when country not configured for tour", async () => {
+  describe("routeRequest - Pre/Post Tour Windows", () => {
+    it("should route successfully during pre-tour window", async () => {
       mockState.artist = createArtist();
-      mockState.tours = [createTour()];
+      // Tour starts 5 days from now with 7-day pre-window (today is within window)
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() + 5);
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 30);
+
+      mockState.tours = [
+        createTour({
+          start_date: startDate.toISOString().split("T")[0],
+          end_date: endDate.toISOString().split("T")[0],
+          pre_tour_window_days: 7,
+          post_tour_window_days: 0,
+        }),
+      ];
 
       const result = await routeRequest({
-        artistSlug: "radiohead",
+        artistHandle: "radiohead",
+        countryCode: "US",
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.destinationUrl).toBe("https://example.com");
+    });
+
+    it("should route successfully during post-tour window", async () => {
+      mockState.artist = createArtist();
+      // Tour ended 2 days ago with 5-day post-window (today is within window)
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() - 2);
+      const startDate = new Date(endDate);
+      startDate.setDate(startDate.getDate() - 30);
+
+      mockState.tours = [
+        createTour({
+          start_date: startDate.toISOString().split("T")[0],
+          end_date: endDate.toISOString().split("T")[0],
+          pre_tour_window_days: 0,
+          post_tour_window_days: 5,
+        }),
+      ];
+
+      const result = await routeRequest({
+        artistHandle: "radiohead",
+        countryCode: "US",
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.destinationUrl).toBe("https://example.com");
+    });
+
+    it("should route successfully on the exact pre-window boundary", async () => {
+      mockState.artist = createArtist();
+      // Tour starts exactly 7 days from now with 7-day pre-window
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() + 7);
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 30);
+
+      mockState.tours = [
+        createTour({
+          start_date: startDate.toISOString().split("T")[0],
+          end_date: endDate.toISOString().split("T")[0],
+          pre_tour_window_days: 7,
+          post_tour_window_days: 0,
+        }),
+      ];
+
+      const result = await routeRequest({
+        artistHandle: "radiohead",
+        countryCode: "US",
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it("should route successfully on the exact post-window boundary", async () => {
+      mockState.artist = createArtist();
+      // Tour ended exactly 5 days ago with 5-day post-window
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() - 5);
+      const startDate = new Date(endDate);
+      startDate.setDate(startDate.getDate() - 30);
+
+      mockState.tours = [
+        createTour({
+          start_date: startDate.toISOString().split("T")[0],
+          end_date: endDate.toISOString().split("T")[0],
+          pre_tour_window_days: 0,
+          post_tour_window_days: 5,
+        }),
+      ];
+
+      const result = await routeRequest({
+        artistHandle: "radiohead",
+        countryCode: "US",
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it("should route successfully with zero window days during active tour", async () => {
+      mockState.artist = createArtist();
+      // Tour is currently active (no pre/post windows needed)
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 5);
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + 5);
+
+      mockState.tours = [
+        createTour({
+          start_date: startDate.toISOString().split("T")[0],
+          end_date: endDate.toISOString().split("T")[0],
+          pre_tour_window_days: 0,
+          post_tour_window_days: 0,
+        }),
+      ];
+
+      const result = await routeRequest({
+        artistHandle: "radiohead",
+        countryCode: "US",
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it("should handle null window days as zero", async () => {
+      mockState.artist = createArtist();
+      // Tour is currently active with null window values
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 5);
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + 5);
+
+      mockState.tours = [
+        createTour({
+          start_date: startDate.toISOString().split("T")[0],
+          end_date: endDate.toISOString().split("T")[0],
+          pre_tour_window_days: null,
+          post_tour_window_days: null,
+        }),
+      ];
+
+      const result = await routeRequest({
+        artistHandle: "radiohead",
+        countryCode: "US",
+      });
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe("routeRequest - Country Failures", () => {
+    it("should fallback with org_not_specified when no config for country", async () => {
+      mockState.artist = createArtist();
+      mockState.tours = [createTour()];
+      mockState.countryDefault = null; // No MDE default either
+
+      const result = await routeRequest({
+        artistHandle: "radiohead",
         countryCode: "DE", // Not configured
       });
 
       expect(result.success).toBe(false);
-      expect(result.fallbackReason).toBe("country_not_supported");
-      expect(result.destinationUrl).toContain("ref=country_not_supported");
+      expect(result.fallbackReason).toBe("org_not_specified");
+      expect(result.destinationUrl).toContain("ref=org_not_specified");
     });
 
     it("should fallback when no country provided", async () => {
@@ -349,7 +613,7 @@ describe("Router Logic", () => {
       mockState.tours = [createTour()];
 
       const result = await routeRequest({
-        artistSlug: "radiohead",
+        artistHandle: "radiohead",
         countryCode: undefined,
       });
 
@@ -358,23 +622,49 @@ describe("Router Logic", () => {
       expect(result.destinationUrl).toContain("ref=no_country");
     });
 
-    it("should fallback when tour country config is disabled", async () => {
+    it("should fallback when tour country override is disabled", async () => {
       mockState.artist = createArtist();
       mockState.tours = [
         createTour({
-          tour_country_configs: [
-            createTourCountryConfig({ enabled: false }), // US disabled
+          router_tour_overrides: [
+            createTourOverride({ enabled: false }), // US disabled
           ],
         }),
       ];
+      mockState.countryDefault = null; // No MDE default
 
       const result = await routeRequest({
-        artistSlug: "radiohead",
+        artistHandle: "radiohead",
         countryCode: "US",
       });
 
       expect(result.success).toBe(false);
-      expect(result.fallbackReason).toBe("country_not_supported");
+      expect(result.fallbackReason).toBe("org_not_specified");
+    });
+
+    it("should route to MDE default when override disabled but default exists", async () => {
+      mockState.artist = createArtist();
+      mockState.tours = [
+        createTour({
+          router_tour_overrides: [
+            createTourOverride({ enabled: false }), // US disabled
+          ],
+        }),
+      ];
+      mockState.countryDefault = createCountryDefault({
+        org: createOrg({
+          org_name: "MDE Default Org",
+          website: "https://mde-default.org",
+        }),
+      });
+
+      const result = await routeRequest({
+        artistHandle: "radiohead",
+        countryCode: "US",
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.destinationUrl).toBe("https://mde-default.org");
     });
   });
 
@@ -385,7 +675,7 @@ describe("Router Logic", () => {
       mockState.orgOverride = { enabled: false };
 
       const result = await routeRequest({
-        artistSlug: "radiohead",
+        artistHandle: "radiohead",
         countryCode: "US",
       });
 
@@ -394,21 +684,19 @@ describe("Router Logic", () => {
       expect(result.destinationUrl).toContain("org_paused");
     });
 
-    it("should fallback when org is not in view (not approved)", async () => {
-      // When using org_public_view, unapproved orgs return null in the join
+    it("should fallback with org_not_found when MDE default org not in view", async () => {
       mockState.artist = createArtist();
       mockState.tours = [
         createTour({
-          tour_country_configs: [
-            createTourCountryConfig({
-              org: null, // Simulates org not being in org_public_view
-            }),
-          ],
+          router_tour_overrides: [], // No artist overrides
         }),
       ];
+      mockState.countryDefault = createCountryDefault({
+        org: null, // MDE default org not in org_public_view
+      });
 
       const result = await routeRequest({
-        artistSlug: "radiohead",
+        artistHandle: "radiohead",
         countryCode: "US",
       });
 
@@ -420,8 +708,8 @@ describe("Router Logic", () => {
       mockState.artist = createArtist();
       mockState.tours = [
         createTour({
-          tour_country_configs: [
-            createTourCountryConfig({
+          router_tour_overrides: [
+            createTourOverride({
               org: createOrg({ website: null }),
             }),
           ],
@@ -429,7 +717,7 @@ describe("Router Logic", () => {
       ];
 
       const result = await routeRequest({
-        artistSlug: "radiohead",
+        artistHandle: "radiohead",
         countryCode: "US",
       });
 
@@ -444,7 +732,7 @@ describe("Router Logic", () => {
       mockState.orgOverride = { enabled: true };
 
       const result = await routeRequest({
-        artistSlug: "radiohead",
+        artistHandle: "radiohead",
         countryCode: "US",
       });
 
@@ -459,12 +747,12 @@ describe("Router Logic", () => {
       mockState.tours = [createTour()];
 
       const result = await routeRequest({
-        artistSlug: "radiohead",
+        artistHandle: "radiohead",
         countryCode: "US",
       });
 
       expect(result.analytics).toBeDefined();
-      expect(result.analytics?.artist_slug).toBe("radiohead");
+      expect(result.analytics?.artist_handle).toBe("radiohead");
       expect(result.analytics?.country_code).toBe("US");
       expect(result.analytics?.org_id).toBe(
         "00000000-0000-0000-0000-000000000001",
@@ -481,16 +769,42 @@ describe("Router Logic", () => {
       mockState.artistError = { code: "PGRST116" };
 
       const result = await routeRequest({
-        artistSlug: "unknown",
+        artistHandle: "unknown",
         countryCode: "US",
       });
 
       expect(result.analytics).toBeDefined();
-      expect(result.analytics?.artist_slug).toBe("unknown");
+      expect(result.analytics?.artist_handle).toBe("unknown");
       // fallback_ref is derived from destination_url ref= param (generated column in DB)
       expect(result.analytics?.destination_url).toContain(
         "ref=artist_not_found",
       );
+    });
+
+    it("should track override org fallthrough in analytics", async () => {
+      mockState.artist = createArtist();
+      mockState.tours = [
+        createTour({
+          router_tour_overrides: [
+            createTourOverride({
+              org_id: "failed-org-id",
+              org: null, // Org not in view
+            }),
+          ],
+        }),
+      ];
+      mockState.countryDefault = createCountryDefault({
+        org: createOrg({ website: "https://fallback.org" }),
+      });
+
+      const result = await routeRequest({
+        artistHandle: "radiohead",
+        countryCode: "US",
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.analytics?.override_org_fallthrough).toBe(true);
+      expect(result.analytics?.attempted_override_org_id).toBe("failed-org-id");
     });
   });
 });
