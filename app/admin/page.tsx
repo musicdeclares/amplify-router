@@ -25,7 +25,7 @@ export default function AdminDashboard() {
                       Artists
                     </dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      Manage artist profiles and handles
+                      Manage artist profiles and their AMPLIFY links
                     </dd>
                   </dl>
                 </div>
@@ -37,7 +37,7 @@ export default function AdminDashboard() {
                   href="/admin/artists"
                   className="font-medium text-blue-700 hover:text-blue-900"
                 >
-                  View all artists
+                  See all artists
                 </a>
               </div>
             </div>
@@ -69,7 +69,7 @@ export default function AdminDashboard() {
                   href="/admin/tours"
                   className="font-medium text-green-700 hover:text-green-900"
                 >
-                  View all tours
+                  See all tours
                 </a>
               </div>
             </div>
@@ -89,7 +89,7 @@ export default function AdminDashboard() {
                       Organizations
                     </dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      Manage country recommendations
+                      Manage org recommendations by country
                     </dd>
                   </dl>
                 </div>
@@ -101,7 +101,7 @@ export default function AdminDashboard() {
                   href="/admin/organizations"
                   className="font-medium text-purple-700 hover:text-purple-900"
                 >
-                  View by country
+                  See approved organizations
                 </a>
               </div>
             </div>

@@ -132,9 +132,9 @@ export default function OrganizationsPage() {
       <div>
         <h1 className="text-2xl font-bold">Organizations by Country</h1>
         <p className="text-muted-foreground mt-1">
-          {countries.length} {countries.length === 1 ? "country" : "countries"}{" "}
-          with {totalOrgs} approved{" "}
-          {totalOrgs === 1 ? "organization" : "organizations"}
+          Manage recommendations for {countries.length}{" "}
+          {countries.length === 1 ? "country" : "countries"} with {totalOrgs}{" "}
+          approved {totalOrgs === 1 ? "organization" : "organizations"}
         </p>
       </div>
 
@@ -152,11 +152,8 @@ export default function OrganizationsPage() {
                 : "countries need"}{" "}
               a recommendation.
             </strong>{" "}
-            Fans from{" "}
-            {countriesNeedingAttention.length === 1
-              ? "this country"
-              : "these countries"}{" "}
-            will see the fallback page.
+            Fans from countries without a recommended org will see the fallback
+            page.
           </AlertDescription>
         </Alert>
       )}

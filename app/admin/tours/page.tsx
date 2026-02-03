@@ -42,8 +42,8 @@ export default function ToursPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Tours</h1>
-          <p className="text-muted-foreground">
-            Manage tour configurations and country routing
+          <p className="text-muted-foreground mt-1">
+            Configure tour dates and organization routing
           </p>
         </div>
         <Link href="/admin/tours/new">
