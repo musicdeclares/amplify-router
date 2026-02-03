@@ -20,7 +20,8 @@ interface CountryDefaultWithOrg extends CountryDefault {
   org: OrgPublicView | null;
 }
 
-const DEFAULT_FALLBACK_URL = "https://musicdeclares.net/amplify";
+export const DEFAULT_FALLBACK_URL =
+  "https://www.musicdeclares.net/us/take-action/amplify";
 
 export async function routeRequest(
   request: RouterRequest,

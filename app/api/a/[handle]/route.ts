@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { routeRequest, getCountryFromRequest } from "@/app/lib/router-logic";
+import { routeRequest, getCountryFromRequest, DEFAULT_FALLBACK_URL } from "@/app/lib/router-logic";
 
 export async function GET(
   request: NextRequest,
@@ -9,7 +9,7 @@ export async function GET(
 
   if (!handle) {
     return NextResponse.redirect(
-      "https://musicdeclares.net/amplify?ref=no_handle",
+      `${DEFAULT_FALLBACK_URL}?ref=no_handle`,
       302,
     );
   }
@@ -29,7 +29,7 @@ export async function GET(
 
     // Fallback to default AMPLIFY page on any error
     return NextResponse.redirect(
-      "https://musicdeclares.net/amplify?ref=api_error",
+      `${DEFAULT_FALLBACK_URL}?ref=api_error`,
       302,
     );
   }
