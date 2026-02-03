@@ -38,15 +38,29 @@ WHERE approval_status = 'approved';
 -- Test orgs for edge cases (in addition to orgs from migration)
 INSERT INTO public.org (id, org_name, country_code, website, approval_status) VALUES
 ('00000000-0000-0000-0000-000000000004', 'Test Org No Website', 'FR', NULL, 'approved'),
-('00000000-0000-0000-0000-000000000005', 'Test Org Pending', 'JP', 'https://example.jp', 'pending'),
-('00000000-0000-0000-0000-000000000006', 'Test Org AU', 'AU', 'https://example.com.au', 'approved')
+('00000000-0000-0000-0000-000000000005', 'Test Org Pending US', 'US', 'https://example-pending.us', 'pending'),
+('00000000-0000-0000-0000-000000000006', 'Test Org AU', 'AU', 'https://example.com.au', 'approved'),
+('00000000-0000-0000-0000-000000000007', 'MDE Default Org US', 'US', 'https://mde-default-us.org', 'approved'),
+('00000000-0000-0000-0000-000000000008', 'MDE Default Org GB', 'GB', 'https://mde-default-gb.org', 'approved'),
+('00000000-0000-0000-0000-000000000009', 'MDE Default Org DE', 'DE', 'https://mde-default-de.org', 'approved')
 ON CONFLICT (id) DO NOTHING;
+
+-- =============================================================================
+-- ROUTER COUNTRY DEFAULTS (MDE Recommended Orgs)
+-- =============================================================================
+INSERT INTO public.router_country_defaults (id, country_code, org_id, effective_from, effective_to, notes) VALUES
+-- Permanent recommendations (effective_from = NULL)
+('def00000-0000-0000-0000-000000000001', 'US', '00000000-0000-0000-0000-000000000007', NULL, NULL, 'MDE recommended org for United States'),
+('def00000-0000-0000-0000-000000000002', 'GB', '00000000-0000-0000-0000-000000000008', NULL, NULL, 'MDE recommended org for United Kingdom'),
+('def00000-0000-0000-0000-000000000003', 'DE', '00000000-0000-0000-0000-000000000009', NULL, NULL, 'MDE recommended org for Germany'),
+('def00000-0000-0000-0000-000000000004', 'AU', '00000000-0000-0000-0000-000000000006', NULL, NULL, 'MDE recommended org for Australia')
+ON CONFLICT DO NOTHING;
 
 -- =============================================================================
 -- ARTISTS
 -- =============================================================================
-INSERT INTO public.artists (id, slug, name, enabled) VALUES
--- Active artist with active tour (happy path)
+INSERT INTO public.router_artists (id, handle, name, enabled) VALUES
+-- Active artist with active tour (happy path - artist selected org)
 ('11111111-1111-1111-1111-111111111111', 'radiohead', 'Radiohead', true),
 -- Active artist with past tour (no active tour)
 ('22222222-2222-2222-2222-222222222222', 'coldplay', 'Coldplay', true),
@@ -58,12 +72,16 @@ INSERT INTO public.artists (id, slug, name, enabled) VALUES
 ('55555555-5555-5555-5555-555555555555', 'taylor-swift', 'Taylor Swift', true),
 -- Active artist with org that has no website
 ('66666666-6666-6666-6666-666666666666', 'daft-punk', 'Daft Punk', true),
--- Active artist with pending org (not in org_public_view)
+-- Active artist with pending org (fallthrough to MDE default)
 ('77777777-7777-7777-7777-777777777777', 'gorillaz', 'Gorillaz', true),
 -- Active artist with paused org override
 ('88888888-8888-8888-8888-888888888888', 'arctic-monkeys', 'Arctic Monkeys', true),
--- Active artist with disabled country config
-('99999999-9999-9999-9999-999999999999', 'the-strokes', 'The Strokes', true)
+-- Active artist with disabled country config (uses MDE default)
+('99999999-9999-9999-9999-999999999999', 'the-strokes', 'The Strokes', true),
+-- Active artist using MDE defaults only (no artist override)
+('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'tame-impala', 'Tame Impala', true),
+-- Active artist with country that has no MDE default
+('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'bjork', 'Bjork', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- =============================================================================
@@ -73,7 +91,7 @@ ON CONFLICT (id) DO NOTHING;
 -- - Past tours: 1 year ago (outside any post-window)
 -- - Future tours: 6 months from now (outside any pre-window)
 -- =============================================================================
-INSERT INTO public.tours (id, artist_id, name, start_date, end_date, pre_tour_window_days, post_tour_window_days, enabled) VALUES
+INSERT INTO public.router_tours (id, artist_id, name, start_date, end_date, pre_tour_window_days, post_tour_window_days, enabled) VALUES
 -- Radiohead: Active tour (brackets current date)
 ('aaaa1111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', 'Radiohead World Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true),
 -- Coldplay: Past tour (ended 1 year ago, outside post-window)
@@ -86,19 +104,24 @@ INSERT INTO public.tours (id, artist_id, name, start_date, end_date, pre_tour_wi
 ('eeee5555-5555-5555-5555-555555555555', '55555555-5555-5555-5555-555555555555', 'Taylor Swift Disabled Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, false),
 -- Daft Punk: Tour with org that has no website
 ('ffff6666-6666-6666-6666-666666666666', '66666666-6666-6666-6666-666666666666', 'Daft Punk Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true),
--- Gorillaz: Tour with pending org (not in org_public_view)
+-- Gorillaz: Tour with pending org (will fallthrough to MDE default for US)
 ('aaaa7777-7777-7777-7777-777777777777', '77777777-7777-7777-7777-777777777777', 'Gorillaz Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true),
 -- Arctic Monkeys: Tour with paused org override
 ('bbbb8888-8888-8888-8888-888888888888', '88888888-8888-8888-8888-888888888888', 'Arctic Monkeys Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true),
--- The Strokes: Tour with disabled country config
-('cccc9999-9999-9999-9999-999999999999', '99999999-9999-9999-9999-999999999999', 'The Strokes Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true)
+-- The Strokes: Tour with disabled country config (will use MDE default)
+('cccc9999-9999-9999-9999-999999999999', '99999999-9999-9999-9999-999999999999', 'The Strokes Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true),
+-- Tame Impala: Tour using MDE defaults only (no artist override set)
+('ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Tame Impala Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true),
+-- Bjork: Tour with country that has no MDE default (Iceland)
+('eeeebbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Bjork Iceland Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true)
 ON CONFLICT (id) DO NOTHING;
 
 -- =============================================================================
--- TOUR COUNTRY CONFIGS
+-- TOUR OVERRIDES (Artist-selected orgs per country)
+-- org_id can be NULL to indicate "use MDE recommended"
 -- =============================================================================
-INSERT INTO public.tour_country_configs (id, tour_id, country_code, org_id, enabled) VALUES
--- Radiohead: US and GB configs (happy path)
+INSERT INTO public.router_tour_overrides (id, tour_id, country_code, org_id, enabled) VALUES
+-- Radiohead: US and GB configs with artist-selected orgs (happy path)
 ('cccc1111-1111-1111-1111-111111111111', 'aaaa1111-1111-1111-1111-111111111111', 'US', '00000000-0000-0000-0000-000000000001', true),
 ('dddd2222-2222-2222-2222-222222222222', 'aaaa1111-1111-1111-1111-111111111111', 'GB', '00000000-0000-0000-0000-000000000002', true),
 -- Coldplay: DE config (past tour)
@@ -111,16 +134,21 @@ INSERT INTO public.tour_country_configs (id, tour_id, country_code, org_id, enab
 ('bbbb6666-6666-6666-6666-666666666666', 'eeee5555-5555-5555-5555-555555555555', 'US', '00000000-0000-0000-0000-000000000001', true),
 -- Daft Punk: FR config with org that has no website
 ('cccc7777-7777-7777-7777-777777777777', 'ffff6666-6666-6666-6666-666666666666', 'FR', '00000000-0000-0000-0000-000000000004', true),
--- Gorillaz: JP config with pending org
-('dddd8888-8888-8888-8888-888888888888', 'aaaa7777-7777-7777-7777-777777777777', 'JP', '00000000-0000-0000-0000-000000000005', true),
+-- Gorillaz: US config with pending org (will fallthrough to MDE default)
+('dddd8888-8888-8888-8888-888888888888', 'aaaa7777-7777-7777-7777-777777777777', 'US', '00000000-0000-0000-0000-000000000005', true),
 -- Arctic Monkeys: DE config with paused org override
 ('eeee9999-9999-9999-9999-999999999999', 'bbbb8888-8888-8888-8888-888888888888', 'DE', '00000000-0000-0000-0000-000000000003', true),
--- The Strokes: US config but DISABLED
-('ffff0000-0000-0000-0000-000000000000', 'cccc9999-9999-9999-9999-999999999999', 'US', '00000000-0000-0000-0000-000000000001', false)
+-- The Strokes: US config but DISABLED (will fallback to MDE default)
+('ffff0000-0000-0000-0000-000000000000', 'cccc9999-9999-9999-9999-999999999999', 'US', '00000000-0000-0000-0000-000000000001', false),
+-- Tame Impala: Countries with no artist override (uses MDE default)
+('aaaa0001-0001-0001-0001-000000000001', 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'US', NULL, true),
+('aaaa0001-0001-0001-0001-000000000002', 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'GB', NULL, true),
+-- Bjork: Iceland has no MDE default (will get org_not_specified)
+('bbbb0001-0001-0001-0001-000000000001', 'eeeebbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'IS', NULL, true)
 ON CONFLICT (id) DO NOTHING;
 
 -- =============================================================================
--- ORG OVERRIDES
+-- ORG OVERRIDES (Router-specific pause controls)
 -- =============================================================================
 INSERT INTO public.router_org_overrides (id, org_id, enabled, reason) VALUES
 -- DE org is paused (affects Arctic Monkeys test case)
