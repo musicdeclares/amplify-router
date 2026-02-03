@@ -198,6 +198,14 @@ psql postgresql://postgres:postgres@127.0.0.1:54332/postgres \
 
 ---
 
+## Analytics and Admin Test Clicks
+
+When testing the router locally or in production, admin clicks on artist links (e.g., via curl or a browser) are counted in the analytics data. There is no reliable way to distinguish admin test clicks from real fan traffic since both are plain HTTP requests.
+
+At pilot volumes this is negligible. Admins can use the date picker on the dashboard to focus on post-launch periods and filter out any test data generated during setup.
+
+---
+
 ## Test Data Reference
 
 See `supabase/seed.sql` for the full list of test artists, tours, and configurations.
