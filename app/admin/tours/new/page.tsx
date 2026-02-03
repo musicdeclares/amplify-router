@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,14 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function NewTourPage() {
+  return (
+    <Suspense>
+      <NewTourForm />
+    </Suspense>
+  );
+}
+
+function NewTourForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedArtistId = searchParams.get("artist");
