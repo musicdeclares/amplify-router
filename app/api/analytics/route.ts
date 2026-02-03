@@ -84,7 +84,7 @@ async function getAnalyticsSummary(
         selectField = "org_id";
         break;
       case "reason_code":
-        selectField = "reason_code";
+        selectField = "fallback_ref";
         break;
       default:
         throw new Error("Invalid group_by parameter");
