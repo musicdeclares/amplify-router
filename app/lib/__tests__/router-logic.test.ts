@@ -341,13 +341,13 @@ describe("Router Logic", () => {
       expect(result.destinationUrl).toContain("ref=artist_not_found");
     });
 
-    it("should fallback when artist is disabled", async () => {
+    it("should fallback when artist is inactive", async () => {
       // When artist.enabled = false, the query returns no match
       mockState.artist = null;
       mockState.artistError = { code: "PGRST116" };
 
       const result = await routeRequest({
-        artistHandle: "disabled-artist",
+        artistHandle: "inactive-artist",
         countryCode: "US",
       });
 
@@ -423,8 +423,8 @@ describe("Router Logic", () => {
       expect(result.fallbackReason).toBe("no_tour");
     });
 
-    it("should fallback when tour is disabled", async () => {
-      // Disabled tours are filtered by the query, so empty result
+    it("should fallback when tour is inactive", async () => {
+      // Inactive tours are filtered by the query, so empty result
       mockState.artist = createArtist();
       mockState.tours = [];
 
@@ -622,12 +622,12 @@ describe("Router Logic", () => {
       expect(result.destinationUrl).toContain("ref=no_country");
     });
 
-    it("should fallback when tour country override is disabled", async () => {
+    it("should fallback when tour country override is inactive", async () => {
       mockState.artist = createArtist();
       mockState.tours = [
         createTour({
           router_tour_overrides: [
-            createTourOverride({ enabled: false }), // US disabled
+            createTourOverride({ enabled: false }), // US inactive
           ],
         }),
       ];
@@ -642,12 +642,12 @@ describe("Router Logic", () => {
       expect(result.fallbackReason).toBe("org_not_specified");
     });
 
-    it("should route to MDE default when override disabled but default exists", async () => {
+    it("should route to MDE default when override inactive but default exists", async () => {
       mockState.artist = createArtist();
       mockState.tours = [
         createTour({
           router_tour_overrides: [
-            createTourOverride({ enabled: false }), // US disabled
+            createTourOverride({ enabled: false }), // US inactive
           ],
         }),
       ];

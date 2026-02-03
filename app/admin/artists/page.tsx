@@ -223,7 +223,7 @@ export default function ArtistsPage() {
                         Active
                       </Badge>
                     ) : (
-                      <Badge variant="outline">Disabled</Badge>
+                      <Badge variant="outline">Inactive</Badge>
                     )}
                   </TableCell>
                   <TableCell>{artist.tour_count}</TableCell>

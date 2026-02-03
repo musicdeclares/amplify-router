@@ -188,7 +188,7 @@ export async function routeRequest(
       error: unknown;
     };
 
-    // If override exists and is disabled, route to fallback
+    // If override exists and is inactive, route to fallback
     if (orgOverride && !orgOverride.enabled) {
       return createFallbackResult(
         request,

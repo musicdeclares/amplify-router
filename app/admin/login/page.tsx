@@ -1,52 +1,62 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import Link from 'next/link'
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import Link from "next/link";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const redirect = searchParams.get('redirect') || '/admin'
-  const errorParam = searchParams.get('error')
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/admin";
+  const errorParam = searchParams.get("error");
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState(
-    errorParam === 'account_disabled' ? 'Your account has been disabled' :
-    errorParam === 'not_authorized' ? 'Your account is not authorized to access the admin system' : ''
-  )
-  const [loading, setLoading] = useState(false)
+    errorParam === "account_deactivated"
+      ? "Your account has been deactivated"
+      : errorParam === "not_authorized"
+        ? "Your account is not authorized to access the admin system"
+        : "",
+  );
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-      })
+      });
 
-      const data = await res.json()
+      const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Login failed')
-        setLoading(false)
-        return
+        setError(data.error || "Login failed");
+        setLoading(false);
+        return;
       }
 
-      router.push(redirect)
-      router.refresh()
+      router.push(redirect);
+      router.refresh();
     } catch {
-      setError('An unexpected error occurred')
-      setLoading(false)
+      setError("An unexpected error occurred");
+      setLoading(false);
     }
   }
 
@@ -55,7 +65,9 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">AMPLIFY Router</CardTitle>
-          <CardDescription>Sign in to manage routing configuration</CardDescription>
+          <CardDescription>
+            Sign in to manage routing configuration
+          </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
@@ -90,7 +102,7 @@ export default function LoginPage() {
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? "Signing in..." : "Sign in"}
             </Button>
             <Link
               href="/admin/forgot-password"
@@ -102,5 +114,5 @@ export default function LoginPage() {
         </form>
       </Card>
     </div>
-  )
+  );
 }

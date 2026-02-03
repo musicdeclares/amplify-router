@@ -57,14 +57,14 @@ curl -I "http://localhost:3000/a/{handle}" -H "x-vercel-ip-country: {COUNTRY}"
 | Test | Command | Expected |
 |------|---------|----------|
 | Gorillaz + US (artist org pending, fallthrough) | `curl -I "http://localhost:3000/a/gorillaz" -H "x-vercel-ip-country: US"` | `https://mde-default-us.org` |
-| The Strokes + US (override disabled, uses MDE) | `curl -I "http://localhost:3000/a/the-strokes" -H "x-vercel-ip-country: US"` | `https://mde-default-us.org` |
+| The Strokes + US (override inactive, uses MDE) | `curl -I "http://localhost:3000/a/the-strokes" -H "x-vercel-ip-country: US"` | `https://mde-default-us.org` |
 
 ### Artist Failures
 
 | Test | Command | Expected |
 |------|---------|----------|
 | Unknown artist | `curl -I "http://localhost:3000/a/unknown-artist"` | `?ref=artist_not_found` |
-| Disabled artist | `curl -I "http://localhost:3000/a/disabled-artist" -H "x-vercel-ip-country: US"` | `?ref=artist_not_found` |
+| Inactive artist | `curl -I "http://localhost:3000/a/inactive-artist" -H "x-vercel-ip-country: US"` | `?ref=artist_not_found` |
 
 ### Tour Failures
 
@@ -72,7 +72,7 @@ curl -I "http://localhost:3000/a/{handle}" -H "x-vercel-ip-country: {COUNTRY}"
 |------|---------|----------|
 | Past tour | `curl -I "http://localhost:3000/a/coldplay" -H "x-vercel-ip-country: DE"` | `?ref=no_tour` |
 | Future tour | `curl -I "http://localhost:3000/a/billie-eilish" -H "x-vercel-ip-country: AU"` | `?ref=no_tour` |
-| Disabled tour | `curl -I "http://localhost:3000/a/taylor-swift" -H "x-vercel-ip-country: US"` | `?ref=no_tour` |
+| Inactive tour | `curl -I "http://localhost:3000/a/taylor-swift" -H "x-vercel-ip-country: US"` | `?ref=no_tour` |
 
 ### Pre/Post Tour Window Tests
 
@@ -211,12 +211,12 @@ See `supabase/seed.sql` for the full list of test artists, tours, and configurat
 | tame-impala | Active | US | MDE default | Success (mde-default-us.org) |
 | tame-impala | Active | GB | MDE default | Success (mde-default-gb.org) |
 | gorillaz | Active | US | Fallthrough to MDE | Success (mde-default-us.org) |
-| the-strokes | Active | US | Override disabled, MDE default | Success (mde-default-us.org) |
+| the-strokes | Active | US | Override inactive, MDE default | Success (mde-default-us.org) |
 | bjork | Active | IS | No MDE default | org_not_specified |
 | coldplay | Past | DE | N/A | no_tour |
 | billie-eilish | Future | AU | N/A | no_tour |
-| disabled-artist | Active | US | N/A | artist_not_found |
-| taylor-swift | Disabled | US | N/A | no_tour |
+| inactive-artist | Active | US | N/A | artist_not_found |
+| taylor-swift | Inactive | US | N/A | no_tour |
 | daft-punk | Active | FR | No website | org_no_website |
 | arctic-monkeys | Active | DE | Paused | org_paused |
 

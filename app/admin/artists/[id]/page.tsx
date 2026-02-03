@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -14,14 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
@@ -31,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Artist, Tour } from "@/app/types/router";
+import { TourTable, TourWithArtist } from "@/components/tours/TourTable";
 
 interface ArtistWithTours extends Artist {
   router_tours: Tour[];
@@ -114,6 +106,14 @@ export default function EditArtistPage({
       setSaving(false);
     }
   }
+
+  const toursWithArtist: TourWithArtist[] = useMemo(() => {
+    if (!artist) return [];
+    return (artist.router_tours || []).map((tour) => ({
+      ...tour,
+      router_artists: { id: artist.id, handle: artist.handle, name: artist.name },
+    }));
+  }, [artist]);
 
   async function handleDelete() {
     if (
@@ -234,11 +234,11 @@ export default function EditArtistPage({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="enabled">Active</SelectItem>
-                    <SelectItem value="disabled">Disabled</SelectItem>
+                    <SelectItem value="disabled">Inactive</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-sm text-muted-foreground">
-                  Disabled artists will redirect to the fallback page.
+                  Inactive artists will redirect to the fallback page.
                 </p>
               </div>
 
@@ -274,59 +274,7 @@ export default function EditArtistPage({
                   </Link>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tour Name</TableHead>
-                      <TableHead>Dates</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="w-20"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {tours.map((tour) => {
-                      const today = new Date().toISOString().split("T")[0];
-                      const isActive =
-                        tour.start_date <= today && tour.end_date >= today;
-                      const isPast = tour.end_date < today;
-                      const isFuture = tour.start_date > today;
-
-                      return (
-                        <TableRow key={tour.id}>
-                          <TableCell className="font-medium">
-                            {tour.name}
-                          </TableCell>
-                          <TableCell className="text-sm">
-                            {tour.start_date} to {tour.end_date}
-                          </TableCell>
-                          <TableCell>
-                            {!tour.enabled ? (
-                              <Badge variant="outline">Disabled</Badge>
-                            ) : isPast ? (
-                              <Badge variant="outline">Completed</Badge>
-                            ) : isFuture ? (
-                              <Badge variant="outline">Upcoming</Badge>
-                            ) : isActive ? (
-                              <Badge
-                                variant="secondary"
-                                className="bg-secondary"
-                              >
-                                Active
-                              </Badge>
-                            ) : null}
-                          </TableCell>
-                          <TableCell>
-                            <Link href={`/admin/tours/${tour.id}`}>
-                              <Button variant="ghost" size="sm">
-                                Edit
-                              </Button>
-                            </Link>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                <TourTable tours={toursWithArtist} />
               )}
             </CardContent>
           </Card>

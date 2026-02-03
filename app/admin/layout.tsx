@@ -50,7 +50,7 @@ export default function AdminLayout({
                 </Link>
               </div>
               {/* Desktop navigation */}
-              <div className="hidden sm:ml-8 sm:flex sm:space-x-1">
+              <div className="hidden sm:ml-8 sm:flex">
                 {navigation.map((item) => {
                   const isActive =
                     pathname === item.href ||
@@ -59,7 +59,7 @@ export default function AdminLayout({
                     <Link
                       key={item.name}
                       href={item.href}
-                      className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                      className={`inline-flex items-center px-3 py-2 text-sm font-medium transition-colors ${
                         isActive
                           ? "bg-primary text-primary-foreground"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -72,7 +72,12 @@ export default function AdminLayout({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleLogout} className="hidden sm:inline-flex">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="hidden sm:inline-flex"
+              >
                 Sign out
               </Button>
               {/* Mobile menu button */}
@@ -83,7 +88,11 @@ export default function AdminLayout({
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label="Toggle menu"
               >
-                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                {mobileMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
               </Button>
             </div>
           </div>

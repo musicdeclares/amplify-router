@@ -385,7 +385,7 @@ export default function EditTourPage({
                 </div>
                 <div className="flex items-center gap-2">
                   {!tour.enabled ? (
-                    <Badge variant="outline">Disabled</Badge>
+                    <Badge variant="outline">Inactive</Badge>
                   ) : isPast ? (
                     <Badge variant="outline">Completed</Badge>
                   ) : isFuture ? (
@@ -492,7 +492,7 @@ export default function EditTourPage({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="enabled">Active</SelectItem>
-                    <SelectItem value="disabled">Disabled</SelectItem>
+                    <SelectItem value="disabled">Inactive</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -44,9 +44,9 @@ INSERT INTO public.router_artists (id, handle, name, enabled) VALUES
 ('22222222-2222-2222-2222-222222222222', 'coldplay', 'Coldplay', true),
 -- Active artist with future tour (no active tour yet)
 ('33333333-3333-3333-3333-333333333333', 'billie-eilish', 'Billie Eilish', true),
--- Disabled artist (should always fallback)
-('44444444-4444-4444-4444-444444444444', 'disabled-artist', 'Disabled Artist', false),
--- Active artist with disabled tour
+-- Inactive artist (should always fallback)
+('44444444-4444-4444-4444-444444444444', 'inactive-artist', 'Inactive Artist', false),
+-- Active artist with inactive tour
 ('55555555-5555-5555-5555-555555555555', 'taylor-swift', 'Taylor Swift', true),
 -- Active artist with org that has no website
 ('66666666-6666-6666-6666-666666666666', 'daft-punk', 'Daft Punk', true),
@@ -54,7 +54,7 @@ INSERT INTO public.router_artists (id, handle, name, enabled) VALUES
 ('77777777-7777-7777-7777-777777777777', 'gorillaz', 'Gorillaz', true),
 -- Active artist with paused org override
 ('88888888-8888-8888-8888-888888888888', 'arctic-monkeys', 'Arctic Monkeys', true),
--- Active artist with disabled country config (uses MDE default)
+-- Active artist with inactive country config (uses MDE default)
 ('99999999-9999-9999-9999-999999999999', 'the-strokes', 'The Strokes', true),
 -- Active artist using MDE defaults only (no artist override)
 ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'tame-impala', 'Tame Impala', true),
@@ -76,17 +76,17 @@ INSERT INTO public.router_tours (id, artist_id, name, start_date, end_date, pre_
 ('bbbb2222-2222-2222-2222-222222222222', '22222222-2222-2222-2222-222222222222', 'Coldplay Past Tour', CURRENT_DATE - INTERVAL '1 year' - INTERVAL '6 months', CURRENT_DATE - INTERVAL '1 year', 0, 0, true),
 -- Billie Eilish: Future tour (starts in 6 months, outside pre-window)
 ('cccc3333-3333-3333-3333-333333333333', '33333333-3333-3333-3333-333333333333', 'Billie Eilish Future Tour', CURRENT_DATE + INTERVAL '6 months', CURRENT_DATE + INTERVAL '1 year', 14, 7, true),
--- Disabled Artist: Has a tour but artist is disabled
-('dddd4444-4444-4444-4444-444444444444', '44444444-4444-4444-4444-444444444444', 'Disabled Artist Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true),
--- Taylor Swift: Tour exists but is disabled
-('eeee5555-5555-5555-5555-555555555555', '55555555-5555-5555-5555-555555555555', 'Taylor Swift Disabled Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, false),
+-- Inactive Artist: Has a tour but artist is inactive
+('dddd4444-4444-4444-4444-444444444444', '44444444-4444-4444-4444-444444444444', 'Inactive Artist Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true),
+-- Taylor Swift: Tour exists but is inactive
+('eeee5555-5555-5555-5555-555555555555', '55555555-5555-5555-5555-555555555555', 'Taylor Swift Inactive Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, false),
 -- Daft Punk: Tour with org that has no website
 ('ffff6666-6666-6666-6666-666666666666', '66666666-6666-6666-6666-666666666666', 'Daft Punk Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true),
 -- Gorillaz: Tour with pending org (will fallthrough to MDE default for US)
 ('aaaa7777-7777-7777-7777-777777777777', '77777777-7777-7777-7777-777777777777', 'Gorillaz Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true),
 -- Arctic Monkeys: Tour with paused org override
 ('bbbb8888-8888-8888-8888-888888888888', '88888888-8888-8888-8888-888888888888', 'Arctic Monkeys Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true),
--- The Strokes: Tour with disabled country config (will use MDE default)
+-- The Strokes: Tour with inactive country config (will use MDE default)
 ('cccc9999-9999-9999-9999-999999999999', '99999999-9999-9999-9999-999999999999', 'The Strokes Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true),
 -- Tame Impala: Tour using MDE defaults only (no artist override set)
 ('ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Tame Impala Tour', CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '30 days', 7, 3, true),
@@ -106,9 +106,9 @@ INSERT INTO public.router_tour_overrides (id, tour_id, country_code, org_id, ena
 ('eeee3333-3333-3333-3333-333333333333', 'bbbb2222-2222-2222-2222-222222222222', 'DE', '00000000-0000-0000-0000-000000000003', true),
 -- Billie Eilish: AU config (future tour)
 ('ffff4444-4444-4444-4444-444444444444', 'cccc3333-3333-3333-3333-333333333333', 'AU', '00000000-0000-0000-0000-000000000006', true),
--- Disabled Artist: US config
+-- Inactive Artist: US config
 ('aaaa5555-5555-5555-5555-555555555555', 'dddd4444-4444-4444-4444-444444444444', 'US', '00000000-0000-0000-0000-000000000001', true),
--- Taylor Swift: US config (disabled tour)
+-- Taylor Swift: US config (inactive tour)
 ('bbbb6666-6666-6666-6666-666666666666', 'eeee5555-5555-5555-5555-555555555555', 'US', '00000000-0000-0000-0000-000000000001', true),
 -- Daft Punk: FR config with org that has no website
 ('cccc7777-7777-7777-7777-777777777777', 'ffff6666-6666-6666-6666-666666666666', 'FR', '00000000-0000-0000-0000-000000000004', true),
@@ -116,7 +116,7 @@ INSERT INTO public.router_tour_overrides (id, tour_id, country_code, org_id, ena
 ('dddd8888-8888-8888-8888-888888888888', 'aaaa7777-7777-7777-7777-777777777777', 'US', '00000000-0000-0000-0000-000000000005', true),
 -- Arctic Monkeys: DE config with paused org override
 ('eeee9999-9999-9999-9999-999999999999', 'bbbb8888-8888-8888-8888-888888888888', 'DE', '00000000-0000-0000-0000-000000000003', true),
--- The Strokes: US config but DISABLED (will fallback to MDE default)
+-- The Strokes: US config but INACTIVE (will fallback to MDE default)
 ('ffff0000-0000-0000-0000-000000000000', 'cccc9999-9999-9999-9999-999999999999', 'US', '00000000-0000-0000-0000-000000000001', false),
 -- Tame Impala: Countries with no artist override (uses MDE default)
 ('aaaa0001-0001-0001-0001-000000000001', 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'US', NULL, true),
