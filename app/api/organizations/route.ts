@@ -5,22 +5,18 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const country = searchParams.get('country')
-    const approved = searchParams.get('approved')
-    const limit = parseInt(searchParams.get('limit') || '50')
+    const limit = parseInt(searchParams.get('limit') || '100')
     const offset = parseInt(searchParams.get('offset') || '0')
 
+    // Always use org_public_view - router only sees approved orgs
     let query = supabaseAdmin
-      .from('org')
+      .from('org_public_view')
       .select('*')
       .order('org_name')
       .range(offset, offset + limit - 1)
 
     if (country) {
       query = query.eq('country_code', country.toUpperCase())
-    }
-
-    if (approved === 'true') {
-      query = query.eq('approval_status', 'approved')
     }
 
     const { data: organizations, error } = await query as {
