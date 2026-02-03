@@ -4,7 +4,7 @@ A lightweight, context-aware routing service for the Music Declares Emergency AM
 
 ## Overview
 
-The AMPLIFY Router enables artists to use a single, evergreen link (e.g., `amplify-router.vercel.app/a/artist-slug`) that intelligently routes fans to:
+The AMPLIFY Router enables artists to use a single, evergreen link (e.g., `amplify-router.vercel.app/a/artist-handle`) that intelligently routes fans to:
 - Relevant partner organizations during active tours
 - Graceful fallback experiences when tours aren't active
 - Country-specific organizations based on IP geolocation
@@ -67,7 +67,7 @@ NODE_ENV=development
 
 The router adds these tables to the existing MDEDB schema:
 
-- **artists**: Artist profiles and slugs
+- **artists**: Artist profiles and handles
 - **tours**: Tour configurations with date ranges
 - **tour_country_configs**: Country-specific organization mappings
 - **router_analytics**: Comprehensive analytics for routing decisions
@@ -78,7 +78,7 @@ The router adds these tables to the existing MDEDB schema:
 ### Router URL Pattern
 
 ```
-https://your-domain.com/a/{artist-slug}
+https://your-domain.com/a/{artist-handle}
 ```
 
 Example: `https://amplify-router.vercel.app/a/radiohead`
@@ -95,9 +95,9 @@ Access the admin dashboard at `/admin` to:
 ### API Endpoints
 
 - `GET /api/artists` - List artists
-- `POST /api/artists` - Create artist
+- `POST /api/artists` - Add artist
 - `GET /api/tours` - List tours
-- `POST /api/tours` - Create tour
+- `POST /api/tours` - Add tour
 - `GET /api/organizations` - List organizations
 - `GET /api/analytics` - View routing analytics
 

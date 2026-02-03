@@ -14,7 +14,7 @@ AMPLIFY functions solely as a routing and activation layer.
 
 **What is logged** (per request)
 
-- `artist_slug`
+- `artist_handle`
 - `request_country`
 - `resolved_url`
 - `reason_code`
@@ -33,7 +33,7 @@ Any future initiative involving personal data collection would constitute a **se
 
 Automatically inferred at request time:
 
-- `artist_slug`: Stable artist identifier for routing and fallback contextualization
+- `artist_handle`: Stable artist identifier for routing and fallback contextualization
 - `request_country`: Country-level location inferred via network data (no precise location stored)
 - `request_timestamp`: UTC timestamp for routing eligibility
 

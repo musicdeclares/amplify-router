@@ -65,16 +65,26 @@ Architecture _should not block_ these later.
 Order of resolution (deterministic, debuggable):
 
 1. **Artist exists?**
-    - If no → default AMPLIFY landing
+    - If no → fallback with `ref=artist_not_found`
 2. **Is there an active tour?**
-    - `now` between `tour_start` and `tour_end`
-3. **Does tour have a country match?**
-    - Match inferred country → configured org
-4. **Is org active + allowed?**
-    - Not paused, not terminated
-5. **Route**
-    - Success → org destination URL
-    - Failure → fallback AMPLIFY page
+    - `now` between `tour_start` and `tour_end` (considering pre/post windows)
+    - If no → fallback with `ref=no_tour`
+3. **Is country detected?**
+    - From `x-vercel-ip-country` or `cf-ipcountry` headers
+    - If no → fallback with `ref=no_country`
+4. **Check artist-selected org override** (`router_tour_overrides`)
+    - If override exists, enabled, AND org is in `org_public_view` → use that org
+    - If override exists but org not in view → fall through to step 5 (don't strand the fan)
+5. **Check MDE country defaults** (`router_country_defaults`)
+    - If found AND org is in `org_public_view` → use that org (MDE recommended)
+    - If default exists but org not in view → fallback with `ref=org_not_found`
+6. **No org for this country**
+    - Fallback with `ref=org_not_specified`
+7. **Is org paused?** (`router_org_overrides`)
+    - If paused → fallback with `ref=org_paused`
+8. **Does org have website?**
+    - If no → fallback with `ref=org_no_website`
+9. **Success** → redirect to org website
 
 > Outside tour dates, the link should _never_ imply a tour-specific partnership.
 
@@ -133,59 +143,84 @@ The Router must **always return a valid destination**.
 
 **Database Integration**: Extends existing MDEDB Supabase schema. Accesses partner organizations via `org_public_view` (a view exposing only approved orgs with sensitive fields hidden).
 
+**Note:** All router tables are prefixed with `router_` for namespace separation from MDEDB tables.
+
 **New Tables Required:**
 
-**artists**
+**router_artists**
 ```sql
 id UUID PRIMARY KEY
-slug VARCHAR UNIQUE  -- for /a/{artist_slug} URLs
+handle VARCHAR UNIQUE  -- for /a/{artist_handle} URLs, lowercase + hyphens only
 name VARCHAR
 enabled BOOLEAN DEFAULT true
 created_at TIMESTAMP DEFAULT NOW()
+updated_at TIMESTAMP DEFAULT NOW()
 ```
 
-**tours** 
+**router_tours**
 ```sql
 id UUID PRIMARY KEY
-artist_id UUID REFERENCES artists(id)
+artist_id UUID REFERENCES router_artists(id)
 name VARCHAR
 start_date DATE
-end_date DATE  
+end_date DATE
+pre_tour_window_days INTEGER DEFAULT 0
+post_tour_window_days INTEGER DEFAULT 0
 enabled BOOLEAN DEFAULT true  -- Manual disable override
 created_at TIMESTAMP DEFAULT NOW()
+updated_at TIMESTAMP DEFAULT NOW()
 -- Note: "completed" status derived from end_date < CURRENT_DATE
 ```
 
-**tour_country_configs**
+**router_tour_overrides** (Artist-selected org per country)
 ```sql
 id UUID PRIMARY KEY
-tour_id UUID REFERENCES tours(id)
-country_code VARCHAR(2)  -- ISO 3166-1 alpha-2
-org_id UUID REFERENCES org(id)  -- FK to org table; router joins via org_public_view
+tour_id UUID REFERENCES router_tours(id)
+country_code VARCHAR(2)  -- ISO 3166-1 alpha-2 (validated)
+org_id UUID REFERENCES org(id)  -- NULL = use MDE recommended
 enabled BOOLEAN DEFAULT true
-priority INTEGER DEFAULT 10  -- For future conflict resolution
 created_at TIMESTAMP DEFAULT NOW()
+updated_at TIMESTAMP DEFAULT NOW()
+UNIQUE(tour_id, country_code)  -- Only one override per tour+country
+```
+
+**router_country_defaults** (MDE recommended org per country)
+```sql
+id UUID PRIMARY KEY
+country_code VARCHAR(2)  -- ISO 3166-1 alpha-2 (validated)
+org_id UUID REFERENCES org(id)
+effective_from DATE  -- NULL = permanent/always effective
+effective_to DATE    -- NULL = no end date
+notes TEXT           -- e.g., "Election season 2026"
+created_at TIMESTAMP DEFAULT NOW()
+updated_at TIMESTAMP DEFAULT NOW()
+-- Unique permanent record per country (effective_from IS NULL)
+-- Date-specific records override permanent for their time period
 ```
 
 **router_org_overrides** (Router-specific org controls)
 ```sql
 id UUID PRIMARY KEY
-org_id UUID REFERENCES org(id)
+org_id UUID REFERENCES org(id) UNIQUE
 enabled BOOLEAN DEFAULT true
 reason TEXT  -- Optional: "capacity_exceeded", "partnership_paused"
-updated_by TEXT
 created_at TIMESTAMP DEFAULT NOW()
-```
-
-**router_config** (Global router settings)
-```sql
-id UUID PRIMARY KEY
-key VARCHAR UNIQUE  -- e.g., "fallback_url"
-value TEXT
-updated_by TEXT
 updated_at TIMESTAMP DEFAULT NOW()
 ```
-- `fallback_url`: The single canonical AMPLIFY fallback page URL (editable by admins without redeploy)
+
+**router_analytics** (Routing event tracking)
+```sql
+id UUID PRIMARY KEY
+artist_handle VARCHAR NOT NULL
+country_code VARCHAR(2)
+org_id UUID REFERENCES org(id)
+tour_id UUID REFERENCES router_tours(id)
+destination_url TEXT NOT NULL
+fallback_ref TEXT  -- Generated from destination_url ref= param
+override_org_fallthrough BOOLEAN DEFAULT false  -- True when artist org failed
+attempted_override_org_id UUID  -- The org that failed (when fallthrough)
+timestamp TIMESTAMP DEFAULT NOW()
+```
 
 **Existing org_public_view** (read-only access):
 - View filters to `approval_status = 'approved'` — router never sees unapproved orgs
@@ -199,21 +234,23 @@ updated_at TIMESTAMP DEFAULT NOW()
 Even if UI comes later, system must support:
 
 - Disabling an org globally via `router_org_overrides`
-- Disabling a tour via `tours.enabled = false`
+- Disabling a tour via `router_tours.enabled = false`
 - Emergency override without redeploy
 
 ### Implementation Phases
 
 **Phase 1: Core Router API** 
-- `GET /a/{artist_slug}` routing endpoint
+- `GET /a/{artist_handle}` routing endpoint
 - Database tables and basic queries
 - Fallback page rendering
 
 **Phase 2: Admin Configuration UI**
 - Artist CRUD (`/admin/artists/`)
 - Tour management (`/admin/tours/`)
-- Routing configuration (`/admin/routing/`)
-- Org override controls (`/admin/overrides/`)
+- Country-first organization management (`/admin/organizations/`)
+  - Lists countries with approved orgs
+  - Click into country to manage recommendations and org status
+  - Set permanent and date-specific recommendations per country
 
 **Phase 3: Artist Self-Service** (Future)
 - Artist-scoped dashboard (`/artist/dashboard/`)
@@ -238,7 +275,7 @@ mdedb_service_role: Full CRUD on MDEDB tables including org (no Router access)
 
 ## API Contract (Illustrative)
 
-`GET /a/{artist_slug}`
+`GET /a/{artist_handle}`
 
 Returns:
 
@@ -276,10 +313,10 @@ router_configs (
 
 **Show-Level Routing:**
 ```sql
--- Future: Individual show configurations  
-shows (
+-- Future: Individual show configurations
+router_shows (
   id UUID PRIMARY KEY,
-  tour_id UUID REFERENCES tours(id),
+  tour_id UUID REFERENCES router_tours(id),
   venue_name VARCHAR,
   city VARCHAR,
   country_code VARCHAR,
@@ -290,7 +327,7 @@ shows (
 **Weighted Org Selection:**
 ```sql
 -- Future: Multiple orgs per geographic area
-tour_country_configs.weight INTEGER  -- For A/B testing, capacity distribution
+router_tour_overrides.weight INTEGER  -- For A/B testing, capacity distribution
 ```
 
 **Resolution Priority Logic** (future):
@@ -332,6 +369,31 @@ function RoutingConfiguration({ userRole }: { userRole: 'admin' | 'artist' }) {
 ```
 
 This allows building one UI that evolves from admin configuration tool to artist self-service through progressive permission refinement.
+
+### Future Admin Features (Deferred)
+
+The following features are intentionally deferred from MVP. They should be revisited after pilot testing with real artists.
+
+**Analytics Dashboard**
+- Visualize routing performance data from `router_analytics` table
+- Show metrics: routes by country, fallback rates, org distribution
+- Surface override org fallthrough events (artist-selected org failures)
+- Consider: what decisions would this data inform? Design for actionability, not vanity metrics
+
+**Emergency & Bulk Controls**
+- "Pause All Routing" emergency button (redirect all traffic to fallback)
+- Bulk update organization status (enable/disable multiple orgs)
+- These controls should be designed with safeguards:
+  - Confirmation dialogs with clear impact messaging
+  - Possibly require re-authentication or 2FA
+  - Audit logging of who triggered what action
+  - Consider placing in a separate "Settings" or "Emergency" page rather than dashboard
+- The `router_org_overrides` table already supports per-org pausing; bulk operations would just batch these
+
+**Org Self-Service** (may belong in MDEDB)
+- Orgs updating their own info
+- Viewing routing analytics for their org
+- Submitting volunteer/engagement metrics
 
 ## Design Principles for the Agent
 

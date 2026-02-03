@@ -1,0 +1,1 @@
+INSERT INTO router_users (id, email, role, enabled) VALUES ('USER_ID', 'USER_EMAIL', 'admin', true);
