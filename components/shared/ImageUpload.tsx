@@ -13,6 +13,7 @@ interface ImageUploadProps {
   currentImageUrl: string | null;
   onImageChange: (url: string | null) => void;
   disabled?: boolean;
+  placeholder?: string;
 }
 
 export function ImageUpload({
@@ -20,6 +21,7 @@ export function ImageUpload({
   currentImageUrl,
   onImageChange,
   disabled,
+  placeholder = "No image uploaded",
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [removing, setRemoving] = useState(false);
@@ -113,7 +115,7 @@ export function ImageUpload({
         <div className="flex items-center justify-center aspect-video rounded-lg border border-dashed bg-muted/50">
           <div className="text-center text-muted-foreground">
             <ImageIcon className="h-8 w-8 mx-auto mb-2" />
-            <p className="text-sm">No image uploaded</p>
+            <p className="text-sm">{placeholder}</p>
           </div>
         </div>
       )}

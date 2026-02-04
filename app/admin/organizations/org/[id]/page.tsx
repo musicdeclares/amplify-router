@@ -450,6 +450,7 @@ export default function OrgProfilePage({
                 <ImageUpload
                   orgId={orgId}
                   currentImageUrl={profile?.image_url || null}
+                  placeholder="Upload an image to customize"
                   onImageChange={(url) => {
                     setProfile((prev) =>
                       prev
