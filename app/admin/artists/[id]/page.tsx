@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, use, useMemo } from "react";
+import { QrCode } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import {
 import { toast } from "sonner";
 import { Artist, Tour } from "@/app/types/router";
 import { TourTable, TourWithArtist } from "@/components/tours/TourTable";
+import { QrCodeDialog } from "@/components/shared/QrCodeDialog";
 
 interface ArtistWithTours extends Artist {
   router_tours: Tour[];
@@ -39,6 +41,7 @@ export default function EditArtistPage({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [qrDialogOpen, setQrDialogOpen] = useState(false);
 
   // Form state
   const [name, setName] = useState("");
@@ -271,9 +274,34 @@ export default function EditArtistPage({
               </div>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">QR Code</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Generate a QR code for this artist&apos;s AMPLIFY link.
+              </p>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setQrDialogOpen(true)}
+              >
+                <QrCode className="h-4 w-4 mr-2" />
+                Generate QR Code
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
+      <QrCodeDialog
+        artistHandle={artist.handle}
+        artistName={artist.name}
+        open={qrDialogOpen}
+        onOpenChange={setQrDialogOpen}
+      />
     </div>
   );
 }
