@@ -227,6 +227,44 @@ export interface Database {
           updated_at?: string;
         };
       };
+      router_org_profiles: {
+        Row: {
+          id: string;
+          org_id: string;
+          org_name: string | null;
+          mission: string | null;
+          cta_url: string | null;
+          cta_text: string | null;
+          fan_actions: string[] | null;
+          image_url: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          org_id: string;
+          org_name?: string | null;
+          mission?: string | null;
+          cta_url?: string | null;
+          cta_text?: string | null;
+          fan_actions?: string[] | null;
+          image_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          org_id?: string;
+          org_name?: string | null;
+          mission?: string | null;
+          cta_url?: string | null;
+          cta_text?: string | null;
+          fan_actions?: string[] | null;
+          image_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       org: {
         Row: {
           id: string;

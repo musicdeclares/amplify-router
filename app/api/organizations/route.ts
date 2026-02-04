@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       throw error
     }
 
-    // Fetch router overrides to include enabled status
+    // Fetch router overrides and profile status
     const orgIds = organizations?.map(org => org.id) || []
     const { data: overrides } = await supabaseAdmin
       .from('router_org_overrides')
@@ -38,13 +38,24 @@ export async function GET(request: NextRequest) {
         error: unknown
       }
 
-    // Merge override data with organizations
+    const { data: profiles } = await supabaseAdmin
+      .from('router_org_profiles')
+      .select('org_id')
+      .in('org_id', orgIds) as {
+        data: Array<{ org_id: string }> | null
+        error: unknown
+      }
+
+    const profileOrgIds = new Set(profiles?.map(p => p.org_id) || [])
+
+    // Merge override data and profile status with organizations
     const orgsWithOverrides = organizations?.map(org => {
       const override = overrides?.find(o => o.org_id === org.id)
       return {
         ...org,
         router_enabled: override?.enabled ?? true, // Default to enabled if no override
-        router_pause_reason: override?.reason ?? null
+        router_pause_reason: override?.reason ?? null,
+        has_profile: profileOrgIds.has(org.id)
       }
     })
 

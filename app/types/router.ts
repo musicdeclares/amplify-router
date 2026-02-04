@@ -13,6 +13,8 @@ export type RouterAnalytics =
   Database["public"]["Tables"]["router_analytics"]["Row"];
 export type RouterOrgOverride =
   Database["public"]["Tables"]["router_org_overrides"]["Row"];
+export type OrgProfile =
+  Database["public"]["Tables"]["router_org_profiles"]["Row"];
 
 // View types
 export type OrgPublicView =

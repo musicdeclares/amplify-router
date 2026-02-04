@@ -118,7 +118,7 @@ export function FallbackTable({ fallbacks }: FallbackTableProps) {
                   </span>
                   {row.override_org_fallthrough && (
                     <Badge variant="destructive" className="text-xs ml-1.5">
-                      Override fallthrough
+                      Org override fallthrough
                     </Badge>
                   )}
                   {row.org_name && (
