@@ -14,10 +14,7 @@ import { DateInput } from "@/components/ui/date-input";
 import { TrendChart } from "@/components/analytics/TrendChart";
 import { FallbackSummary } from "@/components/analytics/FallbackSummary";
 import { FallbackTable } from "@/components/analytics/FallbackTable";
-import {
-  getDefaultDateRange,
-  formatPercent,
-} from "@/app/lib/analytics-utils";
+import { getDefaultDateRange, formatPercent } from "@/app/lib/analytics-utils";
 import { getCountryLabel } from "@/app/lib/countries";
 import type { RouterAnalytics } from "@/app/types/router";
 
@@ -54,25 +51,19 @@ function QuickLinks({ compact }: { compact?: boolean }) {
       href: "/admin/artists",
       label: "Artists",
       description: "Manage artist profiles and their AMPLIFY links",
-      color: "bg-blue-500",
-      linkColor: "text-blue-700 hover:text-blue-900",
-      letter: "A",
+      icon: "🎤",
     },
     {
       href: "/admin/tours",
       label: "Tours",
       description: "Configure tour dates and organization routing",
-      color: "bg-green-500",
-      linkColor: "text-green-700 hover:text-green-900",
-      letter: "T",
+      icon: "🏟️",
     },
     {
       href: "/admin/organizations",
       label: "Organizations",
       description: "Manage org recommendations by country",
-      color: "bg-purple-500",
-      linkColor: "text-purple-700 hover:text-purple-900",
-      letter: "O",
+      icon: "🤲",
     },
   ];
 
@@ -83,14 +74,8 @@ function QuickLinks({ compact }: { compact?: boolean }) {
           <Link key={link.href} href={link.href}>
             <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-4 flex items-center gap-3">
-                <div
-                  className={`w-8 h-8 ${link.color} rounded-full flex items-center justify-center shrink-0`}
-                >
-                  <span className="text-white font-bold text-sm">
-                    {link.letter}
-                  </span>
-                </div>
-                <span className="font-medium text-sm">{link.label}</span>
+                <span className="text-xl shrink-0">{link.icon}</span>
+                <span className="font-medium text-md">{link.label}</span>
               </CardContent>
             </Card>
           </Link>
@@ -108,14 +93,8 @@ function QuickLinks({ compact }: { compact?: boolean }) {
         >
           <div className="p-5">
             <div className="flex items-center">
-              <div className="shrink-0">
-                <div
-                  className={`w-8 h-8 ${link.color} rounded-full flex items-center justify-center`}
-                >
-                  <span className="text-white font-bold">{link.letter}</span>
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
+              <span className="text-2xl shrink-0">{link.icon}</span>
+              <div className="ml-4 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">
                     {link.label}
@@ -129,7 +108,10 @@ function QuickLinks({ compact }: { compact?: boolean }) {
           </div>
           <div className="bg-gray-50 px-5 py-3">
             <div className="text-sm">
-              <Link href={link.href} className={`font-medium ${link.linkColor}`}>
+              <Link
+                href={link.href}
+                className="font-medium text-mde-body hover:text-mde-body/70"
+              >
                 See all {link.label.toLowerCase()}
               </Link>
             </div>
@@ -195,9 +177,7 @@ export default function AdminDashboard() {
       <div className="min-h-screen bg-gray-50">
         <header className="bg-white shadow">
           <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold text-gray-900">
-              AMPLIFY Router Admin
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           </div>
         </header>
         <main className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
@@ -213,9 +193,7 @@ export default function AdminDashboard() {
       <div className="min-h-screen bg-gray-50">
         <header className="bg-white shadow">
           <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold text-gray-900">
-              AMPLIFY Router Admin
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           </div>
         </header>
         <main className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8 space-y-6">
@@ -243,16 +221,12 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-2">
               <DateInput
                 value={startDate}
-                onChange={(e) =>
-                  handleDateChange(e.target.value, endDate)
-                }
+                onChange={(e) => handleDateChange(e.target.value, endDate)}
               />
               <span className="text-muted-foreground">–</span>
               <DateInput
                 value={endDate}
-                onChange={(e) =>
-                  handleDateChange(startDate, e.target.value)
-                }
+                onChange={(e) => handleDateChange(startDate, e.target.value)}
               />
             </div>
           </div>
@@ -391,9 +365,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <h3 className="text-sm font-medium mb-3">
-                    Reason Breakdown
-                  </h3>
+                  <h3 className="text-sm font-medium mb-3">Reason Breakdown</h3>
                   <FallbackSummary
                     reasons={data.fallbackReasons}
                     totalFallbacks={data.fallbackRoutes}
