@@ -109,6 +109,7 @@ export default function EditTourPage({
 
   // Country add state
   const [countryOpen, setCountryOpen] = useState(false);
+  const [countrySearch, setCountrySearch] = useState("");
   const [addingCountry, setAddingCountry] = useState(false);
 
   useEffect(() => {
@@ -521,7 +522,13 @@ export default function EditTourPage({
                     Configure which organizations fans are routed to per country
                   </CardDescription>
                 </div>
-                <Popover open={countryOpen} onOpenChange={setCountryOpen}>
+                <Popover
+                  open={countryOpen}
+                  onOpenChange={(open) => {
+                    setCountryOpen(open);
+                    if (!open) setCountrySearch("");
+                  }}
+                >
                   <PopoverTrigger asChild>
                     <Button
                       size="sm"
@@ -533,23 +540,64 @@ export default function EditTourPage({
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-75 p-0" align="end">
-                    <Command>
-                      <CommandInput placeholder="Search countries..." />
+                    <Command shouldFilter={false}>
+                      <CommandInput
+                        placeholder="Search countries..."
+                        value={countrySearch}
+                        onValueChange={setCountrySearch}
+                      />
                       <CommandList>
                         <CommandEmpty>No country found.</CommandEmpty>
                         <CommandGroup>
-                          {availableCountries.map((country) => (
-                            <CommandItem
-                              key={country.value}
-                              value={`${country.label} ${country.value}`}
-                              onSelect={() => handleAddCountry(country.value)}
-                            >
-                              {country.label}
-                              <span className="ml-2 text-muted-foreground text-xs">
-                                {country.value}
-                              </span>
-                            </CommandItem>
-                          ))}
+                          {(() => {
+                            const s = countrySearch.toLowerCase().trim();
+                            if (!s) {
+                              return availableCountries.map((country) => (
+                                <CommandItem
+                                  key={country.value}
+                                  onSelect={() =>
+                                    handleAddCountry(country.value)
+                                  }
+                                >
+                                  {country.label}
+                                  <span className="ml-2 text-muted-foreground text-xs">
+                                    {country.value}
+                                  </span>
+                                </CommandItem>
+                              ));
+                            }
+                            const scored = availableCountries
+                              .map((country) => {
+                                let score = 0;
+                                if (country.value.toLowerCase() === s)
+                                  score = 3;
+                                else if (
+                                  country.label.toLowerCase().startsWith(s)
+                                )
+                                  score = 2;
+                                else if (
+                                  country.label.toLowerCase().includes(s) ||
+                                  country.value.toLowerCase().includes(s)
+                                )
+                                  score = 1;
+                                return { country, score };
+                              })
+                              .filter((item) => item.score > 0)
+                              .sort((a, b) => b.score - a.score);
+                            return scored.map(({ country }) => (
+                              <CommandItem
+                                key={country.value}
+                                onSelect={() =>
+                                  handleAddCountry(country.value)
+                                }
+                              >
+                                {country.label}
+                                <span className="ml-2 text-muted-foreground text-xs">
+                                  {country.value}
+                                </span>
+                              </CommandItem>
+                            ));
+                          })()}
                         </CommandGroup>
                       </CommandList>
                     </Command>
