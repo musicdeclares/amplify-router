@@ -172,16 +172,19 @@ export default async function KitPage({
 
         {/* Footer */}
         <footer className="text-center text-sm text-muted-foreground pb-8 print:pb-0 print:text-xs">
-          Part of the{" "}
-          <a
-            href="https://www.musicdeclares.net/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-foreground"
-          >
-            Music Declares Emergency
-          </a>{" "}
-          initiative
+          <p>
+            Part of the{" "}
+            <a
+              href="https://www.musicdeclares.net/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground"
+            >
+              Music Declares Emergency
+            </a>{" "}
+            initiative
+          </p>
+          <p className="mt-1 text-xs print:text-[10px]">No music on a dead planet.</p>
         </footer>
       </div>
     </main>

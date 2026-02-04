@@ -29,18 +29,21 @@ export default function Home() {
         Admin Login
       </Link>
 
-      <p className="mt-16 text-sm text-muted-foreground">
-        Part of the{" "}
-        <a
-          href="https://www.musicdeclares.net/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline hover:text-foreground"
-        >
-          Music Declares Emergency
-        </a>{" "}
-        initiative
-      </p>
+      <footer className="mt-16 text-center text-sm text-muted-foreground">
+        <p>
+          Part of the{" "}
+          <a
+            href="https://www.musicdeclares.net/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-foreground"
+          >
+            Music Declares Emergency
+          </a>{" "}
+          initiative
+        </p>
+        <p className="mt-1 text-xs">No music on a dead planet.</p>
+      </footer>
     </main>
   );
 }
