@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -72,7 +73,16 @@ function LoginForm() {
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">AMPLIFY Router</CardTitle>
+          <CardTitle className="flex items-center gap-2 justify-center text-2xl font-bold">
+            <Image
+              src="/logo.png"
+              alt="AMPLIFY"
+              width={500}
+              height={396}
+              className="w-10 h-auto"
+            />
+            <span>AMPLIFY Router</span>
+          </CardTitle>
           <CardDescription>
             Sign in to manage routing configuration
           </CardDescription>

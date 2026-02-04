@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
@@ -44,11 +45,19 @@ export default function AdminLayout({
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <Link href="/admin" className="text-xl font-bold">
-                  AMPLIFY Router
-                </Link>
-              </div>
+              <Link
+                href="/admin"
+                className="shrink-0 flex items-center gap-2 text-xl font-bold"
+              >
+                <Image
+                  src="/logo.png"
+                  alt="AMPLIFY"
+                  width={500}
+                  height={396}
+                  className="w-10 h-auto"
+                />
+                <span>AMPLIFY Router</span>
+              </Link>
               {/* Desktop navigation */}
               <div className="hidden sm:ml-8 sm:flex">
                 {navigation.map((item) => {
