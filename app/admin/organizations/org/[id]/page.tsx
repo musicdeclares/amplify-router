@@ -530,17 +530,12 @@ export default function OrgProfilePage({
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="flex items-center justify-center w-full h-full text-gray-300">
-                        <svg
-                          className="size-12"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <rect x="3" y="3" width="18" height="18" rx="2" />
-                          <path d="m3 16 5-5 4 4 4-4 5 5" />
-                          <circle cx="15" cy="9" r="2" />
-                        </svg>
+                      <div className="flex items-center justify-center w-full h-full bg-gray-100">
+                        <img
+                          src="/logo.png"
+                          alt="MDE AMPLIFY"
+                          className="size-20 object-contain opacity-60"
+                        />
                       </div>
                     )}
                   </div>
