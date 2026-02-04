@@ -12,10 +12,18 @@ export default function ToursPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [total, setTotal] = useState(0);
+  const [hasArtists, setHasArtists] = useState(true);
 
   useEffect(() => {
     fetchTours();
   }, [search]);
+
+  useEffect(() => {
+    fetch("/api/artists?limit=1")
+      .then((res) => res.json())
+      .then((data) => setHasArtists((data.artists?.length ?? 0) > 0))
+      .catch(() => {});
+  }, []);
 
   async function fetchTours() {
     setLoading(true);
@@ -72,16 +80,24 @@ export default function ToursPage() {
       ) : tours.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground">
-            {search ? "No tours match your search." : "No tours created yet."}
+            {search
+              ? "No tours match your search."
+              : !hasArtists
+                ? "No artists yet."
+                : "No tours created yet."}
           </p>
           <p className="text-sm text-muted-foreground mt-1">
             {search
               ? "Try changing your search criteria."
-              : "Add your first tour to start setting up redirects."}
+              : !hasArtists
+                ? "Create an artist before adding tours."
+                : "Add your first tour to start setting up redirects."}
           </p>
           {!search && (
-            <Link href="/admin/tours/new">
-              <Button variant="link">Add Tour</Button>
+            <Link href={hasArtists ? "/admin/tours/new" : "/admin/artists/new"}>
+              <Button variant="link">
+                {hasArtists ? "Add Tour" : "Create Artist"}
+              </Button>
             </Link>
           )}
         </div>
