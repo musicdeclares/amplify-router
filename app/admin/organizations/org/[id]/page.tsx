@@ -119,7 +119,7 @@ export default function OrgProfilePage({
       fanActions,
       ctaUrl: ctaUrl.trim() || org.website || "",
       ctaText: ctaText.trim() || "Get involved",
-      imageUrl: profile?.image_url || "",
+      imageUrl: profile?.image_url || org.banner || org.logo || "",
     };
   }, [org, orgName, mission, ctaUrl, ctaText, fanActions, profile?.image_url]);
 
