@@ -34,7 +34,7 @@ Explicitly out of scope for initial build:
 
 - Outcome tracking or attribution analytics
 - Auto-recommendation of orgs
-- On-demand asset generation
+- ~~On-demand asset generation~~ — QR code generation and starter kit page now implemented
 - Fine-grained geo (city-level, GPS)
 - Real-time capacity detection
 
@@ -280,6 +280,10 @@ Even if UI comes later, system must support:
 - Analytics dashboard (`/admin/`)
   - Routing trends, top countries/artists, fallback diagnostics
   - Date range filtering, override fallthrough tracking
+- Artist starter kit page (`/kit/{handle}`)
+  - Public, no-auth page for sharing with artists/managers after setup
+  - Displays AMPLIFY link with copy button, QR code generator, and usage guidance
+  - Print-optimized layout (single page) with high-DPI static QR code for print
 
 **Phase 3: Artist Self-Service** (Future)
 - Artist-scoped dashboard (`/artist/dashboard/`)
@@ -404,7 +408,7 @@ This allows building one UI that evolves from admin configuration tool to artist
 The following features are intentionally deferred. They should be revisited after pilot testing with real artists.
 
 **Asset generation**
-- ~~Artist URL QR code generation~~ — **Implemented** via `qr-code-styling` library. Available on the artist edit page sidebar. Supports light/dark mode, transparent/solid background, AMPLIFY logo overlay, SVG + PNG download.
+- ~~Artist URL QR code generation~~ — **Implemented** via `qr-code-styling` library. Available on the artist edit page sidebar and the starter kit page (`/kit/{handle}`). Supports light/dark mode, transparent/solid background, AMPLIFY logo overlay, SVG + PNG download.
 - Social media post templates
 
 **Emergency & Bulk Controls**
