@@ -133,6 +133,8 @@ export async function DELETE(
 ) {
   const { id } = await params;
   try {
+    // Tour overrides are deleted automatically via ON DELETE CASCADE.
+    // Analytics rows have tour_id set to NULL via ON DELETE SET NULL.
     const { error } = await supabaseAdmin
       .from("router_tours")
       .delete()
