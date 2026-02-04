@@ -196,7 +196,7 @@ export default function ArtistsPage() {
                     {getSortIcon("tours")}
                   </button>
                 </TableHead>
-                <TableHead className="w-[100px]"></TableHead>
+                <TableHead className="w-25"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

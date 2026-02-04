@@ -469,10 +469,10 @@ export default function CountryDetailPage({
                           rel="noopener noreferrer"
                           className="text-sm text-[--color-link] hover:text-[--color-link-hover] underline inline-flex items-center gap-1 mt-1"
                         >
-                          <span className="truncate max-w-[250px]">
+                          <span className="truncate max-w-62.5">
                             {org.website}
                           </span>
-                          <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                          <ExternalLink className="h-3 w-3 shrink-0" />
                         </a>
                       )}
 
@@ -654,10 +654,7 @@ export default function CountryDetailPage({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setRemoveRecTarget(null)}
-            >
+            <Button variant="outline" onClick={() => setRemoveRecTarget(null)}>
               Cancel
             </Button>
             <Button

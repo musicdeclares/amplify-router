@@ -561,7 +561,7 @@ export default function OrgProfilePage({
                     {preview.mission && (
                       <div className="flex items-start gap-2 mb-3">
                         <Target
-                          className="size-4 mt-0.5 flex-shrink-0"
+                          className="size-4 mt-0.5 shrink-0"
                           style={{ color: "#a6cb65" }}
                         />
                         <p className="text-sm text-gray-700 line-clamp-3">
