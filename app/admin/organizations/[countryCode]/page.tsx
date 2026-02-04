@@ -35,6 +35,7 @@ import {
   AlertTriangle,
   MoreVertical,
   Trash2,
+  UserPen,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -47,6 +48,7 @@ import { OrgPublicView } from "@/app/types/router";
 interface Organization extends OrgPublicView {
   router_enabled: boolean;
   router_pause_reason: string | null;
+  has_profile: boolean;
 }
 
 interface CountryDefault {
@@ -82,6 +84,9 @@ export default function CountryDetailPage({
   const [dateTo, setDateTo] = useState("");
   const [dateNotes, setDateNotes] = useState("");
 
+  const [removeRecTarget, setRemoveRecTarget] = useState<CountryDefault | null>(
+    null,
+  );
   const [updating, setUpdating] = useState(false);
 
   const countryName = getCountryLabel(countryCode);
@@ -168,18 +173,12 @@ export default function CountryDetailPage({
     }
   }
 
-  async function removeRecommendation(rec: CountryDefault) {
-    if (
-      !confirm(
-        `Remove ${rec.org?.org_name || "this organization"} as ${rec.effective_from ? "a date-specific" : "the permanent"} recommendation?`,
-      )
-    ) {
-      return;
-    }
+  async function removeRecommendation() {
+    if (!removeRecTarget) return;
 
     setUpdating(true);
     try {
-      const res = await fetch(`/api/country-defaults/${rec.id}`, {
+      const res = await fetch(`/api/country-defaults/${removeRecTarget.id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete");
@@ -191,6 +190,7 @@ export default function CountryDetailPage({
       toast.error("Failed to remove recommendation");
     } finally {
       setUpdating(false);
+      setRemoveRecTarget(null);
     }
   }
 
@@ -347,7 +347,7 @@ export default function CountryDetailPage({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => removeRecommendation(permanentRec)}
+                onClick={() => setRemoveRecTarget(permanentRec)}
                 disabled={updating}
               >
                 <Trash2 className="h-4 w-4" />
@@ -395,7 +395,7 @@ export default function CountryDetailPage({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => removeRecommendation(rec)}
+                    onClick={() => setRemoveRecTarget(rec)}
                     disabled={updating}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -450,6 +450,11 @@ export default function CountryDetailPage({
                             Date-specific
                           </Badge>
                         )}
+                        {org.has_profile && (
+                          <Badge className="text-xs" variant="outline">
+                            Profile customized
+                          </Badge>
+                        )}
                         {!org.router_enabled && (
                           <Badge variant="destructive" className="text-xs">
                             Paused
@@ -485,6 +490,12 @@ export default function CountryDetailPage({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link href={`/admin/organizations/org/${org.id}`}>
+                            <UserPen className="h-4 w-4 mr-2" />
+                            Edit profile
+                          </Link>
+                        </DropdownMenuItem>
                         {!isPermanentRec && (
                           <DropdownMenuItem
                             onClick={() => setAsRecommendation(org)}
@@ -620,6 +631,41 @@ export default function CountryDetailPage({
             </Button>
             <Button onClick={handleDateSpecificSave} disabled={updating}>
               {updating ? "Saving..." : "Add Recommendation"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!removeRecTarget}
+        onOpenChange={(open) => {
+          if (!open) setRemoveRecTarget(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove Recommendation</DialogTitle>
+            <DialogDescription>
+              Remove {removeRecTarget?.org?.org_name || "this organization"} as{" "}
+              {removeRecTarget?.effective_from
+                ? "a date-specific"
+                : "the permanent"}{" "}
+              recommendation?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setRemoveRecTarget(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={removeRecommendation}
+              disabled={updating}
+            >
+              {updating ? "Removing..." : "Remove"}
             </Button>
           </DialogFooter>
         </DialogContent>

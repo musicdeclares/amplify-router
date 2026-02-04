@@ -16,6 +16,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -84,6 +92,11 @@ export default function EditTourPage({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [removeCountryTarget, setRemoveCountryTarget] = useState<{
+    overrideId: string;
+    countryCode: string;
+  } | null>(null);
   const [error, setError] = useState("");
 
   // Form state
@@ -195,14 +208,6 @@ export default function EditTourPage({
   }
 
   async function handleDelete() {
-    if (
-      !confirm(
-        "Are you sure you want to delete this tour? This action cannot be undone.",
-      )
-    ) {
-      return;
-    }
-
     setDeleting(true);
 
     try {
@@ -253,10 +258,9 @@ export default function EditTourPage({
     }
   }
 
-  async function handleRemoveCountry(overrideId: string, countryCode: string) {
-    if (!confirm(`Remove ${getCountryLabel(countryCode)} from this tour?`)) {
-      return;
-    }
+  async function handleRemoveCountry() {
+    if (!removeCountryTarget) return;
+    const { overrideId, countryCode } = removeCountryTarget;
 
     try {
       const res = await fetch(
@@ -277,6 +281,8 @@ export default function EditTourPage({
     } catch (error) {
       console.error("Error removing country:", error);
       toast.error("Failed to remove country");
+    } finally {
+      setRemoveCountryTarget(null);
     }
   }
 
@@ -526,7 +532,7 @@ export default function EditTourPage({
                       {addingCountry ? "Adding..." : "Add Country"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[300px] p-0" align="end">
+                  <PopoverContent className="w-75 p-0" align="end">
                     <Command>
                       <CommandInput placeholder="Search countries..." />
                       <CommandList>
@@ -607,10 +613,10 @@ export default function EditTourPage({
                                 variant="ghost"
                                 size="sm"
                                 onClick={() =>
-                                  handleRemoveCountry(
-                                    override.id,
-                                    override.country_code,
-                                  )
+                                  setRemoveCountryTarget({
+                                    overrideId: override.id,
+                                    countryCode: override.country_code,
+                                  })
                                 }
                               >
                                 <X className="h-4 w-4" />
@@ -643,7 +649,10 @@ export default function EditTourPage({
                               }
                             >
                               <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Use MDE recommended" />
+                                <SelectValue>
+                                  {override.org?.org_name ??
+                                    "Use MDE recommended"}
+                                </SelectValue>
                               </SelectTrigger>
                               <SelectContent
                                 className="max-w-[calc(100vw-3rem)]"
@@ -680,7 +689,7 @@ export default function EditTourPage({
                           <TableHead>MDE Recommended</TableHead>
                           <TableHead>Artist Selected</TableHead>
                           <TableHead>Using</TableHead>
-                          <TableHead className="w-[50px]"></TableHead>
+                          <TableHead className="w-12.5"></TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -720,8 +729,11 @@ export default function EditTourPage({
                                     )
                                   }
                                 >
-                                  <SelectTrigger className="w-[200px]">
-                                    <SelectValue placeholder="Use MDE recommended" />
+                                  <SelectTrigger className="w-50">
+                                    <SelectValue>
+                                      {override.org?.org_name ??
+                                        "Use MDE recommended"}
+                                    </SelectValue>
                                   </SelectTrigger>
                                   <SelectContent
                                     position="popper"
@@ -761,10 +773,10 @@ export default function EditTourPage({
                                   variant="ghost"
                                   size="sm"
                                   onClick={() =>
-                                    handleRemoveCountry(
-                                      override.id,
-                                      override.country_code,
-                                    )
+                                    setRemoveCountryTarget({
+                                      overrideId: override.id,
+                                      countryCode: override.country_code,
+                                    })
                                   }
                                 >
                                   <X className="h-4 w-4" />
@@ -780,47 +792,8 @@ export default function EditTourPage({
               )}
             </CardContent>
           </Card>
-        </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Quick Info</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">Artist:</span>
-                <br />
-                <Link
-                  href={`/admin/artists/${tour.router_artists.id}`}
-                  className="text-[--color-link] hover:text-[--color-link-hover] underline"
-                >
-                  {tour.router_artists.name}
-                </Link>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Handle:</span>
-                <br />
-                <code className="text-xs bg-muted px-1 rounded">
-                  {tour.router_artists.handle}
-                </code>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Added:</span>
-                <br />
-                {new Date(tour.created_at).toLocaleDateString()}
-              </div>
-              <div>
-                <span className="text-muted-foreground">
-                  Countries configured:
-                </span>
-                <br />
-                {overrides.length}
-              </div>
-            </CardContent>
-          </Card>
-
+          {/* Danger Zone */}
           <Card className="border-destructive/50">
             <CardHeader>
               <CardTitle className="text-base text-destructive">
@@ -834,15 +807,113 @@ export default function EditTourPage({
               <Button
                 variant="destructive"
                 size="sm"
-                onClick={handleDelete}
+                onClick={() => setDeleteDialogOpen(true)}
                 disabled={deleting}
               >
-                {deleting ? "Deleting..." : "Delete Tour"}
+                Delete Tour
               </Button>
             </CardContent>
           </Card>
         </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Quick Info</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">Artist</span>
+                <br />
+                <Link
+                  href={`/admin/artists/${tour.router_artists.id}`}
+                  className="text-[--color-link] hover:text-[--color-link-hover] underline"
+                >
+                  {tour.router_artists.name}
+                </Link>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Handle</span>
+                <br />
+                <code className="text-xs bg-muted px-1 rounded">
+                  {tour.router_artists.handle}
+                </code>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Added</span>
+                <br />
+                {new Date(tour.created_at).toLocaleDateString()}
+              </div>
+              <div>
+                <span className="text-muted-foreground">
+                  Countries configured
+                </span>
+                <br />
+                {overrides.length}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Tour</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this tour and all its country
+              configurations? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? "Deleting..." : "Delete Tour"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!removeCountryTarget}
+        onOpenChange={(open) => {
+          if (!open) setRemoveCountryTarget(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove Country</DialogTitle>
+            <DialogDescription>
+              Remove{" "}
+              {removeCountryTarget
+                ? getCountryLabel(removeCountryTarget.countryCode)
+                : ""}{" "}
+              from this tour?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setRemoveCountryTarget(null)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleRemoveCountry}>
+              Remove
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
