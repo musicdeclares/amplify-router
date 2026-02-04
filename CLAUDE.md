@@ -417,6 +417,13 @@ The following features are intentionally deferred. They should be revisited afte
   - Consider placing in a separate "Settings" or "Emergency" page rather than dashboard
 - The `router_org_overrides` table already supports per-org pausing; bulk operations would just batch these
 
+**Audit Trail**
+- Log configuration changes (who changed what and when) to a `router_audit_log` table
+- Covers tour/override creation and deletion, org profile changes, country default updates
+- Important for operational debugging ("what changed and when") and MOU compliance
+- Consider preventing artist deletion entirely (disable-only policy) since artist handles are permanent public URLs
+- Schema sketch: `(action, table_name, record_id, old_values, new_values, user_id, timestamp)` with Postgres triggers
+
 **Org Self-Service** (may belong in MDEDB)
 - Orgs updating their own info
 - Viewing routing analytics for their org
