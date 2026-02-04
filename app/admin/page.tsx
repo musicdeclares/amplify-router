@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ChevronRight } from "lucide-react";
 import { DateInput } from "@/components/ui/date-input";
 import { TrendChart } from "@/components/analytics/TrendChart";
 import { FallbackSummary } from "@/components/analytics/FallbackSummary";
@@ -146,6 +147,7 @@ export default function AdminDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [hasAnyData, setHasAnyData] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fallbacksOpen, setFallbacksOpen] = useState(false);
 
   const fetchData = useCallback(async (start: string, end: string) => {
     setLoading(true);
@@ -398,10 +400,25 @@ export default function AdminDashboard() {
                   />
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setFallbacksOpen((o) => !o)}
+                    className="flex items-center gap-1.5 text-sm font-medium cursor-pointer select-none hover:text-foreground/80"
+                  >
+                    <ChevronRight
+                      className={`h-4 w-4 transition-transform duration-200 ${fallbacksOpen ? "rotate-90" : ""}`}
+                    />
                     Recent Fallback Events (last 50)
-                  </h3>
-                  <FallbackTable fallbacks={data.recentFallbacks} />
+                  </button>
+                  <div
+                    className={`grid transition-[grid-template-rows] duration-200 ease-out ${fallbacksOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="mt-3">
+                        <FallbackTable fallbacks={data.recentFallbacks} />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

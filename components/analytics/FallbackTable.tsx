@@ -73,7 +73,8 @@ export function FallbackTable({ fallbacks }: FallbackTableProps) {
       <TableHeader>
         <TableRow>
           <TableHead className="hidden sm:table-cell">Time</TableHead>
-          <TableHead>Artist</TableHead>
+          <TableHead className="hidden sm:table-cell">Artist Handle</TableHead>
+          <TableHead className="sm:hidden">Event</TableHead>
           <TableHead className="hidden sm:table-cell">Country</TableHead>
           <TableHead>Reason</TableHead>
           <TableHead className="hidden sm:table-cell">Tour</TableHead>

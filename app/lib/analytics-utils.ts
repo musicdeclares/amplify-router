@@ -38,7 +38,7 @@ export const FALLBACK_REASONS: Record<FallbackReason, ReasonInfo> = {
   org_no_website: {
     label: "Org has no website",
     recoveryStep:
-      "Org record is missing a website URL. Update org details in MDEDB.",
+      "Org has no destination URL. [Set a CTA URL](/admin/organizations) in the org profile, or update the website in MDEDB.",
   },
   error: {
     label: "System error",
