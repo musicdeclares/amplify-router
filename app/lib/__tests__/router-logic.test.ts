@@ -223,6 +223,78 @@ describe("Router Logic", () => {
 
       expect(getCountryFromRequest(mockRequest)).toBeUndefined();
     });
+
+    function withNodeEnv(env: string, fn: () => void) {
+      const orig = process.env.NODE_ENV;
+      Object.defineProperty(process.env, "NODE_ENV", {
+        value: env,
+        writable: true,
+        configurable: true,
+      });
+      try {
+        fn();
+      } finally {
+        Object.defineProperty(process.env, "NODE_ENV", {
+          value: orig,
+          writable: true,
+          configurable: true,
+        });
+      }
+    }
+
+    it("should use ?country= query param in development mode", () => {
+      withNodeEnv("development", () => {
+        const mockRequest = {
+          url: "http://localhost:3000/a/radiohead?country=DE",
+          headers: { get: jest.fn(() => null) },
+        } as any;
+
+        expect(getCountryFromRequest(mockRequest)).toBe("DE");
+      });
+    });
+
+    it("should uppercase the ?country= query param", () => {
+      withNodeEnv("development", () => {
+        const mockRequest = {
+          url: "http://localhost:3000/a/radiohead?country=gb",
+          headers: { get: jest.fn(() => null) },
+        } as any;
+
+        expect(getCountryFromRequest(mockRequest)).toBe("GB");
+      });
+    });
+
+    it("should prefer ?country= over headers in development mode", () => {
+      withNodeEnv("development", () => {
+        const mockRequest = {
+          url: "http://localhost:3000/a/radiohead?country=FR",
+          headers: {
+            get: jest.fn((header: string) => {
+              if (header === "x-vercel-ip-country") return "US";
+              return null;
+            }),
+          },
+        } as any;
+
+        expect(getCountryFromRequest(mockRequest)).toBe("FR");
+      });
+    });
+
+    it("should ignore ?country= in production mode", () => {
+      withNodeEnv("production", () => {
+        const mockRequest = {
+          url: "http://localhost:3000/a/radiohead?country=DE",
+          headers: {
+            get: jest.fn((header: string) => {
+              if (header === "x-vercel-ip-country") return "US";
+              return null;
+            }),
+          },
+        } as any;
+
+        expect(getCountryFromRequest(mockRequest)).toBe("US");
+      });
+    });
   });
 
   describe("routeRequest - Success Cases", () => {
@@ -236,7 +308,9 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.destinationUrl).toBe("https://example.com");
+      expect(result.destinationUrl).toBe(
+        "https://example.com/?utm_source=mde_amplify_rtr&utm_medium=referral&utm_campaign=radiohead",
+      );
       expect(result.fallbackReason).toBeUndefined();
       expect(result.orgId).toBe("00000000-0000-0000-0000-000000000001");
       expect(result.tourId).toBe("aaaa1111-1111-1111-1111-111111111111");
@@ -252,7 +326,9 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.destinationUrl).toBe("https://example.co.uk");
+      expect(result.destinationUrl).toBe(
+        "https://example.co.uk/?utm_source=mde_amplify_rtr&utm_medium=referral&utm_campaign=radiohead",
+      );
       expect(result.orgId).toBe("00000000-0000-0000-0000-000000000002");
     });
 
@@ -266,7 +342,9 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.destinationUrl).toBe("https://example.com");
+      expect(result.destinationUrl).toBe(
+        "https://example.com/?utm_source=mde_amplify_rtr&utm_medium=referral&utm_campaign=radiohead",
+      );
     });
 
     it("should route to MDE default when no artist override configured", async () => {
@@ -290,7 +368,9 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.destinationUrl).toBe("https://mde-default.org");
+      expect(result.destinationUrl).toBe(
+        "https://mde-default.org/?utm_source=mde_amplify_rtr&utm_medium=referral&utm_campaign=radiohead",
+      );
     });
 
     it("should fall through to MDE default when artist-selected org not in view", async () => {
@@ -318,7 +398,9 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.destinationUrl).toBe("https://mde-fallback.org");
+      expect(result.destinationUrl).toBe(
+        "https://mde-fallback.org/?utm_source=mde_amplify_rtr&utm_medium=referral&utm_campaign=radiohead",
+      );
       expect(result.analytics.override_org_fallthrough).toBe(true);
       expect(result.analytics.attempted_override_org_id).toBe(
         "00000000-0000-0000-0000-000000000099",
@@ -462,7 +544,9 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.destinationUrl).toBe("https://example.com");
+      expect(result.destinationUrl).toBe(
+        "https://example.com/?utm_source=mde_amplify_rtr&utm_medium=referral&utm_campaign=radiohead",
+      );
     });
 
     it("should route successfully during post-tour window", async () => {
@@ -488,7 +572,9 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.destinationUrl).toBe("https://example.com");
+      expect(result.destinationUrl).toBe(
+        "https://example.com/?utm_source=mde_amplify_rtr&utm_medium=referral&utm_campaign=radiohead",
+      );
     });
 
     it("should route successfully on the exact pre-window boundary", async () => {
@@ -664,7 +750,9 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.destinationUrl).toBe("https://mde-default.org");
+      expect(result.destinationUrl).toBe(
+        "https://mde-default.org/?utm_source=mde_amplify_rtr&utm_medium=referral&utm_campaign=radiohead",
+      );
     });
   });
 
@@ -737,7 +825,9 @@ describe("Router Logic", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.destinationUrl).toBe("https://example.com");
+      expect(result.destinationUrl).toBe(
+        "https://example.com/?utm_source=mde_amplify_rtr&utm_medium=referral&utm_campaign=radiohead",
+      );
     });
   });
 
@@ -760,8 +850,10 @@ describe("Router Logic", () => {
       expect(result.analytics?.tour_id).toBe(
         "aaaa1111-1111-1111-1111-111111111111",
       );
-      // No ref= param on success - destination is the org website
-      expect(result.analytics?.destination_url).toBe("https://example.com");
+      // Success destination includes UTM tracking params
+      expect(result.analytics?.destination_url).toBe(
+        "https://example.com/?utm_source=mde_amplify_rtr&utm_medium=referral&utm_campaign=radiohead",
+      );
     });
 
     it("should include analytics data on fallback", async () => {

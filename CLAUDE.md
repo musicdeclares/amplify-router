@@ -82,9 +82,14 @@ Order of resolution (deterministic, debuggable):
     - Fallback with `ref=org_not_specified`
 7. **Is org paused?** (`router_org_overrides`)
     - If paused → fallback with `ref=org_paused`
-8. **Does org have website?**
-    - If no → fallback with `ref=org_no_website`
-9. **Success** → redirect to org website
+8. **Resolve destination URL** (`router_org_profiles`)
+    - Check `router_org_profiles.cta_url` for this org
+    - Destination = `cta_url` if set, otherwise `org.website`
+9. **Does org have a destination?**
+    - If neither `cta_url` nor `website` → fallback with `ref=org_no_website`
+10. **Success** → append UTM tracking params and redirect
+    - Appends `utm_source=mde_amplify_rtr`, `utm_medium=referral`, `utm_campaign={artist_handle}`
+    - Preserves any existing non-UTM query params on the destination URL
 
 > Outside tour dates, the link should _never_ imply a tour-specific partnership.
 
@@ -208,6 +213,22 @@ created_at TIMESTAMP DEFAULT NOW()
 updated_at TIMESTAMP DEFAULT NOW()
 ```
 
+**router_org_profiles** (Fan-facing org content overrides)
+```sql
+id UUID PRIMARY KEY
+org_id UUID REFERENCES org(id) UNIQUE  -- One profile per org
+org_name TEXT           -- Fan-facing name; falls back to org.org_name
+mission TEXT            -- Fan-facing mission; falls back to org.mission_statement
+cta_url TEXT            -- Router redirect destination; falls back to org.website
+                        -- On save: UTM params stripped (router appends its own at redirect time)
+                        -- On save: domain validated against org.website (warning, not blocked)
+cta_text TEXT           -- Button label; UI defaults to "Get involved" when NULL
+fan_actions TEXT[]      -- e.g., '{"Register to vote", "Pressure decision-makers"}'
+image_url TEXT          -- Supabase Storage URL (router-org-images bucket)
+created_at TIMESTAMP DEFAULT NOW()
+updated_at TIMESTAMP DEFAULT NOW()
+```
+
 **router_analytics** (Routing event tracking)
 ```sql
 id UUID PRIMARY KEY
@@ -224,10 +245,11 @@ timestamp TIMESTAMP DEFAULT NOW()
 
 **Existing org_public_view** (read-only access):
 - View filters to `approval_status = 'approved'` — router never sees unapproved orgs
-- Uses `website` field as destination URL
+- Provides `website` field as fallback destination URL (overridden by `router_org_profiles.cta_url` when set)
 - Uses `country_code` for geographic matching
 - Hides sensitive fields: `contact`, `email`, `created_by`, `updated_by`, `approval_status`
 - Router-specific controls managed separately via `router_org_overrides`
+- Fan-facing content overrides managed via `router_org_profiles`
 
 ### Admin Control Surface
 
@@ -239,18 +261,25 @@ Even if UI comes later, system must support:
 
 ### Implementation Phases
 
-**Phase 1: Core Router API** 
+**Phase 1: Core Router API** ✅
 - `GET /a/{artist_handle}` routing endpoint
 - Database tables and basic queries
 - Fallback page rendering
 
-**Phase 2: Admin Configuration UI**
+**Phase 2: Admin Configuration UI** ✅
 - Artist CRUD (`/admin/artists/`)
 - Tour management (`/admin/tours/`)
 - Country-first organization management (`/admin/organizations/`)
   - Lists countries with approved orgs
   - Click into country to manage recommendations and org status
   - Set permanent and date-specific recommendations per country
+- Fan-facing org profile management (`/admin/organizations/org/[id]`)
+  - Override org name, mission, CTA URL/text for fan display
+  - Fan actions labels and org image upload (Supabase Storage)
+  - Profile data feeds into routing (cta_url) and future org directory UI
+- Analytics dashboard (`/admin/`)
+  - Routing trends, top countries/artists, fallback diagnostics
+  - Date range filtering, override fallthrough tracking
 
 **Phase 3: Artist Self-Service** (Future)
 - Artist-scoped dashboard (`/artist/dashboard/`)
@@ -372,17 +401,11 @@ This allows building one UI that evolves from admin configuration tool to artist
 
 ### Future Admin Features (Deferred)
 
-The following features are intentionally deferred from MVP. They should be revisited after pilot testing with real artists.
+The following features are intentionally deferred. They should be revisited after pilot testing with real artists.
 
 **Asset generation**
 - Artist URL QR code generation using QR code library (e.g., `qrcode` npm package), including branding (e.g., logo overlay, colors)
 - Social media post templates
-
-**Analytics Dashboard**
-- Visualize routing performance data from `router_analytics` table
-- Show metrics: routes by country, fallback rates, org distribution
-- Surface override org fallthrough events (artist-selected org failures)
-- Consider: what decisions would this data inform? Design for actionability, not vanity metrics
 
 **Emergency & Bulk Controls**
 - "Pause All Routing" emergency button (redirect all traffic to fallback)

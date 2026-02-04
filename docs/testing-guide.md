@@ -34,30 +34,45 @@ curl -s -o /dev/null -w "%{redirect_url}\n" "http://localhost:3000/a/{handle}" \
 curl -I "http://localhost:3000/a/{handle}" -H "x-vercel-ip-country: {COUNTRY}"
 ```
 
+### Simulating country in the browser (local dev only)
+
+In development mode, you can override the detected country using a `?country=` query parameter. This is useful for testing routing in a browser without VPN or header injection tools.
+
+```
+http://localhost:3000/a/radiohead?country=DE
+http://localhost:3000/a/radiohead?country=GB
+```
+
+The parameter is case-insensitive (`de` and `DE` both work) and takes priority over any geo headers. This override is **disabled in production** — it only works when `NODE_ENV=development`.
+
+For testing against a deployed Vercel environment, use a VPN to change your IP's country instead.
+
 ---
 
 ## Test Scenarios
 
 ### Success Cases - Artist Selected Org
 
+All success redirects include UTM tracking parameters: `?utm_source=mde_amplify_rtr&utm_medium=referral&utm_campaign={handle}`
+
 | Test | Command | Expected |
 |------|---------|----------|
-| Radiohead + US (artist override) | `curl -I "http://localhost:3000/a/radiohead" -H "x-vercel-ip-country: US"` | `https://example.com` |
-| Radiohead + GB (artist override) | `curl -I "http://localhost:3000/a/radiohead" -H "x-vercel-ip-country: GB"` | `https://example.co.uk` |
+| Radiohead + US (artist override) | `curl -I "http://localhost:3000/a/radiohead" -H "x-vercel-ip-country: US"` | `https://example.com/?utm_source=mde_amplify_rtr&utm_medium=referral&utm_campaign=radiohead` |
+| Radiohead + GB (artist override) | `curl -I "http://localhost:3000/a/radiohead" -H "x-vercel-ip-country: GB"` | `https://example.co.uk/?utm_source=mde_amplify_rtr&utm_medium=referral&utm_campaign=radiohead` |
 
 ### Success Cases - MDE Default Org
 
 | Test | Command | Expected |
 |------|---------|----------|
-| Tame Impala + US (no override, uses MDE default) | `curl -I "http://localhost:3000/a/tame-impala" -H "x-vercel-ip-country: US"` | `https://mde-default-us.org` |
-| Tame Impala + GB (no override, uses MDE default) | `curl -I "http://localhost:3000/a/tame-impala" -H "x-vercel-ip-country: GB"` | `https://mde-default-gb.org` |
+| Tame Impala + US (no override, uses MDE default) | `curl -I "http://localhost:3000/a/tame-impala" -H "x-vercel-ip-country: US"` | `https://mde-default-us.org/?utm_source=...&utm_campaign=tame-impala` |
+| Tame Impala + GB (no override, uses MDE default) | `curl -I "http://localhost:3000/a/tame-impala" -H "x-vercel-ip-country: GB"` | `https://mde-default-gb.org/?utm_source=...&utm_campaign=tame-impala` |
 
 ### Success Cases - Fallthrough to MDE Default
 
 | Test | Command | Expected |
 |------|---------|----------|
-| Gorillaz + US (artist org pending, fallthrough) | `curl -I "http://localhost:3000/a/gorillaz" -H "x-vercel-ip-country: US"` | `https://mde-default-us.org` |
-| The Strokes + US (override inactive, uses MDE) | `curl -I "http://localhost:3000/a/the-strokes" -H "x-vercel-ip-country: US"` | `https://mde-default-us.org` |
+| Gorillaz + US (artist org pending, fallthrough) | `curl -I "http://localhost:3000/a/gorillaz" -H "x-vercel-ip-country: US"` | `https://mde-default-us.org/?utm_source=...&utm_campaign=gorillaz` |
+| The Strokes + US (override inactive, uses MDE) | `curl -I "http://localhost:3000/a/the-strokes" -H "x-vercel-ip-country: US"` | `https://mde-default-us.org/?utm_source=...&utm_campaign=the-strokes` |
 
 ### Artist Failures
 
@@ -119,6 +134,35 @@ npm run test:coverage
 # Watch mode during development
 npm run test:watch
 ```
+
+---
+
+## UTM Tracking and CTA URL Validation
+
+### UTM params on redirect
+
+The router appends three UTM parameters to every successful redirect:
+
+- `utm_source=mde_amplify_rtr`
+- `utm_medium=referral`
+- `utm_campaign={artist_handle}`
+
+Fallback redirects (to the AMPLIFY page) do **not** get UTM params — they use `ref=` query params instead.
+
+### CTA URL validation (on profile save)
+
+When an admin saves an org profile with a `cta_url`, the API:
+
+1. **Strips UTM params** — any `utm_*` query params are removed (the router adds its own at redirect time). The API returns a warning when this happens.
+2. **Checks primary domain** — the CTA URL's primary domain is compared to the org's `website` domain. A warning (not an error) is returned if they don't match. Subdomains of the same primary domain pass without warning.
+
+| Scenario | Expected |
+|----------|----------|
+| `cta_url` has UTM params | Params stripped, warning returned, profile saved |
+| `cta_url` domain matches org website | No warning |
+| `cta_url` subdomain of org website | No warning (primary domain matches) |
+| `cta_url` domain differs from org website | Warning returned, profile still saved |
+| `cta_url` is invalid URL | 400 error, profile not saved |
 
 ---
 
@@ -214,12 +258,12 @@ See `supabase/seed.sql` for the full list of test artists, tours, and configurat
 
 | Artist | Tour Status | Country | Org Source | Expected Result |
 |--------|-------------|---------|------------|-----------------|
-| radiohead | Active | US | Artist override | Success (example.com) |
-| radiohead | Active | GB | Artist override | Success (example.co.uk) |
-| tame-impala | Active | US | MDE default | Success (mde-default-us.org) |
-| tame-impala | Active | GB | MDE default | Success (mde-default-gb.org) |
-| gorillaz | Active | US | Fallthrough to MDE | Success (mde-default-us.org) |
-| the-strokes | Active | US | Override inactive, MDE default | Success (mde-default-us.org) |
+| radiohead | Active | US | Artist override | Success (example.com + UTM) |
+| radiohead | Active | GB | Artist override | Success (example.co.uk + UTM) |
+| tame-impala | Active | US | MDE default | Success (mde-default-us.org + UTM) |
+| tame-impala | Active | GB | MDE default | Success (mde-default-gb.org + UTM) |
+| gorillaz | Active | US | Fallthrough to MDE | Success (mde-default-us.org + UTM) |
+| the-strokes | Active | US | Override inactive, MDE default | Success (mde-default-us.org + UTM) |
 | bjork | Active | IS | No MDE default | org_not_specified |
 | coldplay | Past | DE | N/A | no_tour |
 | billie-eilish | Future | AU | N/A | no_tour |

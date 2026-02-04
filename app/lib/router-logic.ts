@@ -8,6 +8,7 @@ import {
   OrgPublicView,
 } from "@/app/types/router";
 import { Database } from "@/app/types/database";
+import { appendUtmParams } from "./url-utils";
 
 type RouterOrgOverride =
   Database["public"]["Tables"]["router_org_overrides"]["Row"];
@@ -202,7 +203,19 @@ export async function routeRequest(
       );
     }
 
-    if (!selectedOrg.website) {
+    // Check for profile cta_url override
+    const { data: orgProfile } = (await supabaseAdmin
+      .from("router_org_profiles")
+      .select("cta_url")
+      .eq("org_id", selectedOrg.id)
+      .single()) as {
+      data: { cta_url: string | null } | null;
+      error: unknown;
+    };
+
+    const destinationUrl = orgProfile?.cta_url || selectedOrg.website;
+
+    if (!destinationUrl) {
       return createFallbackResult(
         request,
         "org_no_website",
@@ -214,10 +227,12 @@ export async function routeRequest(
       );
     }
 
-    // Step 8: Success! Route to organization
+    // Step 8: Success! Route to organization with UTM tracking
+    const destinationWithUtm = appendUtmParams(destinationUrl, artistHandle);
+
     const result: RouterResult = {
       success: true,
-      destinationUrl: selectedOrg.website,
+      destinationUrl: destinationWithUtm,
       orgId: selectedOrg.id,
       tourId: activeTour.id,
       analytics: {
@@ -225,7 +240,7 @@ export async function routeRequest(
         country_code: countryCode,
         org_id: selectedOrg.id,
         tour_id: activeTour.id,
-        destination_url: selectedOrg.website,
+        destination_url: destinationWithUtm,
         override_org_fallthrough: overrideOrgFallthrough,
         attempted_override_org_id: attemptedOverrideOrgId,
       },
@@ -339,6 +354,17 @@ async function logAnalytics(
 }
 
 export function getCountryFromRequest(request: Request): string | undefined {
+  // Dev-only: allow ?country= query param override for local testing
+  if (process.env.NODE_ENV === "development") {
+    try {
+      const url = new URL(request.url);
+      const override = url.searchParams.get("country");
+      if (override) return override.toUpperCase();
+    } catch {
+      // Ignore URL parsing errors in mock/test requests
+    }
+  }
+
   // Try Vercel's geo headers first
   const vercelCountry = request.headers.get("x-vercel-ip-country");
   if (vercelCountry && vercelCountry !== "unknown") {
