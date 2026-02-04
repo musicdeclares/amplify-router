@@ -14,14 +14,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -46,8 +38,6 @@ export default function EditArtistPage({
   const [artist, setArtist] = useState<ArtistWithTours | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [error, setError] = useState("");
 
   // Form state
@@ -123,31 +113,6 @@ export default function EditArtistPage({
       router_artists: { id: artist.id, handle: artist.handle, name: artist.name },
     }));
   }, [artist]);
-
-  async function handleDelete() {
-    setDeleting(true);
-
-    try {
-      const res = await fetch(`/api/artists/${id}`, {
-        method: "DELETE",
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error(data.error || "Failed to delete");
-        setDeleting(false);
-        return;
-      }
-
-      toast.success("Artist deleted");
-      router.push("/admin/artists");
-    } catch (error) {
-      console.error("Error deleting artist:", error);
-      toast.error("Failed to delete artist");
-      setDeleting(false);
-    }
-  }
 
   if (loading) {
     return (
@@ -280,32 +245,6 @@ export default function EditArtistPage({
             </CardContent>
           </Card>
 
-          {/* Danger Zone */}
-          <Card className="border-destructive/50">
-            <CardHeader>
-              <CardTitle className="text-base text-destructive">
-                Danger Zone
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Permanently delete this artist. This cannot be undone.
-              </p>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => setDeleteDialogOpen(true)}
-                disabled={deleting || tours.length > 0}
-              >
-                Delete Artist
-              </Button>
-              {tours.length > 0 && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  Delete all tours first.
-                </p>
-              )}
-            </CardContent>
-          </Card>
         </div>
 
         {/* Sidebar */}
@@ -335,32 +274,6 @@ export default function EditArtistPage({
         </div>
       </div>
 
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Artist</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this artist? This action cannot be
-              undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleting}
-            >
-              {deleting ? "Deleting..." : "Delete Artist"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
