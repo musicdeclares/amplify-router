@@ -61,7 +61,9 @@ The directory shares data with the router — both read from `org_public_view` (
 | `/` | Redirects to MDE AMPLIFY landing page (interim) |
 | `/a/{handle}` | Fan routing endpoint — redirects to org based on context |
 | `/directory` | Public org directory with search and country filter |
-| `/kit/{handle}` | Artist starter kit page with AMPLIFY link and QR code |
+| `/kit/{handle}` | Artist starter kit page with AMPLIFY link, QR code, sample captions |
+| `/help` | Help center with documentation |
+| `/help/{slug}` | Individual help articles (admin-guide, artist-guide) |
 
 ### Admin Routes (require authentication)
 | Route | Description |
@@ -143,8 +145,9 @@ NEXT_PUBLIC_SITE_URL          # For canonical URLs in kit page
 app/
   admin/           # Admin UI pages
   api/             # API routes
-  lib/             # Utilities (supabase, router-logic, analytics, countries)
+  lib/             # Utilities (supabase, router-logic, analytics, countries, content)
   directory/       # Public org directory
+  help/            # Help center and documentation pages
   kit/[handle]/    # Artist starter kit
   types/           # TypeScript definitions
 
@@ -152,8 +155,12 @@ components/
   ui/              # shadcn/ui primitives
   shared/          # Reusable components (QrCodeDialog, ImageUpload, etc.)
   analytics/       # Dashboard components
+  content/         # Markdown rendering for help docs
   directory/       # Org directory components
   tours/           # Tour management components
+
+content/
+  help/            # Markdown documentation files with frontmatter
 ```
 
 ## Design Principles
@@ -191,4 +198,3 @@ When ready to make `/directory` the public-facing home page:
 - **Show-level routing**: Route based on specific venue/date
 - **Audit trail**: Log configuration changes for compliance
 - **Emergency controls**: "Pause all routing" button with safeguards
-- **Sample captions**: Copyable social media caption snippets for artists to adapt

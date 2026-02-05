@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, HelpCircle } from "lucide-react";
 
 const navigation = [
   { name: "Dashboard", href: "/admin" },
@@ -81,6 +81,13 @@ export default function AdminLayout({
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Link
+                href="/help/admin-guide"
+                className="hidden sm:inline-flex text-muted-foreground hover:text-foreground"
+                title="Help"
+              >
+                <HelpCircle className="h-5 w-5" />
+              </Link>
               <Button
                 variant="outline"
                 size="sm"
@@ -130,6 +137,13 @@ export default function AdminLayout({
                   </Link>
                 );
               })}
+              <Link
+                href="/help/admin-guide"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+              >
+                Help
+              </Link>
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
