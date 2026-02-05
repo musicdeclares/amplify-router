@@ -172,6 +172,18 @@ components/
 - **Home page redirects to MDE site** (interim) — will switch to org directory when ready for launch
 - **Org directory integrated** — lives in same codebase, shares data with router via `router_org_profiles`
 
+## Launch Checklist (Org Directory)
+
+When ready to make `/directory` the public-facing home page:
+
+- [ ] Add OpenGraph image (1200×630px branded image for social sharing)
+- [ ] Add Twitter card metadata
+- [ ] Add `robots.txt` allowing crawling
+- [ ] Add `sitemap.xml` for search engines
+- [ ] Consider structured data (JSON-LD) for organizations
+- [ ] Switch home page from MDE redirect to org directory
+- [ ] Update Umami `data-domains` if domain changes from amplify-router.vercel.app
+
 ## Future Considerations
 
 - **Artist self-service**: Let artists configure their own tours
