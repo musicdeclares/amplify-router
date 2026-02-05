@@ -6,6 +6,23 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { QrCodeDialog } from "@/components/shared/QrCodeDialog";
 
+function getSampleCaptions(artistName: string, url: string) {
+  return [
+    {
+      label: "Tour announcement",
+      text: `Join me in taking climate action! I'm partnering with @musicdeclares to direct fans to local grassroots climate organizations. Tap the link to find yours: ${url} #AMPLIFY #NoMusicOnADeadPlanet`,
+    },
+    {
+      label: "General post",
+      text: `Want to take climate action? I've teamed up with @musicdeclares to make it easy. This link connects you with vetted climate orgs in your area: ${url} #AMPLIFY`,
+    },
+    {
+      label: "Short (stories/bio)",
+      text: `Climate action, wherever you are: ${url}`,
+    },
+  ];
+}
+
 interface KitClientSectionProps {
   amplifyUrl: string;
   artistHandle: string;
@@ -18,8 +35,11 @@ export function KitClientSection({
   artistName,
 }: KitClientSectionProps) {
   const [copied, setCopied] = useState(false);
+  const [copiedCaption, setCopiedCaption] = useState<number | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
   const [printQrEl, setPrintQrEl] = useState<HTMLDivElement | null>(null);
+
+  const captions = getSampleCaptions(artistName, amplifyUrl);
 
   const printQrRef = useCallback((node: HTMLDivElement | null) => {
     setPrintQrEl(node);
@@ -76,6 +96,13 @@ export function KitClientSection({
     setTimeout(() => setCopied(false), 2000);
   }
 
+  function handleCopyCaption(index: number, text: string) {
+    navigator.clipboard.writeText(text);
+    setCopiedCaption(index);
+    toast.success("Caption copied");
+    setTimeout(() => setCopiedCaption(null), 2000);
+  }
+
   return (
     <div className="space-y-4">
       {/* Link display */}
@@ -121,6 +148,42 @@ export function KitClientSection({
         artistHandle={artistHandle}
         artistName={artistName}
       />
+
+      {/* Sample captions */}
+      <div className="space-y-3 pt-6 print:hidden">
+        <h2 className="text-xl font-semibold">Sample captions</h2>
+        <p className="text-sm text-muted-foreground">
+          Ready-to-use text for social media posts. Copy and customize as
+          needed.
+        </p>
+        <div className="space-y-3">
+          {captions.map((caption, index) => (
+            <div key={index} className="border rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">
+                  {caption.label}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleCopyCaption(index, caption.text)}
+                  className="shrink-0"
+                >
+                  {copiedCaption === index ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                  <span className="ml-2">
+                    {copiedCaption === index ? "Copied" : "Copy"}
+                  </span>
+                </Button>
+              </div>
+              <p className="text-sm leading-relaxed">{caption.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
