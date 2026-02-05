@@ -95,7 +95,8 @@ export async function PUT(
           id,
           country_code,
           org_id,
-          enabled
+          enabled,
+          org:org_public_view (id, org_name, country_code, website)
         )
       `,
       )
