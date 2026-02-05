@@ -31,6 +31,8 @@ import {
 } from "@/components/shared/FanActionsInput";
 import { ImageUpload } from "@/components/shared/ImageUpload";
 import { PauseOrgDialog } from "@/components/shared/PauseOrgDialog";
+import { useUnsavedChanges } from "@/app/lib/hooks/use-unsaved-changes";
+import { UnsavedChangesIndicator } from "@/components/shared/UnsavedChangesIndicator";
 import { getCountryLabel, getCountryFlag } from "@/app/lib/countries";
 import { isSamePrimaryDomain } from "@/app/lib/url-utils";
 import { getTourStatus, formatDateRange } from "@/app/lib/tour-utils";
@@ -100,6 +102,32 @@ export default function OrgProfilePage({
   const [fanActions, setFanActions] = useState<string[]>([]);
 
   const fanActionsRef = useRef<FanActionsInputHandle>(null);
+
+  // Unsaved changes tracking
+  const initialValues = useMemo(
+    () => ({
+      orgName: profile?.org_name ?? "",
+      mission: profile?.mission ?? "",
+      ctaUrl: profile?.cta_url ?? "",
+      ctaText: profile?.cta_text ?? "",
+      fanActions: profile?.fan_actions ?? [],
+    }),
+    [
+      profile?.org_name,
+      profile?.mission,
+      profile?.cta_url,
+      profile?.cta_text,
+      profile?.fan_actions,
+    ],
+  );
+  const currentValues = useMemo(
+    () => ({ orgName, mission, ctaUrl, ctaText, fanActions }),
+    [orgName, mission, ctaUrl, ctaText, fanActions],
+  );
+  const { hasUnsavedChanges, savedAt, markSaved } = useUnsavedChanges(
+    initialValues,
+    currentValues,
+  );
 
   // Reset dialog
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
@@ -228,6 +256,7 @@ export default function OrgProfilePage({
       for (const warning of warnings) {
         toast.warning(warning);
       }
+      markSaved();
       toast.success("Profile saved");
     } catch (error) {
       console.error("Error saving profile:", error);
@@ -518,40 +547,53 @@ export default function OrgProfilePage({
                 </p>
               </div>
 
-              {/* Image */}
-              <div className="space-y-2">
-                <Label>Organization Image</Label>
-                <ImageUpload
-                  orgId={orgId}
-                  currentImageUrl={profile?.image_url || null}
-                  placeholder="Upload an image to customize"
-                  onImageChange={(url) => {
-                    setProfile((prev) =>
-                      prev
-                        ? { ...prev, image_url: url }
-                        : url
-                          ? {
-                              id: "",
-                              org_id: orgId,
-                              org_name: null,
-                              mission: null,
-                              cta_url: null,
-                              cta_text: null,
-                              fan_actions: null,
-                              image_url: url,
-                              created_at: "",
-                              updated_at: "",
-                            }
-                          : null,
-                    );
-                  }}
-                  disabled={saving}
+              <div className="flex items-center gap-4">
+                <Button onClick={handleSave} disabled={saving}>
+                  {saving ? "Saving..." : "Save Profile"}
+                </Button>
+                <UnsavedChangesIndicator
+                  hasUnsavedChanges={hasUnsavedChanges}
+                  savedAt={savedAt}
                 />
               </div>
+            </CardContent>
+          </Card>
 
-              <Button onClick={handleSave} disabled={saving}>
-                {saving ? "Saving..." : "Save Profile"}
-              </Button>
+          {/* Organization Image — auto-saves on upload */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Organization Image</CardTitle>
+              <CardDescription>
+                Upload an image for the fan-facing profile. Saves automatically
+                on upload.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ImageUpload
+                orgId={orgId}
+                currentImageUrl={profile?.image_url || null}
+                placeholder="Upload an image to customize"
+                onImageChange={(url) => {
+                  setProfile((prev) =>
+                    prev
+                      ? { ...prev, image_url: url }
+                      : url
+                        ? {
+                            id: "",
+                            org_id: orgId,
+                            org_name: null,
+                            mission: null,
+                            cta_url: null,
+                            cta_text: null,
+                            fan_actions: null,
+                            image_url: url,
+                            created_at: "",
+                            updated_at: "",
+                          }
+                        : null,
+                  );
+                }}
+              />
             </CardContent>
           </Card>
 

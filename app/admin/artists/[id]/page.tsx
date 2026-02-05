@@ -25,6 +25,8 @@ import { toast } from "sonner";
 import { Artist, Tour } from "@/app/types/router";
 import { TourTable, TourWithArtist } from "@/components/tours/TourTable";
 import { QrCodeDialog } from "@/components/shared/QrCodeDialog";
+import { useUnsavedChanges } from "@/app/lib/hooks/use-unsaved-changes";
+import { UnsavedChangesIndicator } from "@/components/shared/UnsavedChangesIndicator";
 
 interface ArtistWithTours extends Artist {
   router_tours: Tour[];
@@ -46,6 +48,20 @@ export default function EditArtistPage({
   // Form state
   const [name, setName] = useState("");
   const [enabled, setEnabled] = useState(true);
+
+  // Unsaved changes tracking
+  const initialValues = useMemo(
+    () => ({ name: artist?.name ?? "", enabled: artist?.enabled ?? true }),
+    [artist?.name, artist?.enabled],
+  );
+  const currentValues = useMemo(
+    () => ({ name, enabled }),
+    [name, enabled],
+  );
+  const { hasUnsavedChanges, savedAt, markSaved } = useUnsavedChanges(
+    initialValues,
+    currentValues,
+  );
 
   useEffect(() => {
     fetchArtist();
@@ -100,6 +116,7 @@ export default function EditArtistPage({
       }
 
       setArtist((prev) => (prev ? { ...prev, ...data.artist } : null));
+      markSaved();
       toast.success("Artist updated");
     } catch (error) {
       console.error("Error updating artist:", error);
@@ -211,10 +228,14 @@ export default function EditArtistPage({
                 </p>
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex items-center gap-4">
                 <Button onClick={handleSave} disabled={saving}>
                   {saving ? "Saving..." : "Save Changes"}
                 </Button>
+                <UnsavedChangesIndicator
+                  hasUnsavedChanges={hasUnsavedChanges}
+                  savedAt={savedAt}
+                />
               </div>
             </CardContent>
           </Card>
@@ -224,7 +245,13 @@ export default function EditArtistPage({
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Tours</CardTitle>
+                  <CardTitle>
+                    Tours{tours.length > 0 && (
+                      <span className="text-muted-foreground font-normal ml-1.5">
+                        ({tours.length})
+                      </span>
+                    )}
+                  </CardTitle>
                   <CardDescription>
                     Tours associated with this artist
                   </CardDescription>
@@ -248,33 +275,14 @@ export default function EditArtistPage({
             </CardContent>
           </Card>
 
+          <p className="text-xs text-muted-foreground">
+            Added {new Date(artist.created_at).toLocaleDateString()} · Last
+            updated {new Date(artist.updated_at).toLocaleDateString()}
+          </p>
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Quick Info</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">Added:</span>
-                <br />
-                {new Date(artist.created_at).toLocaleDateString()}
-              </div>
-              <div>
-                <span className="text-muted-foreground">Last updated:</span>
-                <br />
-                {new Date(artist.updated_at).toLocaleDateString()}
-              </div>
-              <div>
-                <span className="text-muted-foreground">Total tours:</span>
-                <br />
-                {tours.length}
-              </div>
-            </CardContent>
-          </Card>
-
           <Card>
             <CardHeader>
               <CardTitle className="text-base">QR Code</CardTitle>

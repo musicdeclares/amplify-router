@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,8 @@ import { Tour, Artist, TourOverride, CountryDefault } from "@/app/types/router";
 import { getCountryLabel, COUNTRY_OPTIONS } from "@/app/lib/countries";
 import { X, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUnsavedChanges } from "@/app/lib/hooks/use-unsaved-changes";
+import { UnsavedChangesIndicator } from "@/components/shared/UnsavedChangesIndicator";
 
 interface OrgInfo {
   id: string;
@@ -106,6 +108,34 @@ export default function EditTourPage({
   const [preTourDays, setPreTourDays] = useState(0);
   const [postTourDays, setPostTourDays] = useState(0);
   const [enabled, setEnabled] = useState(true);
+
+  // Unsaved changes tracking
+  const initialValues = useMemo(
+    () => ({
+      name: tour?.name ?? "",
+      startDate: tour?.start_date ?? "",
+      endDate: tour?.end_date ?? "",
+      preTourDays: tour?.pre_tour_window_days ?? 0,
+      postTourDays: tour?.post_tour_window_days ?? 0,
+      enabled: tour?.enabled ?? true,
+    }),
+    [
+      tour?.name,
+      tour?.start_date,
+      tour?.end_date,
+      tour?.pre_tour_window_days,
+      tour?.post_tour_window_days,
+      tour?.enabled,
+    ],
+  );
+  const currentValues = useMemo(
+    () => ({ name, startDate, endDate, preTourDays, postTourDays, enabled }),
+    [name, startDate, endDate, preTourDays, postTourDays, enabled],
+  );
+  const { hasUnsavedChanges, savedAt, markSaved } = useUnsavedChanges(
+    initialValues,
+    currentValues,
+  );
 
   // Country add state
   const [countryOpen, setCountryOpen] = useState(false);
@@ -199,6 +229,7 @@ export default function EditTourPage({
       }
 
       setTour(data.tour);
+      markSaved();
       toast.success("Tour updated");
     } catch (error) {
       console.error("Error updating tour:", error);
@@ -380,10 +411,9 @@ export default function EditTourPage({
         </Link>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Tour Details */}
-          <Card>
+      <div className="grid gap-6 xl:grid-cols-2">
+          {/* Tour Details — left column */}
+          <Card className="xl:col-start-1">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -504,20 +534,30 @@ export default function EditTourPage({
                 </Select>
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex items-center gap-4">
                 <Button onClick={handleSave} disabled={saving}>
                   {saving ? "Saving..." : "Save Changes"}
                 </Button>
+                <UnsavedChangesIndicator
+                  hasUnsavedChanges={hasUnsavedChanges}
+                  savedAt={savedAt}
+                />
               </div>
             </CardContent>
           </Card>
 
-          {/* Country Routing */}
-          <Card>
+          {/* Country Routing — right column on desktop, immediately after Tour Details on mobile */}
+          <Card className="xl:col-start-2 xl:row-start-1">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Fan Routing by Country</CardTitle>
+                  <CardTitle>
+                    Fan Routing by Country{overrides.length > 0 && (
+                      <span className="text-muted-foreground font-normal ml-1.5">
+                        ({overrides.length})
+                      </span>
+                    )}
+                  </CardTitle>
                   <CardDescription>
                     Configure which organizations fans are routed to per country
                   </CardDescription>
@@ -841,8 +881,8 @@ export default function EditTourPage({
             </CardContent>
           </Card>
 
-          {/* Danger Zone */}
-          <Card className="border-destructive/50">
+          {/* Danger Zone — left column on desktop, after Country Routing on mobile */}
+          <Card className="border-destructive/50 xl:col-start-1">
             <CardHeader>
               <CardTitle className="text-base text-destructive">
                 Danger Zone
@@ -862,47 +902,11 @@ export default function EditTourPage({
               </Button>
             </CardContent>
           </Card>
-        </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Quick Info</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">Artist</span>
-                <br />
-                <Link
-                  href={`/admin/artists/${tour.router_artists.id}`}
-                  className="text-[--color-link] hover:text-[--color-link-hover] underline"
-                >
-                  {tour.router_artists.name}
-                </Link>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Handle</span>
-                <br />
-                <code className="text-xs bg-muted px-1 rounded">
-                  {tour.router_artists.handle}
-                </code>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Added</span>
-                <br />
-                {new Date(tour.created_at).toLocaleDateString()}
-              </div>
-              <div>
-                <span className="text-muted-foreground">
-                  Countries configured
-                </span>
-                <br />
-                {overrides.length}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+          <p className="text-xs text-muted-foreground xl:col-start-1">
+            Added {new Date(tour.created_at).toLocaleDateString()} · Last
+            updated {new Date(tour.updated_at).toLocaleDateString()}
+          </p>
       </div>
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
