@@ -29,7 +29,7 @@ export default function RootLayout({
           defer
           src="https://mde-umami.vercel.app/script.js"
           data-website-id="7f33de9e-1430-4678-ac78-13d7462c6744"
-          data-domains="amplify-router.vercel.app"
+          data-domains="mde-amplify.vercel.app"
         />
       </body>
     </html>

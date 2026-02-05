@@ -189,7 +189,7 @@ When ready to make `/directory` the public-facing home page:
 - [ ] Add `sitemap.xml` for search engines
 - [ ] Consider structured data (JSON-LD) for organizations
 - [ ] Switch home page from MDE redirect to org directory
-- [ ] Update Umami `data-domains` if domain changes from amplify-router.vercel.app
+- [ ] Update Umami `data-domains` if domain changes from mde-amplify.vercel.app
 
 ## Future Considerations
 
