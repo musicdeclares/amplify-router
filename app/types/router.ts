@@ -62,3 +62,17 @@ export interface TourWithOverrides extends Tour {
 export interface ArtistWithTours extends Artist {
   router_tours: TourWithOverrides[];
 }
+
+// Organization directory types
+export interface DirectoryOrganization {
+  id: string;
+  name: string;
+  country: string;
+  countryCode: string;
+  mission: string;
+  fanActions: string[];
+  website: string;
+  ctaUrl: string;
+  ctaText: string;
+  imageUrl: string;
+}
