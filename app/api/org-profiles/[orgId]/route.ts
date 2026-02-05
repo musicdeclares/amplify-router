@@ -44,6 +44,20 @@ export async function GET(
       error: unknown;
     };
 
+    // Fetch org override (pause status)
+    const { data: orgOverride } = (await supabaseAdmin
+      .from("router_org_overrides")
+      .select("id, enabled, reason")
+      .eq("org_id", orgId)
+      .single()) as {
+      data: {
+        id: string;
+        enabled: boolean;
+        reason: string | null;
+      } | null;
+      error: unknown;
+    };
+
     // Fetch tour overrides pointing to this org (with tour + artist details)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: linkedTours } = (await (supabaseAdmin.from("router_tour_overrides") as any)
@@ -197,6 +211,7 @@ export async function GET(
     return NextResponse.json({
       profile,
       org,
+      orgOverride: orgOverride || null,
       linkedTours: linkedTours || [],
       countryDefaults: countryDefaults || [],
       implicitTours,
@@ -297,6 +312,50 @@ export async function PUT(
     console.error("Error saving org profile:", error);
     return NextResponse.json(
       { error: "Failed to save org profile" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ orgId: string }> },
+) {
+  try {
+    const { orgId } = await params;
+    const body = await request.json();
+    const { enabled, reason } = body;
+
+    if (typeof enabled !== "boolean") {
+      return NextResponse.json(
+        { error: "enabled must be a boolean" },
+        { status: 400 },
+      );
+    }
+
+    // Upsert org override
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: orgOverride, error } = await (supabaseAdmin.from("router_org_overrides") as any)
+      .upsert(
+        {
+          org_id: orgId,
+          enabled,
+          reason: reason || null,
+        },
+        { onConflict: "org_id" },
+      )
+      .select("id, enabled, reason")
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return NextResponse.json({ orgOverride });
+  } catch (error) {
+    console.error("Error updating org override:", error);
+    return NextResponse.json(
+      { error: "Failed to update org status" },
       { status: 500 },
     );
   }

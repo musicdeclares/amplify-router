@@ -44,6 +44,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { OrgPublicView } from "@/app/types/router";
+import { PauseOrgDialog } from "@/components/shared/PauseOrgDialog";
 
 interface Organization extends OrgPublicView {
   router_enabled: boolean;
@@ -74,7 +75,6 @@ export default function CountryDetailPage({
   // Dialog states
   const [pauseDialogOpen, setPauseDialogOpen] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
-  const [pauseReason, setPauseReason] = useState("");
 
   const [dateSpecificDialogOpen, setDateSpecificDialogOpen] = useState(false);
   const [dateSpecificOrg, setDateSpecificOrg] = useState<Organization | null>(
@@ -242,7 +242,6 @@ export default function CountryDetailPage({
 
   function openPauseDialog(org: Organization) {
     setSelectedOrg(org);
-    setPauseReason(org.router_pause_reason || "");
     setPauseDialogOpen(true);
   }
 
@@ -254,9 +253,8 @@ export default function CountryDetailPage({
     await updateOrgStatus(org.id, true, null);
   }
 
-  async function handlePauseConfirm() {
-    if (!selectedOrg) return;
-    await updateOrgStatus(selectedOrg.id, false, pauseReason || null);
+  async function handlePauseFromDialog(orgId: string, reason: string | null) {
+    await updateOrgStatus(orgId, false, reason);
     setPauseDialogOpen(false);
   }
 
@@ -537,44 +535,17 @@ export default function CountryDetailPage({
       </Card>
 
       {/* Pause Dialog */}
-      <Dialog open={pauseDialogOpen} onOpenChange={setPauseDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Pause Organization</DialogTitle>
-            <DialogDescription>
-              Pausing will prevent the router from directing fans to this
-              organization.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Organization</Label>
-              <Input value={selectedOrg?.org_name || ""} disabled />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="reason">Reason (optional)</Label>
-              <Input
-                id="reason"
-                placeholder="e.g., Capacity exceeded"
-                value={pauseReason}
-                onChange={(e) => setPauseReason(e.target.value)}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPauseDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handlePauseConfirm}
-              disabled={updating}
-            >
-              {updating ? "Pausing..." : "Pause"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {selectedOrg && (
+        <PauseOrgDialog
+          open={pauseDialogOpen}
+          onOpenChange={setPauseDialogOpen}
+          orgId={selectedOrg.id}
+          orgName={selectedOrg.org_name}
+          initialReason={selectedOrg.router_pause_reason || ""}
+          onPause={handlePauseFromDialog}
+          isPausing={updating}
+        />
+      )}
 
       {/* Date-specific Dialog */}
       <Dialog

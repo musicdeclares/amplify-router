@@ -22,13 +22,15 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, ExternalLink, MapPin, Target } from "lucide-react";
+import { ArrowLeft, ExternalLink, MapPin, Target, AlertTriangle } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { OrgPublicView, OrgProfile } from "@/app/types/router";
 import {
   FanActionsInput,
   FanActionsInputHandle,
 } from "@/components/shared/FanActionsInput";
 import { ImageUpload } from "@/components/shared/ImageUpload";
+import { PauseOrgDialog } from "@/components/shared/PauseOrgDialog";
 import { getCountryLabel, getCountryFlag } from "@/app/lib/countries";
 import { isSamePrimaryDomain } from "@/app/lib/url-utils";
 import { getTourStatus, formatDateRange } from "@/app/lib/tour-utils";
@@ -74,8 +76,14 @@ export default function OrgProfilePage({
   const { id: orgId } = use(params);
   const [org, setOrg] = useState<OrgPublicView | null>(null);
   const [profile, setProfile] = useState<OrgProfile | null>(null);
+  const [orgOverride, setOrgOverride] = useState<{
+    id: string;
+    enabled: boolean;
+    reason: string | null;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [togglingPause, setTogglingPause] = useState(false);
 
   // Routing activity
   const [linkedTours, setLinkedTours] = useState<LinkedTour[]>([]);
@@ -96,6 +104,9 @@ export default function OrgProfilePage({
   // Reset dialog
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [resetting, setResetting] = useState(false);
+
+  // Pause dialog
+  const [pauseDialogOpen, setPauseDialogOpen] = useState(false);
 
   // Check if CTA URL domain matches org website
   const ctaDomainMismatch = useMemo(() => {
@@ -142,6 +153,7 @@ export default function OrgProfilePage({
       const data = await res.json();
       setOrg(data.org);
       setProfile(data.profile);
+      setOrgOverride(data.orgOverride || null);
       setLinkedTours(data.linkedTours || []);
       setCountryDefaults(data.countryDefaults || []);
       setImplicitTours(data.implicitTours || {});
@@ -227,6 +239,39 @@ export default function OrgProfilePage({
     }
   }
 
+  async function handleEnable() {
+    setTogglingPause(true);
+    try {
+      const res = await fetch(`/api/org-profiles/${orgId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: true }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update");
+      }
+
+      setOrgOverride(data.orgOverride);
+      toast.success("Organization enabled for routing");
+    } catch (error) {
+      console.error("Error enabling org:", error);
+      toast.error("Failed to enable organization");
+    } finally {
+      setTogglingPause(false);
+    }
+  }
+
+  function handleSwitchChange(checked: boolean) {
+    if (checked) {
+      handleEnable();
+    } else {
+      setPauseDialogOpen(true);
+    }
+  }
+
   async function handleReset() {
     setResetting(true);
     try {
@@ -286,7 +331,36 @@ export default function OrgProfilePage({
       <div className="flex items-center gap-3">
         <h1 className="text-2xl font-bold">{org.org_name}</h1>
         {profile && <Badge variant="outline">Profile customized</Badge>}
+        {orgOverride && !orgOverride.enabled && (
+          <Badge variant="destructive">Paused</Badge>
+        )}
       </div>
+
+      {/* Paused warning banner */}
+      {orgOverride && !orgOverride.enabled && (
+        <div className="flex items-center gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+          <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-destructive">
+              This organization is paused from routing
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Fans will not be directed here. They will see a fallback page instead.
+              {orgOverride.reason && (
+                <span className="block mt-1">Reason: {orgOverride.reason}</span>
+              )}
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleEnable}
+            disabled={togglingPause}
+          >
+            {togglingPause ? "Enabling..." : "Enable"}
+          </Button>
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left column: Form + Danger Zone */}
@@ -605,6 +679,30 @@ export default function OrgProfilePage({
                 </div>
               </div>
             )}
+            {/* Routing Status */}
+            <div className="space-y-3 mt-6 pt-6 border-t">
+              <p className="text-sm font-medium text-muted-foreground">
+                Routing Status
+              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">
+                    {orgOverride?.enabled === false ? "Paused" : "Active"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {orgOverride?.enabled === false
+                      ? "Fans will see a fallback"
+                      : "Fans can be routed here"}
+                  </p>
+                </div>
+                <Switch
+                  checked={orgOverride?.enabled !== false}
+                  onCheckedChange={handleSwitchChange}
+                  disabled={togglingPause}
+                />
+              </div>
+            </div>
+
             {/* Routing Activity */}
             {(() => {
               const activeLinkedTours = linkedTours.filter(
@@ -725,6 +823,16 @@ export default function OrgProfilePage({
           </div>
         </div>
       </div>
+
+      {/* Pause Confirmation Dialog */}
+      <PauseOrgDialog
+        open={pauseDialogOpen}
+        onOpenChange={setPauseDialogOpen}
+        orgId={orgId}
+        orgName={org.org_name}
+        initialReason={orgOverride?.reason || ""}
+        onSuccess={fetchProfile}
+      />
 
       {/* Reset Confirmation Dialog */}
       <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
