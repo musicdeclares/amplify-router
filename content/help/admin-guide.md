@@ -115,7 +115,7 @@ If an org needs to be temporarily removed from routing:
 
 1. Go to **Organizations**
 2. Find the org
-3. Toggle **Enabled** to off
+3. Toggle **Active** to off
 4. Add a reason (optional but helpful)
 
 Fans will be routed to the fallback instead.
@@ -142,14 +142,14 @@ The **Recent Fallback Events** section shows when routing failed and why. Common
 | `artist_not_found` | Invalid artist handle | Check the link is correct |
 | `no_active_tour` | No current tour for artist | Create or enable a tour |
 | `org_not_specified` | No org for fan's country | Add country routing or MDE default |
-| `org_paused` | Org is temporarily disabled | Re-enable or set alternative |
+| `org_paused` | Org is temporarily inactive | Re-enable or set alternative |
 | `org_no_website` | Org has no website URL | Add website in org settings |
 
 ---
 
 ## Common Tasks
 
-### Quickly disable all routing for an artist
+### Quickly deactivate all routing for an artist
 
 Set their tour to **Inactive** in the tour edit page.
 

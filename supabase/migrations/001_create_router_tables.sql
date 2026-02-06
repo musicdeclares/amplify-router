@@ -291,7 +291,7 @@ CREATE TABLE IF NOT EXISTS public.router_org_overrides (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     org_id UUID NOT NULL REFERENCES public.org(id) ON DELETE RESTRICT,
     enabled BOOLEAN DEFAULT true,
-    reason TEXT, -- Optional reason for disable: "capacity_exceeded", "partnership_paused"
+    reason TEXT, -- Optional reason for deactivate: "capacity_exceeded", "partnership_paused"
     updated_by TEXT, -- Who made the change
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
@@ -417,7 +417,7 @@ BEGIN
       );
 
     IF overlapping_count > 0 THEN
-        RAISE EXCEPTION 'Tour active windows cannot overlap for the same artist. Disable conflicting tours first.';
+        RAISE EXCEPTION 'Tour active windows cannot overlap for the same artist. Deactivate conflicting tours first.';
     END IF;
 
     RETURN NEW;

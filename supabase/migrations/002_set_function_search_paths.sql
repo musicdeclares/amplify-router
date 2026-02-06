@@ -137,7 +137,7 @@ BEGIN
       );
 
     IF overlapping_count > 0 THEN
-        RAISE EXCEPTION 'Tour active windows cannot overlap for the same artist. Disable conflicting tours first.';
+        RAISE EXCEPTION 'Tour active windows cannot overlap for the same artist. Deactivate conflicting tours first.';
     END IF;
 
     RETURN NEW;

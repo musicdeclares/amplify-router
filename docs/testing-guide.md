@@ -43,7 +43,7 @@ http://localhost:3000/a/radiohead?country=DE
 http://localhost:3000/a/radiohead?country=GB
 ```
 
-The parameter is case-insensitive (`de` and `DE` both work) and takes priority over any geo headers. This override is **disabled in production** — it only works when `NODE_ENV=development`.
+The parameter is case-insensitive (`de` and `DE` both work) and takes priority over any geo headers. This override is **inactive in production** — it only works when `NODE_ENV=development`.
 
 For testing against a deployed Vercel environment, use a VPN to change your IP's country instead.
 

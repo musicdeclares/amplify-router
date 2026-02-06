@@ -90,7 +90,7 @@ Access the admin dashboard at `/admin` to:
 - Manage artists and tours
 - Configure country-specific routing
 - Monitor analytics
-- Emergency controls (pause orgs, disable tours)
+- Emergency controls (pause orgs, deactivate tours)
 
 ### API Endpoints
 
@@ -173,7 +173,7 @@ curl -X PUT "https://your-domain.com/api/organizations/org-id" \
   -d '{"router_active": false}'
 ```
 
-### Disable a Tour
+### Deactivate a Tour
 
 ```bash
 curl -X PUT "https://your-domain.com/api/tours/tour-id" \

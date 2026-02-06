@@ -22,7 +22,13 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, ExternalLink, MapPin, Target, AlertTriangle } from "lucide-react";
+import {
+  ArrowLeft,
+  ExternalLink,
+  MapPin,
+  Target,
+  AlertTriangle,
+} from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { OrgPublicView, OrgProfile } from "@/app/types/router";
 import {
@@ -374,7 +380,8 @@ export default function OrgProfilePage({
               This organization is paused from routing
             </p>
             <p className="text-sm text-muted-foreground">
-              Fans will not be directed here. They will see a fallback page instead.
+              Fans will not be directed here. They will see a fallback page
+              instead.
               {orgOverride.reason && (
                 <span className="block mt-1">Reason: {orgOverride.reason}</span>
               )}
@@ -386,7 +393,7 @@ export default function OrgProfilePage({
             onClick={handleEnable}
             disabled={togglingPause}
           >
-            {togglingPause ? "Enabling..." : "Enable"}
+            {togglingPause ? "Activating..." : "Activate"}
           </Button>
         </div>
       )}
