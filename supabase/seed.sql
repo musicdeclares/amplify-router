@@ -37,29 +37,29 @@ ON CONFLICT DO NOTHING;
 -- =============================================================================
 -- ARTISTS
 -- =============================================================================
-INSERT INTO public.router_artists (id, handle, name, enabled) VALUES
+INSERT INTO public.router_artists (id, handle, name, link_active, account_active) VALUES
 -- Active artist with active tour (happy path - artist selected org)
-('11111111-1111-1111-1111-111111111111', 'radiohead', 'Radiohead', true),
+('11111111-1111-1111-1111-111111111111', 'radiohead', 'Radiohead', true, true),
 -- Active artist with past tour (no active tour)
-('22222222-2222-2222-2222-222222222222', 'coldplay', 'Coldplay', true),
+('22222222-2222-2222-2222-222222222222', 'coldplay', 'Coldplay', true, true),
 -- Active artist with future tour (no active tour yet)
-('33333333-3333-3333-3333-333333333333', 'billie-eilish', 'Billie Eilish', true),
--- Inactive artist (should always fallback)
-('44444444-4444-4444-4444-444444444444', 'inactive-artist', 'Inactive Artist', false),
+('33333333-3333-3333-3333-333333333333', 'billie-eilish', 'Billie Eilish', true, true),
+-- Deactivated artist (account_active=false, should always fallback)
+('44444444-4444-4444-4444-444444444444', 'inactive-artist', 'Inactive Artist', true, false),
 -- Active artist with inactive tour
-('55555555-5555-5555-5555-555555555555', 'taylor-swift', 'Taylor Swift', true),
+('55555555-5555-5555-5555-555555555555', 'taylor-swift', 'Taylor Swift', true, true),
 -- Active artist with org that has no website
-('66666666-6666-6666-6666-666666666666', 'daft-punk', 'Daft Punk', true),
+('66666666-6666-6666-6666-666666666666', 'daft-punk', 'Daft Punk', true, true),
 -- Active artist with pending org (fallthrough to MDE default)
-('77777777-7777-7777-7777-777777777777', 'gorillaz', 'Gorillaz', true),
+('77777777-7777-7777-7777-777777777777', 'gorillaz', 'Gorillaz', true, true),
 -- Active artist with paused org override
-('88888888-8888-8888-8888-888888888888', 'arctic-monkeys', 'Arctic Monkeys', true),
+('88888888-8888-8888-8888-888888888888', 'arctic-monkeys', 'Arctic Monkeys', true, true),
 -- Active artist with inactive country config (uses MDE default)
-('99999999-9999-9999-9999-999999999999', 'the-strokes', 'The Strokes', true),
+('99999999-9999-9999-9999-999999999999', 'the-strokes', 'The Strokes', true, true),
 -- Active artist using MDE defaults only (no artist override)
-('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'tame-impala', 'Tame Impala', true),
+('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'tame-impala', 'Tame Impala', true, true),
 -- Active artist with country that has no MDE default
-('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'bjork', 'Bjork', true)
+('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'bjork', 'Bjork', true, true)
 ON CONFLICT (id) DO NOTHING;
 
 -- =============================================================================
