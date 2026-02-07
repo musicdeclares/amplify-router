@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/app/lib/supabase";
+import { getApiUser, isAdmin } from "@/app/lib/api-auth";
 
 export async function GET(request: NextRequest) {
   try {
+    const user = await getApiUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
     const limit = parseInt(searchParams.get("limit") || "50");
@@ -13,6 +19,15 @@ export async function GET(request: NextRequest) {
       .select("*, router_tours(id)", { count: "exact" })
       .order("name", { ascending: true })
       .range(offset, offset + limit - 1);
+
+    // Artists can only see their own artist record
+    if (!isAdmin(user)) {
+      if (user.artistId) {
+        query = query.eq("id", user.artistId);
+      } else {
+        return NextResponse.json({ artists: [], total: 0 });
+      }
+    }
 
     if (search) {
       query = query.or(`name.ilike.%${search}%,handle.ilike.%${search}%`);
@@ -27,7 +42,10 @@ export async function GET(request: NextRequest) {
         id: string;
         handle: string;
         name: string;
-        enabled: boolean;
+        link_active: boolean;
+        link_inactive_reason: string | null;
+        account_active: boolean;
+        account_inactive_reason: string | null;
         created_at: string;
         updated_at: string;
         router_tours: { id: string }[];
@@ -59,7 +77,17 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { handle, name, enabled = true } = await request.json();
+    const user = await getApiUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Only admins can create artists
+    if (!isAdmin(user)) {
+      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    }
+
+    const { handle, name, link_active = true, account_active = true } = await request.json();
 
     if (!handle || !name) {
       return NextResponse.json(
@@ -81,7 +109,7 @@ export async function POST(request: NextRequest) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: artist, error } = await (supabaseAdmin.from("router_artists") as any)
-      .insert({ handle, name, enabled })
+      .insert({ handle, name, link_active, account_active })
       .select()
       .single();
 

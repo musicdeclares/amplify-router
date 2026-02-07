@@ -13,19 +13,48 @@ const publicRoutes = [
   "/admin/forgot-password",
 ];
 
+// Routes that allow unauthenticated access but should set user headers if authenticated
+const optionalAuthRoutes = ["/help"];
+
+// Public API routes that don't require authentication
+const publicApiRoutes = [
+  "/api/a/",
+  "/api/invites/accept",
+  "/api/auth/login",
+  "/api/auth/logout",
+  "/api/auth/forgot-password",
+  "/api/organizations",
+  "/api/org-profiles",
+];
+
 // Routes that require admin role
 const adminOnlyRoutes = ["/admin/recommended", "/admin/organizations"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip middleware for non-admin routes
-  if (!pathname.startsWith("/admin") && !pathname.startsWith("/artist")) {
+  // Skip middleware for non-protected routes (except help which has optional auth)
+  if (
+    !pathname.startsWith("/admin") &&
+    !pathname.startsWith("/artist") &&
+    !pathname.startsWith("/api") &&
+    !pathname.startsWith("/help")
+  ) {
     return NextResponse.next();
   }
 
+  // Check if this is an optional auth route
+  const isOptionalAuth = optionalAuthRoutes.some((route) =>
+    pathname.startsWith(route),
+  );
+
   // Allow public routes
   if (publicRoutes.some((route) => pathname.startsWith(route))) {
+    return NextResponse.next();
+  }
+
+  // Allow public API routes
+  if (publicApiRoutes.some((route) => pathname.startsWith(route))) {
     return NextResponse.next();
   }
 
@@ -41,7 +70,15 @@ export async function middleware(request: NextRequest) {
   const refreshToken = request.cookies.get("sb-refresh-token")?.value;
 
   if (!accessToken || !refreshToken) {
-    // Redirect to login
+    // For optional auth routes, allow access without authentication
+    if (isOptionalAuth) {
+      return NextResponse.next();
+    }
+    // For API routes, return 401 JSON response
+    if (pathname.startsWith("/api")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    // Redirect to login for page routes
     const loginUrl = new URL("/admin/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
@@ -58,6 +95,13 @@ export async function middleware(request: NextRequest) {
     });
 
     if (sessionError || !session) {
+      // For optional auth routes, allow access without valid session
+      if (isOptionalAuth) {
+        return NextResponse.next();
+      }
+      if (pathname.startsWith("/api")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
       const loginUrl = new URL("/admin/login", request.url);
       loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
@@ -72,12 +116,29 @@ export async function middleware(request: NextRequest) {
       .single();
 
     if (userError || !routerUser) {
+      // For optional auth routes, allow access without router_user
+      if (isOptionalAuth) {
+        return NextResponse.next();
+      }
+      if (pathname.startsWith("/api")) {
+        return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+      }
       const loginUrl = new URL("/admin/login", request.url);
       loginUrl.searchParams.set("error", "not_authorized");
       return NextResponse.redirect(loginUrl);
     }
 
     if (!routerUser.enabled) {
+      // For optional auth routes, allow access even if disabled
+      if (isOptionalAuth) {
+        return NextResponse.next();
+      }
+      if (pathname.startsWith("/api")) {
+        return NextResponse.json(
+          { error: "Account deactivated" },
+          { status: 403 },
+        );
+      }
       const loginUrl = new URL("/admin/login", request.url);
       loginUrl.searchParams.set("error", "account_deactivated");
       return NextResponse.redirect(loginUrl);
@@ -86,6 +147,12 @@ export async function middleware(request: NextRequest) {
     // Check admin-only routes
     if (adminOnlyRoutes.some((route) => pathname.startsWith(route))) {
       if (routerUser.role !== "admin") {
+        if (pathname.startsWith("/api")) {
+          return NextResponse.json(
+            { error: "Admin access required" },
+            { status: 403 },
+          );
+        }
         // Redirect non-admins to dashboard
         return NextResponse.redirect(new URL("/admin", request.url));
       }
@@ -100,9 +167,14 @@ export async function middleware(request: NextRequest) {
           routerUser.role !== "admin" &&
           routerUser.artist_id !== requestedArtistId
         ) {
-          return NextResponse.redirect(
-            new URL("/artist/dashboard", request.url),
-          );
+          // Redirect to their own artist page
+          if (routerUser.artist_id) {
+            return NextResponse.redirect(
+              new URL(`/artist/${routerUser.artist_id}`, request.url),
+            );
+          }
+          // No artist_id, redirect to login
+          return NextResponse.redirect(new URL("/admin/login", request.url));
         }
       }
     }
@@ -118,11 +190,17 @@ export async function middleware(request: NextRequest) {
     return response;
   } catch {
     // On any error, redirect to login
+    if (pathname.startsWith("/api")) {
+      return NextResponse.json(
+        { error: "Authentication error" },
+        { status: 401 },
+      );
+    }
     const loginUrl = new URL("/admin/login", request.url);
     return NextResponse.redirect(loginUrl);
   }
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/artist/:path*"],
+  matcher: ["/admin/:path*", "/artist/:path*", "/api/:path*", "/help/:path*"],
 };

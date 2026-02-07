@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/app/lib/supabase";
+import { getApiUser, isAdmin, canAccessArtist } from "@/app/lib/api-auth";
 
 export async function GET(request: NextRequest) {
   try {
+    const user = await getApiUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const artistId = searchParams.get("artist_id");
     const search = searchParams.get("search");
@@ -27,7 +33,16 @@ export async function GET(request: NextRequest) {
       .order("start_date", { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (artistId) {
+    // Artists can only see their own tours
+    if (!isAdmin(user)) {
+      if (user.artistId) {
+        query = query.eq("artist_id", user.artistId);
+      } else {
+        // No artist_id and not admin - return empty
+        return NextResponse.json({ tours: [], total: 0 });
+      }
+    } else if (artistId) {
+      // Admin filtering by specific artist
       query = query.eq("artist_id", artistId);
     }
 
@@ -54,6 +69,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getApiUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const {
       artist_id,
       name,
@@ -69,6 +89,11 @@ export async function POST(request: NextRequest) {
         { error: "Artist ID, name, start_date, and end_date are required" },
         { status: 400 },
       );
+    }
+
+    // Artists can only create tours for themselves
+    if (!canAccessArtist(user, artist_id)) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
     // Validate dates
@@ -104,10 +129,17 @@ export async function POST(request: NextRequest) {
     if (error) {
       // Handle overlapping tour error
       if (error.message?.includes("overlap")) {
+        const overlapMessage = isAdmin(user)
+          ? "This artist already has a tour scheduled during these dates. Try different dates, or check their"
+          : "You already have a tour scheduled during these dates. Try different dates, or edit your";
+        const toursUrl = isAdmin(user)
+          ? `/admin/artists/${artist_id}/tours`
+          : `/artist/${artist_id}/tours`;
         return NextResponse.json(
           {
-            error:
-              "Tour dates overlap with an existing active tour for this artist",
+            error: overlapMessage,
+            linkText: "existing tours.",
+            linkUrl: toursUrl,
           },
           { status: 400 },
         );

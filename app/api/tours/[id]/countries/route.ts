@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/app/lib/supabase'
+import { getApiUser, canAccessTourByArtistId } from '@/app/lib/api-auth'
+
+// Helper to get tour's artist_id
+async function getTourArtistId(tourId: string): Promise<string | null> {
+  const { data } = (await supabaseAdmin
+    .from("router_tours")
+    .select("artist_id")
+    .eq("id", tourId)
+    .single()) as { data: { artist_id: string } | null };
+  return data?.artist_id || null;
+}
 
 // GET tour overrides (artist-selected orgs per country)
 export async function GET(
@@ -8,6 +19,20 @@ export async function GET(
 ) {
   const { id } = await params
   try {
+    const user = await getApiUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check tour ownership
+    const tourArtistId = await getTourArtistId(id);
+    if (!tourArtistId) {
+      return NextResponse.json({ error: "Tour not found" }, { status: 404 });
+    }
+    if (!canAccessTourByArtistId(user, tourArtistId)) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
     const { data: overrides, error } = await supabaseAdmin
       .from('router_tour_overrides')
       .select(`
@@ -38,6 +63,20 @@ export async function POST(
 ) {
   const { id } = await params
   try {
+    const user = await getApiUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check tour ownership
+    const tourArtistId = await getTourArtistId(id);
+    if (!tourArtistId) {
+      return NextResponse.json({ error: "Tour not found" }, { status: 404 });
+    }
+    if (!canAccessTourByArtistId(user, tourArtistId)) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
     const { country_code, org_id, enabled = true } = await request.json()
 
     if (!country_code) {
@@ -49,7 +88,7 @@ export async function POST(
 
     // org_id is optional - if not provided, the tour will use MDE recommended org
 
-     
+
     const insertData: Record<string, unknown> = {
       tour_id: id,
       country_code: country_code.toUpperCase(),
@@ -102,6 +141,20 @@ export async function PUT(
 ) {
   const { id } = await params
   try {
+    const user = await getApiUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check tour ownership
+    const tourArtistId = await getTourArtistId(id);
+    if (!tourArtistId) {
+      return NextResponse.json({ error: "Tour not found" }, { status: 404 });
+    }
+    if (!canAccessTourByArtistId(user, tourArtistId)) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
     const { overrides } = await request.json()
 
     if (!Array.isArray(overrides)) {
@@ -136,7 +189,7 @@ export async function PUT(
         results.push(data)
       } else if (country_code) {
         // Create new override
-         
+
         const insertData: Record<string, unknown> = {
           tour_id: id,
           country_code: country_code.toUpperCase(),
@@ -175,6 +228,20 @@ export async function DELETE(
 ) {
   const { id } = await params
   try {
+    const user = await getApiUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check tour ownership
+    const tourArtistId = await getTourArtistId(id);
+    if (!tourArtistId) {
+      return NextResponse.json({ error: "Tour not found" }, { status: 404 });
+    }
+    if (!canAccessTourByArtistId(user, tourArtistId)) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url)
     const overrideId = searchParams.get('override_id')
     const countryCode = searchParams.get('country_code')
