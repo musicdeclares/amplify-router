@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/app/lib/supabase";
 import { Database } from "@/app/types/database";
+import { getApiUser, isAdmin, canAccessTourByArtistId } from "@/app/lib/api-auth";
 
 type TourUpdate = Database["public"]["Tables"]["router_tours"]["Update"];
+
+// Helper to get tour's artist_id
+async function getTourArtistId(tourId: string): Promise<string | null> {
+  const { data } = (await supabaseAdmin
+    .from("router_tours")
+    .select("artist_id")
+    .eq("id", tourId)
+    .single()) as { data: { artist_id: string } | null };
+  return data?.artist_id || null;
+}
 
 export async function GET(
   request: NextRequest,
@@ -10,7 +21,13 @@ export async function GET(
 ) {
   const { id } = await params;
   try {
-    const { data: tour, error } = await supabaseAdmin
+    const user = await getApiUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Fetch tour first to check access
+    const { data: tour, error } = (await supabaseAdmin
       .from("router_tours")
       .select(
         `
@@ -26,13 +43,22 @@ export async function GET(
       `,
       )
       .eq("id", id)
-      .single();
+      .single()) as { data: { artist_id: string } | null; error: { code?: string } | null };
 
     if (error) {
       if (error.code === "PGRST116") {
         return NextResponse.json({ error: "Tour not found" }, { status: 404 });
       }
       throw error;
+    }
+
+    if (!tour) {
+      return NextResponse.json({ error: "Tour not found" }, { status: 404 });
+    }
+
+    // Check access
+    if (!canAccessTourByArtistId(user, tour.artist_id)) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
     return NextResponse.json({ tour });
@@ -51,6 +77,20 @@ export async function PUT(
 ) {
   const { id } = await params;
   try {
+    const user = await getApiUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check tour ownership
+    const tourArtistId = await getTourArtistId(id);
+    if (!tourArtistId) {
+      return NextResponse.json({ error: "Tour not found" }, { status: 404 });
+    }
+    if (!canAccessTourByArtistId(user, tourArtistId)) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
     const body = await request.json();
 
     // Validate dates if provided
@@ -107,10 +147,17 @@ export async function PUT(
         return NextResponse.json({ error: "Tour not found" }, { status: 404 });
       }
       if (error.message?.includes("overlap")) {
+        const overlapMessage = isAdmin(user)
+          ? "This artist already has a tour scheduled during these dates. Try different dates, or check their"
+          : "You already have a tour scheduled during these dates. Try different dates, or edit your";
+        const toursUrl = isAdmin(user)
+          ? `/admin/artists/${tourArtistId}/tours`
+          : `/artist/${tourArtistId}/tours`;
         return NextResponse.json(
           {
-            error:
-              "Tour dates overlap with an existing active tour for this artist",
+            error: overlapMessage,
+            linkText: "existing tours.",
+            linkUrl: toursUrl,
           },
           { status: 400 },
         );
@@ -134,6 +181,20 @@ export async function DELETE(
 ) {
   const { id } = await params;
   try {
+    const user = await getApiUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check tour ownership
+    const tourArtistId = await getTourArtistId(id);
+    if (!tourArtistId) {
+      return NextResponse.json({ error: "Tour not found" }, { status: 404 });
+    }
+    if (!canAccessTourByArtistId(user, tourArtistId)) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
     // Tour overrides are deleted automatically via ON DELETE CASCADE.
     // Analytics rows have tour_id set to NULL via ON DELETE SET NULL.
     const { error } = await supabaseAdmin
