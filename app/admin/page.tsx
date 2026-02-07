@@ -218,12 +218,15 @@ export default function AdminDashboard() {
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <DateInput
                 value={startDate}
                 onChange={(e) => handleDateChange(e.target.value, endDate)}
               />
-              <span className="text-muted-foreground">–</span>
+              <span className="text-muted-foreground hidden sm:inline">–</span>
+              <span className="text-muted-foreground text-xs sm:hidden ml-3">
+                to
+              </span>
               <DateInput
                 value={endDate}
                 onChange={(e) => handleDateChange(startDate, e.target.value)}

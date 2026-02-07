@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, use, useMemo } from "react";
-import { QrCode } from "lucide-react";
+import { QrCode, Play, Pause } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -14,13 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Artist, Tour } from "@/app/types/router";
 import { TourTable, TourWithArtist } from "@/components/tours/TourTable";
@@ -47,16 +42,23 @@ export default function EditArtistPage({
 
   // Form state
   const [name, setName] = useState("");
-  const [enabled, setEnabled] = useState(true);
+  const [linkActive, setLinkActive] = useState(true);
+  const [accountActive, setAccountActive] = useState(true);
+  const [accountInactiveReason, setAccountInactiveReason] = useState("");
 
   // Unsaved changes tracking
   const initialValues = useMemo(
-    () => ({ name: artist?.name ?? "", enabled: artist?.enabled ?? true }),
-    [artist?.name, artist?.enabled],
+    () => ({
+      name: artist?.name ?? "",
+      linkActive: artist?.link_active ?? true,
+      accountActive: artist?.account_active ?? true,
+      accountInactiveReason: artist?.account_inactive_reason ?? "",
+    }),
+    [artist],
   );
   const currentValues = useMemo(
-    () => ({ name, enabled }),
-    [name, enabled],
+    () => ({ name, linkActive, accountActive, accountInactiveReason }),
+    [name, linkActive, accountActive, accountInactiveReason],
   );
   const { hasUnsavedChanges, savedAt, markSaved } = useUnsavedChanges(
     initialValues,
@@ -81,7 +83,9 @@ export default function EditArtistPage({
       const data = await res.json();
       setArtist(data.artist);
       setName(data.artist.name);
-      setEnabled(data.artist.enabled);
+      setLinkActive(data.artist.link_active);
+      setAccountActive(data.artist.account_active ?? true);
+      setAccountInactiveReason(data.artist.account_inactive_reason ?? "");
     } catch (error) {
       console.error("Error fetching artist:", error);
       toast.error("Failed to load artist");
@@ -104,7 +108,14 @@ export default function EditArtistPage({
       const res = await fetch(`/api/artists/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), enabled }),
+        body: JSON.stringify({
+          name: name.trim(),
+          link_active: linkActive,
+          account_active: accountActive,
+          account_inactive_reason: accountActive
+            ? null
+            : accountInactiveReason.trim() || null,
+        }),
       });
 
       const data = await res.json();
@@ -130,7 +141,11 @@ export default function EditArtistPage({
     if (!artist) return [];
     return (artist.router_tours || []).map((tour) => ({
       ...tour,
-      router_artists: { id: artist.id, handle: artist.handle, name: artist.name },
+      router_artists: {
+        id: artist.id,
+        handle: artist.handle,
+        name: artist.name,
+      },
     }));
   }, [artist]);
 
@@ -209,23 +224,88 @@ export default function EditArtistPage({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="enabled">Status</Label>
-                <Select
-                  value={enabled ? "enabled" : "disabled"}
-                  onValueChange={(v) => setEnabled(v === "enabled")}
-                  disabled={saving}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="enabled">Active</SelectItem>
-                    <SelectItem value="disabled">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-sm text-muted-foreground">
-                  Inactive artists will redirect to the fallback page.
-                </p>
+                <Label>Link Status</Label>
+                <div className="flex items-center gap-3 p-3 border rounded-md">
+                  <div
+                    className={`p-1.5 rounded-full ${linkActive ? "bg-green-100 text-green-600" : "bg-muted text-muted-foreground"}`}
+                  >
+                    {linkActive ? (
+                      <Play className="h-4 w-4" />
+                    ) : (
+                      <Pause className="h-4 w-4" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">
+                      {linkActive ? "Link is active" : "Link is paused"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {linkActive
+                        ? "Fans are being routed to organizations"
+                        : "Fans see a fallback page"}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setLinkActive(!linkActive)}
+                    disabled={saving}
+                  >
+                    {linkActive ? "Pause" : "Resume"}
+                  </Button>
+                </div>
+                {artist.link_inactive_reason && !linkActive && (
+                  <p className="text-sm text-muted-foreground">
+                    Reason: {artist.link_inactive_reason}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="account-active">Account Status</Label>
+                    <p className="text-sm text-muted-foreground">
+                      {accountActive
+                        ? "Account is active"
+                        : "Account is inactive"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-sm ${accountActive ? "text-muted-foreground" : "font-medium"}`}
+                    >
+                      Inactive
+                    </span>
+                    <Switch
+                      id="account-active"
+                      checked={accountActive}
+                      onCheckedChange={setAccountActive}
+                      disabled={saving}
+                    />
+                    <span
+                      className={`text-sm ${accountActive ? "font-medium" : "text-muted-foreground"}`}
+                    >
+                      Active
+                    </span>
+                  </div>
+                </div>
+                {!accountActive && (
+                  <div className="space-y-2 pt-2 border-t">
+                    <p className="text-sm text-muted-foreground">
+                      The artist cannot reactivate their own account. Only use
+                      this to deactivate an artist partnership.
+                    </p>
+                    <Textarea
+                      placeholder="Reason for deactivation (optional, internal use only)"
+                      value={accountInactiveReason}
+                      onChange={(e) => setAccountInactiveReason(e.target.value)}
+                      disabled={saving}
+                      rows={2}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-4">
@@ -246,7 +326,8 @@ export default function EditArtistPage({
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>
-                    Tours{tours.length > 0 && (
+                    Tours
+                    {tours.length > 0 && (
                       <span className="text-muted-foreground font-normal ml-1.5">
                         ({tours.length})
                       </span>

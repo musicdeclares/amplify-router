@@ -11,15 +11,13 @@ export function useUnsavedChanges(
   currentValues: Record<string, unknown>,
 ) {
   const [savedAt, setSavedAt] = useState<number | null>(null);
-  const initialRef = useRef(initialValues);
-
-  // Update initial ref when data is loaded/reloaded
-  useEffect(() => {
-    initialRef.current = initialValues;
-  }, [initialValues]);
+  // Track the "saved" baseline - starts as initialValues, updates on save
+  const savedBaseline = useRef<Record<string, unknown> | null>(null);
 
   const hasUnsavedChanges = Object.keys(currentValues).some((key) => {
-    const initial = initialRef.current[key];
+    // Compare against saved baseline if we've saved, otherwise against initial values
+    const baseline = savedBaseline.current ?? initialValues;
+    const initial = baseline[key];
     const current = currentValues[key];
 
     // Deep compare arrays
@@ -70,7 +68,7 @@ export function useUnsavedChanges(
   }, [hasUnsavedChanges]);
 
   const markSaved = useCallback(() => {
-    initialRef.current = { ...currentValues };
+    savedBaseline.current = { ...currentValues };
     setSavedAt(Date.now());
   }, [currentValues]);
 
