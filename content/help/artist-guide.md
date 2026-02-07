@@ -1,6 +1,6 @@
 ---
 title: Artist & Manager Guide
-description: Everything you need to know about using your AMPLIFY link.
+description: Everything you need to know about using your AMPLIFY dashboard.
 audience: artist
 order: 2
 ---
@@ -10,6 +10,17 @@ order: 2
 AMPLIFY is a program by Music Declares Emergency that helps artists direct fans toward climate action. Your AMPLIFY link connects fans to vetted, grassroots climate organizations based on where they are.
 
 **One link. Any country. Always works.**
+
+---
+
+## Your Dashboard
+
+Your dashboard is your central hub for managing your AMPLIFY link. Here you can:
+
+- View and copy your unique AMPLIFY link
+- Generate QR codes for print materials
+- Create and manage tours
+- See how your link is performing
 
 ---
 
@@ -45,32 +56,89 @@ Visit your starter kit page to get:
 - **Downloadable QR code** (print-ready, high resolution)
 - **Sample social captions** (ready to copy and customize)
 
-Your starter kit URL:
-```
-amplify.musicdeclares.net/kit/your-handle
-```
+Find your starter kit at: **Dashboard → View Starter Kit**
 
 Share this page with your team so everyone has access to the assets.
 
 ---
 
-## How Routing Works
+## Managing Tours
 
-When a fan clicks your link:
+Tours define when your AMPLIFY link actively routes fans to climate organizations. Outside of tour dates, fans see a general AMPLIFY information page.
 
-1. **During your tour**: They're directed to a climate organization based on their country
-2. **Outside tour dates**: They see a general AMPLIFY information page
+### Creating a Tour
 
-This means:
-- Links on old posters still work
-- Fans always land somewhere meaningful
-- No broken links, ever
+1. Go to **Tours** in the navigation
+2. Click **Add Tour**
+3. Enter:
+   - Tour name (e.g., "European Tour 2026")
+   - Start and end dates
+   - Optional pre-tour and post-tour windows
+4. Click **Add Tour**
 
-### Country-Specific Routing
+### Tour Windows
 
-If you're touring in the US, fans there might be directed to Sunrise Movement. Fans in the UK might go to Extinction Rebellion. Each country has vetted partner organizations.
+- **Pre-tour window**: Activate routing days before the tour starts
+- **Post-tour window**: Keep routing active days after the tour ends
 
-You can request specific organizations for your tour—just contact MDE.
+This helps catch early arrivals and lingering traffic.
+
+### Configuring Country Routing
+
+For each tour, you can specify which countries you're visiting:
+
+1. Edit your tour
+2. Click **Add Country** under "Fan Routing by Country"
+3. Select each country where you'll perform
+
+By default, fans are routed to MDE's recommended organization for each country. You can optionally select a different organization if you prefer.
+
+---
+
+## Understanding Fallback Diagnostics
+
+The **Diagnostics** page shows you when fans couldn't be routed to an organization. This helps you understand and fix routing issues.
+
+### Issues You Can Fix
+
+- **No active tour**: Add a tour covering the relevant dates
+- **Country not configured**: Add the country to your tour
+
+### Issues Requiring MDE Assistance
+
+Some issues require help from Music Declares Emergency:
+- Organization temporarily paused
+- No organization available for a country
+- Organization website missing
+
+For these, use the copy button next to the event to capture details, then share with your MDE contact.
+
+---
+
+## Pausing Your Link
+
+If you need to temporarily pause your AMPLIFY link:
+
+1. Go to **Settings** in the navigation
+2. Under **Link Status**, toggle the switch to pause your link
+3. Optionally add a reason (only visible to MDE)
+
+When paused, fans see a fallback page instead of being routed to organizations.
+
+You can resume your link at any time by toggling the switch back on.
+
+---
+
+## Account Settings
+
+Visit the **Settings** page to:
+
+- View your email address
+- Reset your password
+- Update your display name
+- Pause or resume your link
+
+Your handle (the part of your AMPLIFY URL) cannot be changed after account creation.
 
 ---
 
@@ -80,9 +148,9 @@ You can request specific organizations for your tour—just contact MDE.
 
 Your link still works. Fans see a general AMPLIFY page explaining the program and how to find climate organizations in their area.
 
-### Can I change which organization fans are directed to?
+### Can I have multiple tours?
 
-Yes. Contact MDE to request changes. You can have different organizations for different countries, or override MDE's default recommendations.
+Yes! You can create multiple tours, but only one can be active at a time (dates cannot overlap).
 
 ### What if there's no organization for a country?
 
@@ -90,7 +158,7 @@ Fans in countries without a partner org see the general AMPLIFY page. MDE is alw
 
 ### Can I see how many people used my link?
 
-Analytics are available through MDE. Contact them for a routing summary.
+Yes! Your dashboard shows routing statistics including total routes, successful routes to organizations, and fallback rates.
 
 ### What if an organization asks to pause?
 
@@ -104,7 +172,8 @@ No personal data is stored. The system only uses the fan's country (detected fro
 
 ## Getting Help
 
-For questions about your AMPLIFY link or to request changes, contact your MDE representative.
+- Visit the **Help** link in your navigation for this guide
+- For questions about your AMPLIFY link or to request changes, contact your MDE representative
 
 ---
 

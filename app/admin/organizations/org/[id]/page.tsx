@@ -274,7 +274,7 @@ export default function OrgProfilePage({
     }
   }
 
-  async function handleEnable() {
+  async function handleResume() {
     setTogglingPause(true);
     try {
       const res = await fetch(`/api/org-profiles/${orgId}`, {
@@ -290,10 +290,10 @@ export default function OrgProfilePage({
       }
 
       setOrgOverride(data.orgOverride);
-      toast.success("Organization enabled for routing");
+      toast.success("Organization resumed for routing");
     } catch (error) {
-      console.error("Error enabling org:", error);
-      toast.error("Failed to enable organization");
+      console.error("Error resuming org:", error);
+      toast.error("Failed to resume organization");
     } finally {
       setTogglingPause(false);
     }
@@ -301,7 +301,7 @@ export default function OrgProfilePage({
 
   function handleSwitchChange(checked: boolean) {
     if (checked) {
-      handleEnable();
+      handleResume();
     } else {
       setPauseDialogOpen(true);
     }
@@ -390,7 +390,7 @@ export default function OrgProfilePage({
           <Button
             size="sm"
             variant="outline"
-            onClick={handleEnable}
+            onClick={handleResume}
             disabled={togglingPause}
           >
             {togglingPause ? "Activating..." : "Activate"}

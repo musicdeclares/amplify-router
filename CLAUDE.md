@@ -17,8 +17,8 @@ Historically, artists promoted orgs via static links or one-off QR codes. This b
 ## User Types
 
 - **Fans**: Scan QR codes or click links at shows, on social media, etc.
-- **Artists / managers**: Share their AMPLIFY link; may configure routing rules per tour (future)
-- **MDE admins**: Manage artists, tours, orgs, and safety overrides
+- **Artists / managers**: Configure their own tours, country routing, and link status via self-service dashboard
+- **MDE admins**: Manage artists, tours, orgs, safety overrides, and send artist invites
 
 ## Product Constraints (from MOU)
 
@@ -62,16 +62,29 @@ The directory shares data with the router — both read from `org_public_view` (
 | `/a/{handle}` | Fan routing endpoint — redirects to org based on context |
 | `/directory` | Public org directory with search and country filter |
 | `/kit/{handle}` | Artist starter kit page with AMPLIFY link, QR code, sample captions |
-| `/help` | Help center with documentation |
+| `/help` | Help center with documentation (filtered by user role) |
 | `/help/{slug}` | Individual help articles (admin-guide, artist-guide) |
+| `/invite/{token}` | Artist onboarding page for accepting invites |
 
-### Admin Routes (require authentication)
+### Artist Routes (require artist authentication)
+| Route | Description |
+|-------|-------------|
+| `/artist/{artistId}` | Artist dashboard with link, QR code, stats |
+| `/artist/{artistId}/tours` | Artist's tour list |
+| `/artist/{artistId}/tours/new` | Create new tour |
+| `/artist/{artistId}/tours/{tourId}` | Edit tour and country routing |
+| `/artist/{artistId}/diagnostics` | Fallback diagnostics and troubleshooting |
+| `/artist/{artistId}/settings` | Account settings (name, email, link status) |
+
+### Admin Routes (require admin authentication)
 | Route | Description |
 |-------|-------------|
 | `/admin` | Analytics dashboard |
-| `/admin/artists` | Artist management |
+| `/admin/artists` | Artist management and invites |
+| `/admin/artists/invite` | Send artist invite |
 | `/admin/tours` | Tour management |
 | `/admin/organizations` | Country defaults and org profiles |
+| `/admin/settings` | Account settings (email, password reset) |
 
 ## Routing Logic
 
@@ -94,14 +107,15 @@ All router tables are prefixed with `router_` for namespace separation.
 
 | Table | Purpose |
 |-------|---------|
-| `router_artists` | Artist profiles with handles |
+| `router_artists` | Artist profiles with handles, link status, and account status |
 | `router_tours` | Tour dates with pre/post windows |
 | `router_tour_overrides` | Artist-selected orgs per tour + country |
 | `router_country_defaults` | MDE-recommended orgs per country |
-| `router_org_overrides` | Pause/enable orgs for routing |
+| `router_org_overrides` | Pause/resume orgs for routing |
 | `router_org_profiles` | Fan-facing org content (name, mission, CTA, image) |
 | `router_analytics` | Routing event tracking |
-| `router_users` | Admin authentication |
+| `router_users` | User authentication (admin and artist roles) |
+| `router_invites` | Artist invite tokens with expiry |
 | `org_public_view` | Read-only view of approved orgs from MDEDB |
 
 ## Key Features
@@ -129,6 +143,13 @@ All router tables are prefixed with `router_` for namespace separation.
 - Filter by country
 - Server-rendered for SEO
 - UTM tracking on CTA links: `utm_source=mde_amplify_dir`
+
+### Artist Self-Service (`/artist/{artistId}`)
+- Artists onboard via admin-generated invite links
+- Dashboard with AMPLIFY link, QR code, and stats
+- Create and manage tours with country routing
+- View fallback diagnostics with actionable guidance
+- Pause/resume their own link
 
 ## Environment Variables
 
@@ -179,6 +200,37 @@ content/
 - **Home page redirects to MDE site** (interim) — will switch to org directory when ready for launch
 - **Org directory integrated** — lives in same codebase, shares data with router via `router_org_profiles`
 
+## Terminology Conventions
+
+Use consistent, inclusive language throughout user-facing text and documentation.
+
+### Status Toggles
+
+| Context | On State | Off State | Who Controls | Rationale |
+|---------|----------|-----------|--------------|-----------|
+| Artist link | **Active** / **Resume** | **Paused** | Artist or Admin | Media control metaphor familiar to musicians (play/pause) |
+| Artist account | **Active** | **Inactive** / **Deactivated** | Admin only | More permanent; "deactivated" implies admin action |
+| Tour | **Active** | **Inactive** | Artist or Admin | Aligns with artist link terminology |
+| Organization | **Active** / **Resume** | **Paused** | Admin only | Orgs can be temporarily paused, not permanently disabled |
+
+### Words to Avoid
+
+- **Enable/Disable**: Avoid in user-facing text. "Disable" has ableist connotations. Use "activate/deactivate" for permanent states or "pause/resume" for temporary states.
+- **Enabled/Disabled** as UI labels: Use "Active/Inactive" instead. Internal code values (e.g., `value="enabled"`) are acceptable if the displayed label uses preferred terminology.
+
+### Icons
+
+- **Link status**: Play icon (active), Pause icon (paused)
+- **Account status**: Ban icon (deactivated by admin)
+
+### Database Fields
+
+Database column names use `enabled` for boolean flags (e.g., `router_tours.enabled`). This is acceptable for internal schema — the convention applies to user-facing text only.
+
+For artist status specifically:
+- `link_active` + `link_inactive_reason`: Artist/admin can toggle
+- `account_active` + `account_inactive_reason`: Admin only
+
 ## Launch Checklist (Org Directory)
 
 When ready to make `/directory` the public-facing home page:
@@ -193,8 +245,8 @@ When ready to make `/directory` the public-facing home page:
 
 ## Future Considerations
 
-- **Artist self-service**: Let artists configure their own tours
 - **Organization self-service**: Let orgs update their own profiles in the directory
 - **Show-level routing**: Route based on specific venue/date
 - **Audit trail**: Log configuration changes for compliance
 - **Emergency controls**: "Pause all routing" button with safeguards
+- **Branded email invites**: Replace mailto links with server-sent emails via Resend
