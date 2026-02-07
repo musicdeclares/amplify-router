@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { getDocBySlug, getAllDocs, extractHeadings } from "@/app/lib/content";
 import { MarkdownRenderer } from "@/components/content/MarkdownRenderer";
 
@@ -39,20 +40,48 @@ export default async function HelpPage({
     notFound();
   }
 
+  // Check access based on user role
+  const headerList = await headers();
+  const userRole = headerList.get("x-user-role") as "admin" | "artist" | null;
+  const audience = doc.frontmatter.audience;
+
+  // Check if user can access this doc
+  const canAccess =
+    audience === "public" ||
+    userRole === "admin" ||
+    (userRole === "artist" && audience === "artist");
+
+  if (!canAccess) {
+    notFound();
+  }
+
+  // Check how many docs are visible to this user (for showing back link)
+  const allDocs = getAllDocs();
+  const visibleDocsCount = allDocs.filter((d) => {
+    const docAudience = d.frontmatter.audience;
+    return (
+      docAudience === "public" ||
+      userRole === "admin" ||
+      (userRole === "artist" && docAudience === "artist")
+    );
+  }).length;
+
   const headings = extractHeadings(doc.content);
 
   return (
     <main className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-6 py-12">
-        {/* Breadcrumb */}
-        <nav className="mb-8">
-          <Link
-            href="/help"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            &larr; Help Center
-          </Link>
-        </nav>
+        {/* Breadcrumb - only show if there are multiple docs visible */}
+        {visibleDocsCount > 1 && (
+          <nav className="mb-8">
+            <Link
+              href="/help"
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              &larr; Help Center
+            </Link>
+          </nav>
+        )}
 
         <div className="grid gap-12 lg:grid-cols-[1fr_200px]">
           {/* Main content */}

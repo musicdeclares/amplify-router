@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { headers } from "next/headers";
 import { getAllDocs, DocAudience } from "@/app/lib/content";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,8 +25,23 @@ const audienceColors: Record<DocAudience, string> = {
   public: "bg-muted text-muted-foreground border-muted",
 };
 
-export default function HelpIndexPage() {
-  const docs = getAllDocs();
+export default async function HelpIndexPage() {
+  const headerList = await headers();
+  const userRole = headerList.get("x-user-role") as "admin" | "artist" | null;
+
+  // Filter docs based on user role
+  const allDocs = getAllDocs();
+  const docs = allDocs.filter((doc) => {
+    const audience = doc.frontmatter.audience;
+    // Public docs visible to everyone
+    if (audience === "public") return true;
+    // Admins see all docs
+    if (userRole === "admin") return true;
+    // Artists see artist + public docs
+    if (userRole === "artist" && audience === "artist") return true;
+    // Unauthenticated users only see public docs
+    return false;
+  });
 
   return (
     <main className="min-h-screen bg-background">

@@ -61,7 +61,12 @@ function LoginForm() {
         return;
       }
 
-      router.push(redirect);
+      // Role-based redirect
+      if (data.user?.role === "artist" && data.user?.artistId) {
+        router.push(`/artist/${data.user.artistId}`);
+      } else {
+        router.push(redirect);
+      }
       router.refresh();
     } catch {
       setError("An unexpected error occurred");
@@ -84,7 +89,7 @@ function LoginForm() {
             <span>AMPLIFY Router</span>
           </CardTitle>
           <CardDescription>
-            Sign in to manage routing configuration
+            Sign in to access your dashboard
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
