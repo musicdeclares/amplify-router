@@ -31,11 +31,13 @@ export async function routeRequest(
 
   try {
     // Step 1: Find the artist
+    // Artist must have link_active=true AND account_active=true
     const { data: artist, error: artistError } = (await supabaseAdmin
       .from("router_artists")
       .select("*")
       .eq("handle", artistHandle)
-      .eq("enabled", true)
+      .eq("link_active", true)
+      .eq("account_active", true)
       .single()) as { data: Artist | null; error: unknown };
 
     if (artistError || !artist) {

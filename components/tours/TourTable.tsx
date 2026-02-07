@@ -34,6 +34,7 @@ interface TourTableProps {
   showArtistColumn?: boolean;
   showCountriesColumn?: boolean;
   defaultHideCompleted?: boolean;
+  basePath?: string; // Custom base path for tour links (default: /admin/tours)
 }
 
 export function TourTable({
@@ -41,6 +42,7 @@ export function TourTable({
   showArtistColumn = false,
   showCountriesColumn = false,
   defaultHideCompleted = false,
+  basePath = "/admin/tours",
 }: TourTableProps) {
   const [sortField, setSortField] = useState<SortField>("dates");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
@@ -257,7 +259,7 @@ export function TourTable({
                     </Badge>
                   </TableCell>
                   <TableCell className="w-[60px]">
-                    <Link href={`/admin/tours/${tour.id}`}>
+                    <Link href={`${basePath}/${tour.id}`}>
                       <Button variant="ghost" size="sm">
                         Edit
                       </Button>

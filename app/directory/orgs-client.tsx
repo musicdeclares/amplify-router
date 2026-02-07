@@ -12,13 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Search,
-  ChevronRight,
-  Loader2,
-  AlertCircle,
-  Globe,
-} from "lucide-react";
+import { Search, ChevronRight, AlertCircle, Globe } from "lucide-react";
 import type { DirectoryOrganization } from "@/app/types/router";
 
 interface OrgsClientProps {
