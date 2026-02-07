@@ -21,7 +21,21 @@ Welcome to the AMPLIFY admin dashboard. This guide will walk you through the key
 
 Artists are the core entity in AMPLIFY. Each artist gets a unique handle that forms their AMPLIFY link (e.g., `/a/radiohead`).
 
-### Adding an Artist
+### Inviting an Artist (Recommended)
+
+The preferred way to add artists is via invite, which allows them to set up their own account:
+
+1. Go to **Artists** in the sidebar
+2. Click **Invite Artist**
+3. Enter the artist's email and suggested name
+4. Click **Send via email** or copy the invite link manually
+5. The artist receives a link to create their account and choose their handle
+
+Invites expire after 7 days. You can extend or revoke pending invites from the Artists page.
+
+### Adding an Artist Directly
+
+For cases where you need to create an artist account without self-service:
 
 1. Go to **Artists** in the sidebar
 2. Click **Add Artist**
@@ -35,15 +49,39 @@ Artists are the core entity in AMPLIFY. Each artist gets a unique handle that fo
 - They appear in the artist's AMPLIFY link: `amplify.musicdeclares.net/a/{handle}`
 - Once created, handles shouldn't be changed (links may be printed on merch/posters)
 
-### Deactivating an Artist
+### Pausing vs. Deactivating
 
-Artists cannot be deleted because their AMPLIFY links may already be printed on merchandise, posters, or shared publicly. Instead, set an artist to **Inactive**:
+There are two ways an artist's link can be inactive:
+
+**Link Paused** (artist or admin can control)
+- Artist pauses their own link from Settings, or admin pauses it
+- Artist can resume at any time
+- Use for temporary breaks (e.g., between tours)
+
+**Account Deactivated** (admin only)
+- Only admins can activate/deactivate accounts
+- Artist cannot undo this
+- Use when ending a partnership with an artist
+
+Both controls are visible on the artist edit page. If either is set, fans see a fallback page.
+
+### Paused Artists
+
+Artists can pause their own AMPLIFY link from their Settings page. When this happens:
+
+- An alert banner appears on the **Artists** page
+- The artist's reason for pausing (if provided) is visible on their profile
+- Artists can resume their link themselves at any time
+
+### Deactivating an Artist Account
+
+To permanently deactivate an artist (e.g., ending a partnership):
 
 1. Go to **Artists** and click on the artist
-2. Change the status to **Inactive**
+2. Set **Account Status** to **Inactive**
 3. Click **Save Changes**
 
-When an artist is inactive, fans visiting their link will see a fallback page instead of being routed to an organization.
+The artist will see a message that their account has been deactivated and will not be able to resume their link.
 
 ---
 
@@ -66,7 +104,7 @@ Tours define when routing is active for an artist. Outside tour dates, fans see 
 - **Post-tour window**: Routing stays active this many days after the end date
 - This helps catch early arrivals and lingering traffic
 
-### Disabling a Tour
+### Deactivating a Tour
 
 Set a tour to **Inactive** to immediately stop routing, even if dates are current.
 
@@ -93,8 +131,8 @@ Each tour can have routing configured per country. When a fan visits the AMPLIFY
 
 ### MDE Recommended vs Artist Selected
 
-- **MDE recommended**: Default org for a country, set by MDE admins
-- **Artist selected**: Override chosen by the artist/manager for their tour
+- **Use MDE recommended**: MDE sets and may update the recommended org for each country at any time. Selecting this option lets MDE control which org fans are routed to—useful if you want to defer to MDE's expertise or don't have a preference.
+- **Select a specific org**: Choose an org yourself to control routing for that country. Even if your choice matches MDE's current recommendation, selecting it explicitly means MDE's future changes won't affect your routing.
 
 ---
 
@@ -137,13 +175,20 @@ The dashboard shows key metrics about routing activity.
 
 The **Recent Fallback Events** section shows when routing failed and why. Common reasons:
 
-| Reason | Meaning | Action |
-|--------|---------|--------|
-| `artist_not_found` | Invalid artist handle | Check the link is correct |
-| `no_active_tour` | No current tour for artist | Create or enable a tour |
-| `org_not_specified` | No org for fan's country | Add country routing or MDE default |
-| `org_paused` | Org is temporarily inactive | Re-enable or set alternative |
-| `org_no_website` | Org has no website URL | Add website in org settings |
+**`artist_not_found`** — Invalid artist handle
+→ Check the link is correct
+
+**`no_active_tour`** — No current tour for artist
+→ Create or activate a tour
+
+**`org_not_specified`** — No org for fan's country
+→ Add country routing or MDE default
+
+**`org_paused`** — Org is temporarily inactive
+→ Resume or set alternative
+
+**`org_no_website`** — Org has no website URL
+→ Add website in org settings
 
 ---
 
@@ -160,6 +205,22 @@ Edit the tour and update the org selection for the relevant country.
 ### See which countries have no routing
 
 Check the analytics dashboard for fallback events with `org_not_specified`.
+
+---
+
+## Artist Self-Service
+
+Artists with accounts can manage their own:
+
+- **Tours**: Create, edit, and configure country routing
+- **Link status**: Pause and resume their AMPLIFY link
+- **Diagnostics**: View fallback events and troubleshoot issues
+
+Artists **cannot**:
+
+- Change their handle (contact MDE if needed)
+- Access other artists' data
+- Modify MDE organization recommendations
 
 ---
 

@@ -33,7 +33,7 @@ export const FALLBACK_REASONS: Record<FallbackReason, ReasonInfo> = {
   org_paused: {
     label: "Org paused",
     recoveryStep:
-      "Org was manually paused. [Review org overrides](/admin/organizations) to re-enable.",
+      "Org was manually paused. [Review org overrides](/admin/organizations) to resume.",
   },
   org_no_website: {
     label: "Org has no website",

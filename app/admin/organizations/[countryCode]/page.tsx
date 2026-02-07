@@ -280,7 +280,7 @@ export default function CountryDetailPage({
 
       if (!res.ok) throw new Error("Failed to update");
 
-      toast.success(enabled ? "Organization enabled" : "Organization paused");
+      toast.success(enabled ? "Organization resumed" : "Organization paused");
       await fetchData();
     } catch (error) {
       console.error("Error updating organization:", error);
