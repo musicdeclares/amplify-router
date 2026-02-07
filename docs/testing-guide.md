@@ -135,6 +135,16 @@ npm run test:coverage
 npm run test:watch
 ```
 
+### Test Files
+
+| File | Purpose |
+|------|---------|
+| `router-logic.test.ts` | Core routing decisions, country detection, pre/post windows |
+| `analytics-utils.test.ts` | Analytics formatting, fallback reason labels |
+| `url-utils.test.ts` | URL parsing and manipulation |
+| `api-auth.test.ts` | Authorization helpers (`isAdmin`, `canAccessArtist`, etc.) |
+| `content.test.ts` | Help doc filtering by audience/role |
+
 ---
 
 ## UTM Tracking and CTA URL Validation

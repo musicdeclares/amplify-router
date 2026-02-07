@@ -57,6 +57,10 @@ function NewTourForm() {
   const [preTourDays, setPreTourDays] = useState(0);
   const [postTourDays, setPostTourDays] = useState(0);
   const [error, setError] = useState("");
+  const [errorLink, setErrorLink] = useState<{
+    text: string;
+    url: string;
+  } | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -82,6 +86,7 @@ function NewTourForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setErrorLink(null);
 
     if (!artistId) {
       setError("Please select an artist");
@@ -123,6 +128,9 @@ function NewTourForm() {
 
       if (!res.ok) {
         setError(data.error || "Failed to create tour");
+        if (data.linkText && data.linkUrl) {
+          setErrorLink({ text: data.linkText, url: data.linkUrl });
+        }
         setSaving(false);
         return;
       }
@@ -159,6 +167,17 @@ function NewTourForm() {
             {error && (
               <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
                 {error}
+                {errorLink && (
+                  <>
+                    {" "}
+                    <Link
+                      href={errorLink.url}
+                      className="underline hover:text-destructive/80"
+                    >
+                      {errorLink.text}
+                    </Link>
+                  </>
+                )}
               </div>
             )}
 
