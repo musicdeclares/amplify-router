@@ -100,6 +100,10 @@ export default function EditTourPage({
     countryCode: string;
   } | null>(null);
   const [error, setError] = useState("");
+  const [errorLink, setErrorLink] = useState<{
+    text: string;
+    url: string;
+  } | null>(null);
 
   // Form state
   const [name, setName] = useState("");
@@ -188,6 +192,7 @@ export default function EditTourPage({
 
   async function handleSave() {
     setError("");
+    setErrorLink(null);
 
     if (!name.trim()) {
       setError("Tour name is required");
@@ -224,6 +229,9 @@ export default function EditTourPage({
 
       if (!res.ok) {
         setError(data.error || "Failed to update tour");
+        if (data.linkText && data.linkUrl) {
+          setErrorLink({ text: data.linkText, url: data.linkUrl });
+        }
         setSaving(false);
         return;
       }
@@ -365,18 +373,6 @@ export default function EditTourPage({
     );
   }
 
-  function getRoutingStatus(override: TourOverrideWithOrg) {
-    const recommendation = getMDERecommendation(override.country_code);
-
-    if (override.org_id && override.org) {
-      return { label: "Artist selected", type: "artist" as const };
-    }
-    if (recommendation?.org) {
-      return { label: "MDE recommended", type: "mde" as const };
-    }
-    return { label: "No routing", type: "none" as const };
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -389,7 +385,11 @@ export default function EditTourPage({
     return null;
   }
 
-  const overrides = tour.router_tour_overrides || [];
+  const overrides = [...(tour.router_tour_overrides || [])].sort((a, b) =>
+    getCountryLabel(a.country_code).localeCompare(
+      getCountryLabel(b.country_code),
+    ),
+  );
   const configuredCountryCodes = new Set(overrides.map((o) => o.country_code));
   const availableCountries = COUNTRY_OPTIONS.filter(
     (c) => !configuredCountryCodes.has(c.value),
@@ -412,224 +412,198 @@ export default function EditTourPage({
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
-          {/* Tour Details — left column */}
-          <Card className="xl:col-start-1">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Tour Details</CardTitle>
-                  <CardDescription>Update tour information</CardDescription>
-                </div>
-                <div className="flex items-center gap-2">
-                  {!tour.enabled ? (
-                    <Badge variant="outline">Inactive</Badge>
-                  ) : isPast ? (
-                    <Badge variant="outline">Completed</Badge>
-                  ) : isFuture ? (
-                    <Badge variant="outline">Upcoming</Badge>
-                  ) : isActive ? (
-                    <Badge variant="secondary" className="bg-secondary">
-                      Active
-                    </Badge>
-                  ) : null}
-                </div>
+        {/* Tour Details — left column */}
+        <Card className="xl:col-start-1">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Tour Details</CardTitle>
+                <CardDescription>Update tour information</CardDescription>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {error && (
-                <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
-                  {error}
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label>Artist</Label>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">{tour.router_artists.name}</span>
-                  <Link
-                    href={`/admin/artists/${tour.router_artists.id}`}
-                    className="text-xs text-[--color-link] hover:text-[--color-link-hover] underline"
-                  >
-                    View artist
-                  </Link>
-                </div>
+              <div className="flex items-center gap-2">
+                {!tour.enabled ? (
+                  <Badge variant="outline">Inactive</Badge>
+                ) : isPast ? (
+                  <Badge variant="outline">Completed</Badge>
+                ) : isFuture ? (
+                  <Badge variant="outline">Upcoming</Badge>
+                ) : isActive ? (
+                  <Badge variant="secondary" className="bg-secondary">
+                    Active
+                  </Badge>
+                ) : null}
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="name">Tour Name</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  disabled={saving}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="start_date">Start Date</Label>
-                  <DateInput
-                    id="start_date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    disabled={saving}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="end_date">End Date</Label>
-                  <DateInput
-                    id="end_date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    disabled={saving}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="pre_tour_days">Pre-tour Window (days)</Label>
-                  <Input
-                    id="pre_tour_days"
-                    type="number"
-                    min="0"
-                    value={preTourDays}
-                    onChange={(e) =>
-                      setPreTourDays(parseInt(e.target.value) || 0)
-                    }
-                    disabled={saving}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="post_tour_days">
-                    Post-tour Window (days)
-                  </Label>
-                  <Input
-                    id="post_tour_days"
-                    type="number"
-                    min="0"
-                    value={postTourDays}
-                    onChange={(e) =>
-                      setPostTourDays(parseInt(e.target.value) || 0)
-                    }
-                    disabled={saving}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="enabled">Status</Label>
-                <Select
-                  value={enabled ? "enabled" : "disabled"}
-                  onValueChange={(v) => setEnabled(v === "enabled")}
-                  disabled={saving}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="enabled">Active</SelectItem>
-                    <SelectItem value="disabled">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <Button onClick={handleSave} disabled={saving}>
-                  {saving ? "Saving..." : "Save Changes"}
-                </Button>
-                <UnsavedChangesIndicator
-                  hasUnsavedChanges={hasUnsavedChanges}
-                  savedAt={savedAt}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Country Routing — right column on desktop, immediately after Tour Details on mobile */}
-          <Card className="xl:col-start-2 xl:row-start-1">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>
-                    Fan Routing by Country{overrides.length > 0 && (
-                      <span className="text-muted-foreground font-normal ml-1.5">
-                        ({overrides.length})
-                      </span>
-                    )}
-                  </CardTitle>
-                  <CardDescription>
-                    Configure which organizations fans are routed to per country
-                  </CardDescription>
-                </div>
-                <Popover
-                  open={countryOpen}
-                  onOpenChange={(open) => {
-                    setCountryOpen(open);
-                    if (!open) setCountrySearch("");
-                  }}
-                >
-                  <PopoverTrigger asChild>
-                    <Button
-                      size="sm"
-                      disabled={
-                        addingCountry || availableCountries.length === 0
-                      }
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {error && (
+              <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
+                {error}
+                {errorLink && (
+                  <>
+                    {" "}
+                    <Link
+                      href={errorLink.url}
+                      className="underline hover:text-destructive/80"
                     >
-                      {addingCountry ? "Adding..." : "Add Country"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-75 p-0" align="end">
-                    <Command shouldFilter={false}>
-                      <CommandInput
-                        placeholder="Search countries..."
-                        value={countrySearch}
-                        onValueChange={setCountrySearch}
-                      />
-                      <CommandList>
-                        <CommandEmpty>No country found.</CommandEmpty>
-                        <CommandGroup>
-                          {(() => {
-                            const s = countrySearch.toLowerCase().trim();
-                            if (!s) {
-                              return availableCountries.map((country) => (
-                                <CommandItem
-                                  key={country.value}
-                                  onSelect={() =>
-                                    handleAddCountry(country.value)
-                                  }
-                                >
-                                  {country.label}
-                                  <span className="ml-2 text-muted-foreground text-xs">
-                                    {country.value}
-                                  </span>
-                                </CommandItem>
-                              ));
-                            }
-                            const scored = availableCountries
-                              .map((country) => {
-                                let score = 0;
-                                if (country.value.toLowerCase() === s)
-                                  score = 3;
-                                else if (
-                                  country.label.toLowerCase().startsWith(s)
-                                )
-                                  score = 2;
-                                else if (
-                                  country.label.toLowerCase().includes(s) ||
-                                  country.value.toLowerCase().includes(s)
-                                )
-                                  score = 1;
-                                return { country, score };
-                              })
-                              .filter((item) => item.score > 0)
-                              .sort((a, b) => b.score - a.score);
-                            return scored.map(({ country }) => (
+                      {errorLink.text}
+                    </Link>
+                  </>
+                )}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label>Artist</Label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm">{tour.router_artists.name}</span>
+                <Link
+                  href={`/admin/artists/${tour.router_artists.id}`}
+                  className="text-xs text-[--color-link] hover:text-[--color-link-hover] underline"
+                >
+                  View artist
+                </Link>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="name">Tour Name</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={saving}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="start_date">Start Date</Label>
+                <DateInput
+                  id="start_date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  disabled={saving}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="end_date">End Date</Label>
+                <DateInput
+                  id="end_date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  disabled={saving}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="pre_tour_days">Pre-tour Window (days)</Label>
+                <Input
+                  id="pre_tour_days"
+                  type="number"
+                  min="0"
+                  value={preTourDays}
+                  onChange={(e) =>
+                    setPreTourDays(parseInt(e.target.value) || 0)
+                  }
+                  disabled={saving}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="post_tour_days">Post-tour Window (days)</Label>
+                <Input
+                  id="post_tour_days"
+                  type="number"
+                  min="0"
+                  value={postTourDays}
+                  onChange={(e) =>
+                    setPostTourDays(parseInt(e.target.value) || 0)
+                  }
+                  disabled={saving}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="enabled">Status</Label>
+              <Select
+                value={enabled ? "enabled" : "disabled"}
+                onValueChange={(v) => setEnabled(v === "enabled")}
+                disabled={saving}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="enabled">Active</SelectItem>
+                  <SelectItem value="disabled">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? "Saving..." : "Save Changes"}
+              </Button>
+              <UnsavedChangesIndicator
+                hasUnsavedChanges={hasUnsavedChanges}
+                savedAt={savedAt}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Country Routing — right column on desktop, immediately after Tour Details on mobile */}
+        <Card className="xl:col-start-2 xl:row-start-1">
+          <CardHeader>
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <CardTitle>
+                  Fan Routing by Country
+                  {overrides.length > 0 && (
+                    <span className="text-muted-foreground font-normal ml-1.5">
+                      ({overrides.length})
+                    </span>
+                  )}
+                </CardTitle>
+                <CardDescription>
+                  Which organization fans are directed to in each country
+                </CardDescription>
+              </div>
+              <Popover
+                open={countryOpen}
+                onOpenChange={(open) => {
+                  setCountryOpen(open);
+                  if (!open) setCountrySearch("");
+                }}
+              >
+                <PopoverTrigger asChild>
+                  <Button
+                    size="sm"
+                    disabled={addingCountry || availableCountries.length === 0}
+                  >
+                    {addingCountry ? "Adding..." : "Add Country"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-75 p-0" align="end">
+                  <Command shouldFilter={false}>
+                    <CommandInput
+                      placeholder="Search countries..."
+                      value={countrySearch}
+                      onValueChange={setCountrySearch}
+                    />
+                    <CommandList>
+                      <CommandEmpty>No countries found.</CommandEmpty>
+                      <CommandGroup>
+                        {(() => {
+                          const s = countrySearch.toLowerCase().trim();
+                          if (!s) {
+                            return availableCountries.map((country) => (
                               <CommandItem
                                 key={country.value}
-                                onSelect={() =>
-                                  handleAddCountry(country.value)
-                                }
+                                onSelect={() => handleAddCountry(country.value)}
                               >
                                 {country.label}
                                 <span className="ml-2 text-muted-foreground text-xs">
@@ -637,96 +611,101 @@ export default function EditTourPage({
                                 </span>
                               </CommandItem>
                             ));
-                          })()}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {overrides.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p className="mb-2">No tour countries configured.</p>
-                  <p className="text-sm">
-                    Add the countries where this tour will perform.
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <div className="mb-4 text-sm text-muted-foreground flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4" />
-                    Fans are routed to MDE&apos;s recommended org unless you
-                    select a different one.
-                  </div>
-
-                  {/* Mobile card layout */}
-                  <div className="space-y-4 sm:hidden">
-                    {overrides.map((override) => {
-                      const recommendation = getMDERecommendation(
-                        override.country_code,
-                      );
-                      const status = getRoutingStatus(override);
-                      const countryOrgs = orgs.filter(
-                        (o) => o.country_code === override.country_code,
-                      );
-
-                      return (
-                        <div
-                          key={override.id}
-                          className="border rounded-lg p-4 space-y-3"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium">
-                              {getCountryLabel(override.country_code)}
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <Badge
-                                variant={
-                                  status.type === "none"
-                                    ? "destructive"
-                                    : "outline"
-                                }
-                                className={cn(
-                                  status.type === "artist" &&
-                                    "bg-primary/20 text-foreground border-primary/40",
-                                  status.type === "mde" &&
-                                    "bg-secondary/20 text-foreground border-secondary/40",
-                                )}
-                              >
-                                {status.label}
-                              </Badge>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() =>
-                                  setRemoveCountryTarget({
-                                    overrideId: override.id,
-                                    countryCode: override.country_code,
-                                  })
-                                }
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            <span className="font-medium">
-                              MDE recommended:{" "}
-                            </span>
-                            {recommendation?.org ? (
-                              recommendation.org.org_name
-                            ) : (
-                              <span className="text-amber-600">
-                                None available
+                          }
+                          const scored = availableCountries
+                            .map((country) => {
+                              let score = 0;
+                              if (country.value.toLowerCase() === s) score = 3;
+                              else if (
+                                country.label.toLowerCase().startsWith(s)
+                              )
+                                score = 2;
+                              else if (
+                                country.label.toLowerCase().includes(s) ||
+                                country.value.toLowerCase().includes(s)
+                              )
+                                score = 1;
+                              return { country, score };
+                            })
+                            .filter((item) => item.score > 0)
+                            .sort((a, b) => b.score - a.score);
+                          return scored.map(({ country }) => (
+                            <CommandItem
+                              key={country.value}
+                              onSelect={() => handleAddCountry(country.value)}
+                            >
+                              {country.label}
+                              <span className="ml-2 text-muted-foreground text-xs">
+                                {country.value}
                               </span>
-                            )}
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium block mb-1">
-                              Artist selected
-                            </label>
+                            </CommandItem>
+                          ));
+                        })()}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {overrides.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No countries configured yet.</p>
+                <p className="text-sm mt-1">
+                  Add countries where fans will be routed to climate action
+                  orgs.
+                </p>
+              </div>
+            ) : (
+              <>
+                <p className="mb-4 text-sm text-muted-foreground">
+                  Leave on &ldquo;Use MDE recommended&rdquo; to let MDE control
+                  routing, or select an org to set it yourself.
+                </p>
+
+                {/* Mobile card layout */}
+                <div className="space-y-4 sm:hidden">
+                  {overrides.map((override) => {
+                    const recommendation = getMDERecommendation(
+                      override.country_code,
+                    );
+                    const countryOrgs = orgs.filter(
+                      (o) => o.country_code === override.country_code,
+                    );
+                    const hasNoOrgs = countryOrgs.length === 0;
+
+                    return (
+                      <div
+                        key={override.id}
+                        className="border rounded-lg p-4 space-y-3"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">
+                            {getCountryLabel(override.country_code)}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              setRemoveCountryTarget({
+                                overrideId: override.id,
+                                countryCode: override.country_code,
+                              })
+                            }
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div>
+                          {hasNoOrgs ? (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <AlertTriangle className="h-4 w-4 text-orange-500" />
+                              <span className="text-sm">
+                                No orgs in this country
+                              </span>
+                            </div>
+                          ) : (
                             <Select
                               value={override.org_id || "none"}
                               onValueChange={(v) =>
@@ -739,7 +718,9 @@ export default function EditTourPage({
                               <SelectTrigger className="w-full">
                                 <SelectValue>
                                   {override.org?.org_name ??
-                                    "Use MDE recommended"}
+                                    (recommendation?.org
+                                      ? `Use MDE recommended (${recommendation.org.org_name})`
+                                      : "Use MDE recommended (none set)")}
                                 </SelectValue>
                               </SelectTrigger>
                               <SelectContent
@@ -749,7 +730,17 @@ export default function EditTourPage({
                                 align="start"
                               >
                                 <SelectItem value="none">
-                                  Use MDE recommended
+                                  <span
+                                    className={cn(
+                                      recommendation?.org
+                                        ? ""
+                                        : "text-muted-foreground",
+                                    )}
+                                  >
+                                    {recommendation?.org
+                                      ? `Use MDE recommended (${recommendation.org.org_name})`
+                                      : "Use MDE recommended (none set)"}
+                                  </span>
                                 </SelectItem>
                                 {countryOrgs.map((org) => (
                                   <SelectItem
@@ -762,52 +753,47 @@ export default function EditTourPage({
                                 ))}
                               </SelectContent>
                             </Select>
-                          </div>
+                          )}
                         </div>
-                      );
-                    })}
-                  </div>
+                      </div>
+                    );
+                  })}
+                </div>
 
-                  {/* Desktop table layout */}
-                  <div className="hidden sm:block">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Country</TableHead>
-                          <TableHead>MDE Recommended</TableHead>
-                          <TableHead>Artist Selected</TableHead>
-                          <TableHead>Using</TableHead>
-                          <TableHead className="w-12.5"></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {overrides.map((override) => {
-                          const recommendation = getMDERecommendation(
-                            override.country_code,
-                          );
-                          const status = getRoutingStatus(override);
-                          const countryOrgs = orgs.filter(
-                            (o) => o.country_code === override.country_code,
-                          );
+                {/* Desktop table layout */}
+                <div className="hidden sm:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Country</TableHead>
+                        <TableHead>Organization</TableHead>
+                        <TableHead className="w-12.5"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {overrides.map((override) => {
+                        const recommendation = getMDERecommendation(
+                          override.country_code,
+                        );
+                        const countryOrgs = orgs.filter(
+                          (o) => o.country_code === override.country_code,
+                        );
+                        const hasNoOrgs = countryOrgs.length === 0;
 
-                          return (
-                            <TableRow key={override.id}>
-                              <TableCell className="font-medium">
-                                {getCountryLabel(override.country_code)}
-                              </TableCell>
-                              <TableCell>
-                                {recommendation?.org ? (
+                        return (
+                          <TableRow key={override.id}>
+                            <TableCell className="font-medium">
+                              {getCountryLabel(override.country_code)}
+                            </TableCell>
+                            <TableCell>
+                              {hasNoOrgs ? (
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                  <AlertTriangle className="h-4 w-4 text-orange-500" />
                                   <span className="text-sm">
-                                    {recommendation.org.org_name}
+                                    No orgs in this country
                                   </span>
-                                ) : (
-                                  <span className="text-sm text-amber-600 flex items-center gap-1">
-                                    <AlertTriangle className="h-3 w-3" />
-                                    None available
-                                  </span>
-                                )}
-                              </TableCell>
-                              <TableCell>
+                                </div>
+                              ) : (
                                 <Select
                                   value={override.org_id || "none"}
                                   onValueChange={(v) =>
@@ -817,10 +803,12 @@ export default function EditTourPage({
                                     )
                                   }
                                 >
-                                  <SelectTrigger className="w-50">
+                                  <SelectTrigger className="w-full">
                                     <SelectValue>
                                       {override.org?.org_name ??
-                                        "Use MDE recommended"}
+                                        (recommendation?.org
+                                          ? `Use MDE recommended (${recommendation.org.org_name})`
+                                          : "Use MDE recommended (none set)")}
                                     </SelectValue>
                                   </SelectTrigger>
                                   <SelectContent
@@ -829,7 +817,17 @@ export default function EditTourPage({
                                     align="start"
                                   >
                                     <SelectItem value="none">
-                                      Use MDE recommended
+                                      <span
+                                        className={cn(
+                                          recommendation?.org
+                                            ? ""
+                                            : "text-muted-foreground",
+                                        )}
+                                      >
+                                        {recommendation?.org
+                                          ? `Use MDE recommended (${recommendation.org.org_name})`
+                                          : "Use MDE recommended (none set)"}
+                                      </span>
                                     </SelectItem>
                                     {countryOrgs.map((org) => (
                                       <SelectItem key={org.id} value={org.id}>
@@ -838,75 +836,59 @@ export default function EditTourPage({
                                     ))}
                                   </SelectContent>
                                 </Select>
-                              </TableCell>
-                              <TableCell>
-                                <Badge
-                                  variant={
-                                    status.type === "none"
-                                      ? "destructive"
-                                      : "outline"
-                                  }
-                                  className={cn(
-                                    status.type === "artist" &&
-                                      "bg-primary/20 text-foreground border-primary/40",
-                                    status.type === "mde" &&
-                                      "bg-secondary/20 text-foreground border-secondary/40",
-                                  )}
-                                >
-                                  {status.label}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() =>
-                                    setRemoveCountryTarget({
-                                      overrideId: override.id,
-                                      countryCode: override.country_code,
-                                    })
-                                  }
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  setRemoveCountryTarget({
+                                    overrideId: override.id,
+                                    countryCode: override.country_code,
+                                  })
+                                }
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
 
-          {/* Danger Zone — left column on desktop, after Country Routing on mobile */}
-          <Card className="border-destructive/50 xl:col-start-1">
-            <CardHeader>
-              <CardTitle className="text-base text-destructive">
-                Danger Zone
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Permanently delete this tour and all its country configurations.
-              </p>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => setDeleteDialogOpen(true)}
-                disabled={deleting}
-              >
-                Delete Tour
-              </Button>
-            </CardContent>
-          </Card>
+        {/* Danger Zone — left column on desktop, after Country Routing on mobile */}
+        <Card className="border-destructive/50 xl:col-start-1">
+          <CardHeader>
+            <CardTitle className="text-base text-destructive">
+              Danger Zone
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Permanently delete this tour and all its country configurations.
+            </p>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setDeleteDialogOpen(true)}
+              disabled={deleting}
+            >
+              Delete Tour
+            </Button>
+          </CardContent>
+        </Card>
 
-          <p className="text-xs text-muted-foreground xl:col-start-1">
-            Added {new Date(tour.created_at).toLocaleDateString()} · Last
-            updated {new Date(tour.updated_at).toLocaleDateString()}
-          </p>
+        <p className="text-xs text-muted-foreground xl:col-start-1">
+          Added {new Date(tour.created_at).toLocaleDateString()} · Last updated{" "}
+          {new Date(tour.updated_at).toLocaleDateString()}
+        </p>
       </div>
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
