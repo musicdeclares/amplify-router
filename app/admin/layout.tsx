@@ -12,6 +12,7 @@ const navigation = [
   { name: "Artists", href: "/admin/artists" },
   { name: "Tours", href: "/admin/tours" },
   { name: "Organizations", href: "/admin/organizations" },
+  { name: "Settings", href: "/admin/settings" },
 ];
 
 export default function AdminLayout({
