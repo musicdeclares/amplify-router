@@ -14,8 +14,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Artist } from "@/app/types/router";
-import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Artist, Invite } from "@/app/types/router";
+import { ArrowUpDown, ArrowUp, ArrowDown, Pause, ChevronRight, Mail, Clock, MoreHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface ArtistWithTourCount extends Artist {
   tour_count: number;
@@ -26,11 +33,13 @@ type SortDirection = "asc" | "desc";
 
 export default function ArtistsPage() {
   const [artists, setArtists] = useState<ArtistWithTourCount[]>([]);
+  const [invites, setInvites] = useState<Invite[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [invitesOpen, setInvitesOpen] = useState(false);
 
   // Debounce search
   useEffect(() => {
@@ -46,12 +55,21 @@ export default function ArtistsPage() {
       const params = new URLSearchParams();
       if (debouncedSearch) params.set("search", debouncedSearch);
 
-      const res = await fetch(`/api/artists?${params}`);
-      if (res.ok) {
-        const data = await res.json();
+      const [artistsRes, invitesRes] = await Promise.all([
+        fetch(`/api/artists?${params}`),
+        fetch("/api/invites"),
+      ]);
+
+      if (artistsRes.ok) {
+        const data = await artistsRes.json();
         setArtists(data.artists || []);
       } else {
-        throw new Error("Failed to fetch");
+        throw new Error("Failed to fetch artists");
+      }
+
+      if (invitesRes.ok) {
+        const data = await invitesRes.json();
+        setInvites(data.invites || []);
       }
     } catch (error) {
       console.error("Error fetching artists:", error);
@@ -92,14 +110,67 @@ export default function ArtistsPage() {
       case "handle":
         return direction * a.handle.localeCompare(b.handle);
       case "status":
-        // Active (enabled) first when asc
-        return direction * ((a.enabled ? 0 : 1) - (b.enabled ? 0 : 1));
+        // Active (link_active) first when asc
+        return direction * ((a.link_active ? 0 : 1) - (b.link_active ? 0 : 1));
       case "tours":
         return direction * (a.tour_count - b.tour_count);
       default:
         return 0;
     }
   });
+
+  // Self-paused artists (link_active=false with link_inactive_reason)
+  const selfPausedArtists = artists.filter(
+    (a) =>
+      !a.link_active &&
+      (a as ArtistWithTourCount & { link_inactive_reason?: string })
+        .link_inactive_reason,
+  );
+
+  // Pending invites
+  const pendingInvites = invites.filter((i) => i.status === "pending");
+
+  async function handleExtendInvite(inviteId: string) {
+    try {
+      const res = await fetch(`/api/invites/${inviteId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "extend" }),
+      });
+      if (!res.ok) throw new Error("Failed to extend invite");
+      toast.success("Invite extended by 7 days");
+      fetchArtists();
+    } catch (error) {
+      console.error("Error extending invite:", error);
+      toast.error("Failed to extend invite");
+    }
+  }
+
+  async function handleRevokeInvite(inviteId: string) {
+    try {
+      const res = await fetch(`/api/invites/${inviteId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to revoke invite");
+      toast.success("Invite revoked");
+      fetchArtists();
+    } catch (error) {
+      console.error("Error revoking invite:", error);
+      toast.error("Failed to revoke invite");
+    }
+  }
+
+  function formatExpiry(expiresAt: string) {
+    const expiry = new Date(expiresAt);
+    const now = new Date();
+    const diffMs = expiry.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) return "Expired";
+    if (diffDays === 0) return "Expires today";
+    if (diffDays === 1) return "Expires tomorrow";
+    return `Expires in ${diffDays} days`;
+  }
 
   return (
     <div className="space-y-6">
@@ -110,10 +181,137 @@ export default function ArtistsPage() {
             Manage artists and their AMPLIFY links
           </p>
         </div>
-        <Link href="/admin/artists/new">
-          <Button>Add Artist</Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/admin/artists/invite">
+            <Button variant="outline">Invite Artist</Button>
+          </Link>
+          <Link href="/admin/artists/new">
+            <Button>Add Artist</Button>
+          </Link>
+        </div>
       </div>
+
+      {selfPausedArtists.length > 0 && (
+        <Alert
+          variant="destructive"
+          className="border-destructive/50 bg-destructive/10"
+        >
+          <Pause className="h-4 w-4" />
+          <div>
+            <AlertTitle>Self-Paused Artists</AlertTitle>
+            <AlertDescription>
+              {selfPausedArtists.length === 1 ? (
+                <>
+                  <Link
+                    href={`/admin/artists/${selfPausedArtists[0].id}`}
+                    className="font-medium underline hover:no-underline"
+                  >
+                    {selfPausedArtists[0].name}
+                  </Link>{" "}
+                  has paused their link.
+                </>
+              ) : (
+                <>
+                  {selfPausedArtists.length} artists have paused their links:{" "}
+                  {selfPausedArtists.map((a, i) => (
+                    <span key={a.id}>
+                      {i > 0 && ", "}
+                      <Link
+                        href={`/admin/artists/${a.id}`}
+                        className="font-medium underline hover:no-underline"
+                      >
+                        {a.name}
+                      </Link>
+                    </span>
+                  ))}
+                </>
+              )}
+            </AlertDescription>
+          </div>
+        </Alert>
+      )}
+
+      {pendingInvites.length > 0 && (
+        <div className="border rounded-lg">
+          <button
+            type="button"
+            onClick={() => setInvitesOpen((o) => !o)}
+            className="flex items-center gap-2 w-full p-4 text-left hover:bg-muted/50 transition-colors"
+          >
+            <ChevronRight
+              className={`h-4 w-4 transition-transform duration-200 ${invitesOpen ? "rotate-90" : ""}`}
+            />
+            <Mail className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium">
+              Pending Invites ({pendingInvites.length})
+            </span>
+          </button>
+          <div
+            className={`grid transition-[grid-template-rows] duration-200 ease-out ${invitesOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+          >
+            <div className="overflow-hidden">
+              <div className="border-t">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead className="hidden sm:table-cell">Email</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="w-10"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pendingInvites.map((invite) => (
+                      <TableRow key={invite.id}>
+                        <TableCell>
+                          <div className="font-medium">{invite.suggested_name}</div>
+                          <div className="text-xs text-muted-foreground sm:hidden">
+                            {invite.email}
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell text-muted-foreground">
+                          {invite.email}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <Clock className="h-3.5 w-3.5" />
+                            {formatExpiry(invite.expires_at)}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem asChild>
+                                <Link href={`/admin/artists/invite/${invite.id}`}>
+                                  View invite
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleExtendInvite(invite.id)}>
+                                Extend 7 days
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleRevokeInvite(invite.id)}
+                                className="text-destructive"
+                              >
+                                Revoke invite
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {artists.length > 0 && (
         <div className="flex items-center gap-4">
@@ -215,7 +413,9 @@ export default function ArtistsPage() {
                     </code>
                   </TableCell>
                   <TableCell>
-                    {artist.enabled ? (
+                    {!artist.account_active ? (
+                      <Badge variant="destructive">Inactive</Badge>
+                    ) : artist.link_active ? (
                       <Badge
                         variant="secondary"
                         className="bg-secondary text-secondary-foreground"
@@ -223,7 +423,7 @@ export default function ArtistsPage() {
                         Active
                       </Badge>
                     ) : (
-                      <Badge variant="outline">Inactive</Badge>
+                      <Badge variant="outline">Paused</Badge>
                     )}
                   </TableCell>
                   <TableCell>{artist.tour_count}</TableCell>
