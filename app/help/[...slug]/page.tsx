@@ -1,22 +1,28 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { headers } from "next/headers";
-import { getDocBySlug, getAllDocs, extractHeadings } from "@/app/lib/content";
+import {
+  getDocBySlug,
+  getAllDocs,
+  extractHeadings,
+  getRelatedDocs,
+} from "@/app/lib/content";
 import { MarkdownRenderer } from "@/components/content/MarkdownRenderer";
 
 export async function generateStaticParams() {
   const docs = getAllDocs();
-  return docs.map((doc) => ({ slug: doc.slug }));
+  return docs.map((doc) => ({ slug: doc.slug.split("/") }));
 }
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string[] }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const doc = getDocBySlug(slug);
+  const doc = getDocBySlug(slug.join("/"));
 
   if (!doc) {
     return { title: "Not Found" };
@@ -31,10 +37,11 @@ export async function generateMetadata({
 export default async function HelpPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string[] }>;
 }) {
   const { slug } = await params;
-  const doc = getDocBySlug(slug);
+  const slugPath = slug.join("/");
+  const doc = getDocBySlug(slugPath);
 
   if (!doc) {
     notFound();
@@ -67,10 +74,25 @@ export default async function HelpPage({
   }).length;
 
   const headings = extractHeadings(doc.content);
+  const relatedDocs = getRelatedDocs(doc);
 
   return (
     <main className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-6 py-12">
+        {/* Header */}
+        <header className="mb-6">
+          <Link href="/help" className="inline-flex items-center gap-2">
+            <Image
+              src="/logo.png"
+              alt="AMPLIFY"
+              width={500}
+              height={396}
+              className="w-8 h-auto"
+            />
+            <span className="font-semibold text-lg">AMPLIFY Help</span>
+          </Link>
+        </header>
+
         {/* Breadcrumb - only show if there are multiple docs visible */}
         {visibleDocsCount > 1 && (
           <nav className="mb-8">
@@ -78,7 +100,7 @@ export default async function HelpPage({
               href="/help"
               className="text-sm text-muted-foreground hover:text-foreground"
             >
-              &larr; Help Center
+              &larr; All guides
             </Link>
           </nav>
         )}
@@ -98,6 +120,25 @@ export default async function HelpPage({
             </header>
 
             <MarkdownRenderer content={doc.content} />
+
+            {/* Related articles */}
+            {relatedDocs.length > 0 && (
+              <aside className="mt-12 pt-8 border-t">
+                <h2 className="text-sm font-semibold mb-4">Related articles</h2>
+                <ul className="space-y-2">
+                  {relatedDocs.map((related) => (
+                    <li key={related.slug}>
+                      <Link
+                        href={`/help/${related.slug}`}
+                        className="text-sm text-muted-foreground hover:text-foreground underline"
+                      >
+                        {related.frontmatter.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </aside>
+            )}
           </article>
 
           {/* Sidebar table of contents */}

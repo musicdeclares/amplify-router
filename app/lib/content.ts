@@ -11,6 +11,7 @@ export interface DocFrontmatter {
   description?: string;
   audience: DocAudience;
   order?: number; // For sorting in navigation
+  related?: string[]; // Slugs of related docs for cross-linking
 }
 
 export interface Doc {
@@ -20,19 +21,40 @@ export interface Doc {
 }
 
 /**
- * Get all available docs (for navigation/listing)
+ * Recursively get all markdown files from a directory
  */
-export function getAllDocs(): Omit<Doc, "content">[] {
-  if (!fs.existsSync(CONTENT_DIR)) {
+function getMarkdownFiles(dir: string, baseDir: string = dir): string[] {
+  if (!fs.existsSync(dir)) {
     return [];
   }
 
-  const files = fs.readdirSync(CONTENT_DIR).filter((f) => f.endsWith(".md"));
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const files: string[] = [];
 
-  return files
-    .map((filename) => {
-      const slug = filename.replace(/\.md$/, "");
-      const filePath = path.join(CONTENT_DIR, filename);
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...getMarkdownFiles(fullPath, baseDir));
+    } else if (entry.name.endsWith(".md")) {
+      // Create slug from relative path (e.g., "admin/getting-started")
+      const relativePath = path.relative(baseDir, fullPath);
+      const slug = relativePath.replace(/\.md$/, "").replace(/\\/g, "/");
+      files.push(slug);
+    }
+  }
+
+  return files;
+}
+
+/**
+ * Get all available docs (for navigation/listing)
+ */
+export function getAllDocs(): Omit<Doc, "content">[] {
+  const slugs = getMarkdownFiles(CONTENT_DIR);
+
+  return slugs
+    .map((slug) => {
+      const filePath = path.join(CONTENT_DIR, `${slug}.md`);
       const fileContent = fs.readFileSync(filePath, "utf-8");
       const { data } = matter(fileContent);
 
@@ -41,7 +63,20 @@ export function getAllDocs(): Omit<Doc, "content">[] {
         frontmatter: data as DocFrontmatter,
       };
     })
-    .sort((a, b) => (a.frontmatter.order ?? 99) - (b.frontmatter.order ?? 99));
+    .sort((a, b) => {
+      // Sort by audience first (admin before artist), then by order
+      const audienceOrder: Record<DocAudience, number> = {
+        admin: 1,
+        artist: 2,
+        org: 3,
+        public: 4,
+      };
+      const audienceDiff =
+        audienceOrder[a.frontmatter.audience] -
+        audienceOrder[b.frontmatter.audience];
+      if (audienceDiff !== 0) return audienceDiff;
+      return (a.frontmatter.order ?? 99) - (b.frontmatter.order ?? 99);
+    });
 }
 
 /**
@@ -58,10 +93,12 @@ export function getDocsByAudience(
 }
 
 /**
- * Get a single doc by slug
+ * Get a single doc by slug (supports nested paths like "admin/getting-started")
  */
 export function getDocBySlug(slug: string): Doc | null {
-  const filePath = path.join(CONTENT_DIR, `${slug}.md`);
+  // Normalize slug (handle both array from catch-all and string)
+  const normalizedSlug = Array.isArray(slug) ? slug.join("/") : slug;
+  const filePath = path.join(CONTENT_DIR, `${normalizedSlug}.md`);
 
   if (!fs.existsSync(filePath)) {
     return null;
@@ -71,17 +108,18 @@ export function getDocBySlug(slug: string): Doc | null {
   const { data, content } = matter(fileContent);
 
   return {
-    slug,
+    slug: normalizedSlug,
     frontmatter: data as DocFrontmatter,
     content,
   };
 }
 
 /**
- * Check if a doc exists
+ * Check if a doc exists (supports nested paths)
  */
 export function docExists(slug: string): boolean {
-  const filePath = path.join(CONTENT_DIR, `${slug}.md`);
+  const normalizedSlug = Array.isArray(slug) ? slug.join("/") : slug;
+  const filePath = path.join(CONTENT_DIR, `${normalizedSlug}.md`);
   return fs.existsSync(filePath);
 }
 
@@ -121,4 +159,23 @@ export function slugify(text: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-");
+}
+
+/**
+ * Get related docs for a given doc (based on frontmatter.related)
+ */
+export function getRelatedDocs(doc: Doc): Omit<Doc, "content">[] {
+  const relatedSlugs = doc.frontmatter.related ?? [];
+  if (relatedSlugs.length === 0) return [];
+
+  return relatedSlugs
+    .map((slug) => {
+      const relatedDoc = getDocBySlug(slug);
+      if (!relatedDoc) return null;
+      return {
+        slug: relatedDoc.slug,
+        frontmatter: relatedDoc.frontmatter,
+      };
+    })
+    .filter((d): d is Omit<Doc, "content"> => d !== null);
 }
