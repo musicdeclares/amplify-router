@@ -122,7 +122,8 @@ export default function NewArtistPage() {
             </Link>
           </CardTitle>
           <CardDescription>
-            Add a new artist to set up their AMPLIFY link and tours.{" "}
+            Create an artist account directly. The artist won&apos;t receive an
+            invite or set their own password.{" "}
             <Link
               href="/help/admin/artists#adding-an-artist-directly"
               className="underline hover:no-underline"
