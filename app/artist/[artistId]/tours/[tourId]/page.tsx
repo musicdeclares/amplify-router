@@ -57,6 +57,7 @@ import { X, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUnsavedChanges } from "@/app/lib/hooks/use-unsaved-changes";
 import { UnsavedChangesIndicator } from "@/components/shared/UnsavedChangesIndicator";
+import { EVENTS } from "@/app/lib/analytics-events";
 
 interface OrgInfo {
   id: string;
@@ -508,7 +509,13 @@ export default function ArtistEditTourPage({
             </div>
 
             <div className="flex items-center gap-4">
-              <Button onClick={handleSave} disabled={saving}>
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                data-umami-event={EVENTS.ARTIST_SAVE_TOUR}
+                data-umami-event-artist={tour.router_artists.handle}
+                data-umami-event-tour={tour.name}
+              >
                 {saving ? "Saving..." : "Save Changes"}
               </Button>
               <UnsavedChangesIndicator
@@ -557,6 +564,10 @@ export default function ArtistEditTourPage({
                             key={country.value}
                             value={`${country.label} ${country.value}`}
                             onSelect={() => handleAddCountry(country.value)}
+                            data-umami-event={EVENTS.ARTIST_ADD_COUNTRY}
+                            data-umami-event-artist={tour.router_artists.handle}
+                            data-umami-event-tour={tour.name}
+                            data-umami-event-country={country.value}
                           >
                             {country.label}
                           </CommandItem>
@@ -665,6 +676,10 @@ export default function ArtistEditTourPage({
                                   countryCode: override.country_code,
                                 })
                               }
+                              data-umami-event={EVENTS.ARTIST_REMOVE_COUNTRY}
+                              data-umami-event-artist={tour.router_artists.handle}
+                              data-umami-event-tour={tour.name}
+                              data-umami-event-country={override.country_code}
                             >
                               <X className="h-4 w-4" />
                             </Button>
@@ -730,6 +745,9 @@ export default function ArtistEditTourPage({
               variant="destructive"
               onClick={handleDelete}
               disabled={deleting}
+              data-umami-event={EVENTS.ARTIST_DELETE_TOUR}
+              data-umami-event-artist={tour.router_artists.handle}
+              data-umami-event-tour={tour.name}
             >
               {deleting ? "Deleting..." : "Delete"}
             </Button>

@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import { getCountryLabel } from "@/app/lib/countries";
 import { AlertTriangle, CheckCircle2, Copy, ExternalLink, HelpCircle } from "lucide-react";
+import { EVENTS, SOURCES } from "@/app/lib/analytics-events";
 
 interface FallbackEvent {
   id: string;
@@ -166,14 +167,26 @@ Please share this with your MDE contact for assistance.`;
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             Fallback Diagnostics
-            <Link href="/help/artist/troubleshooting" className="text-muted-foreground hover:text-foreground">
+            <Link
+              href="/help/artist/troubleshooting"
+              className="text-muted-foreground hover:text-foreground"
+              data-umami-event={EVENTS.NAV_HELP}
+              data-umami-event-topic="troubleshooting"
+              data-umami-event-source={SOURCES.DIAGNOSTICS}
+            >
               <HelpCircle className="h-5 w-5" />
             </Link>
           </h1>
           <p className="text-muted-foreground mt-1">
             Understand why some fans see the fallback page instead of being
             routed to an organization.{" "}
-            <Link href="/help/artist/troubleshooting" className="underline hover:no-underline">
+            <Link
+              href="/help/artist/troubleshooting"
+              className="underline hover:no-underline"
+              data-umami-event={EVENTS.NAV_HELP}
+              data-umami-event-topic="troubleshooting"
+              data-umami-event-source={SOURCES.DIAGNOSTICS}
+            >
               Learn more
             </Link>
           </p>

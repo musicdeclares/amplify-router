@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { TourTable, TourWithArtist } from "@/components/tours/TourTable";
+import { EVENTS, SOURCES } from "@/app/lib/analytics-events";
 
 export default function ArtistToursPage({
   params,
@@ -13,25 +14,36 @@ export default function ArtistToursPage({
 }) {
   const { artistId } = use(params);
   const [tours, setTours] = useState<TourWithArtist[]>([]);
+  const [artistHandle, setArtistHandle] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchTours() {
+    async function fetchData() {
       try {
-        const res = await fetch(`/api/tours?artist_id=${artistId}`);
-        if (!res.ok) throw new Error("Failed to fetch");
+        // Fetch tours and artist data in parallel
+        const [toursRes, artistRes] = await Promise.all([
+          fetch(`/api/tours?artist_id=${artistId}`),
+          fetch(`/api/artists/${artistId}`),
+        ]);
 
-        const data = await res.json();
-        setTours(data.tours || []);
+        if (toursRes.ok) {
+          const toursData = await toursRes.json();
+          setTours(toursData.tours || []);
+        }
+
+        if (artistRes.ok) {
+          const artistData = await artistRes.json();
+          setArtistHandle(artistData.artist?.handle || null);
+        }
       } catch (error) {
-        console.error("Error fetching tours:", error);
+        console.error("Error fetching data:", error);
         toast.error("Failed to load tours");
       } finally {
         setLoading(false);
       }
     }
 
-    fetchTours();
+    fetchData();
   }, [artistId]);
 
   return (
@@ -43,7 +55,12 @@ export default function ArtistToursPage({
             Manage your tour dates and fan routing
           </p>
         </div>
-        <Link href={`/artist/${artistId}/tours/new`}>
+        <Link
+          href={`/artist/${artistId}/tours/new`}
+          data-umami-event={EVENTS.ARTIST_CREATE_TOUR}
+          data-umami-event-artist={artistHandle || undefined}
+          data-umami-event-source={SOURCES.TOURS_LIST}
+        >
           <Button>Add Tour</Button>
         </Link>
       </div>
@@ -58,7 +75,12 @@ export default function ArtistToursPage({
           <p className="text-sm text-muted-foreground mt-1">
             Add your first tour to start routing fans to climate action organizations.
           </p>
-          <Link href={`/artist/${artistId}/tours/new`}>
+          <Link
+            href={`/artist/${artistId}/tours/new`}
+            data-umami-event={EVENTS.ARTIST_CREATE_TOUR}
+            data-umami-event-artist={artistHandle || undefined}
+            data-umami-event-source={SOURCES.TOURS_EMPTY_STATE}
+          >
             <Button variant="link">Add Tour</Button>
           </Link>
         </div>

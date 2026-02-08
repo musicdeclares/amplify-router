@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Menu, X, HelpCircle, ExternalLink, QrCode } from "lucide-react";
 import { FeedbackWidget } from "@/components/feedback";
+import { EVENTS, SOURCES } from "@/app/lib/analytics-events";
 
 export default function ArtistLayout({
   children,
@@ -100,6 +101,9 @@ export default function ArtistLayout({
                   rel="noopener noreferrer"
                   className="hidden sm:inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
                   title="Starter Kit"
+                  data-umami-event={EVENTS.ARTIST_VIEW_KIT}
+                  data-umami-event-artist={artistHandle}
+                  data-umami-event-source={SOURCES.NAV}
                 >
                   <QrCode className="h-5 w-5" />
                 </Link>
@@ -108,6 +112,8 @@ export default function ArtistLayout({
                 href="/help"
                 className="hidden sm:inline-flex text-muted-foreground hover:text-foreground"
                 title="Help"
+                data-umami-event={EVENTS.NAV_HELP}
+                data-umami-event-source={SOURCES.NAV}
               >
                 <HelpCircle className="h-5 w-5" />
               </Link>
@@ -168,6 +174,9 @@ export default function ArtistLayout({
                   rel="noopener noreferrer"
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center gap-1 px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                  data-umami-event={EVENTS.ARTIST_VIEW_KIT}
+                  data-umami-event-artist={artistHandle}
+                  data-umami-event-source={SOURCES.NAV}
                 >
                   Starter Kit
                   <ExternalLink className="h-3 w-3" />
@@ -177,6 +186,8 @@ export default function ArtistLayout({
                 href="/help"
                 onClick={() => setMobileMenuOpen(false)}
                 className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                data-umami-event={EVENTS.NAV_HELP}
+                data-umami-event-source={SOURCES.NAV}
               >
                 Help
               </Link>

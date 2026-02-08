@@ -23,6 +23,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { QrCodeDialog } from "@/components/shared/QrCodeDialog";
 import { Artist, Tour } from "@/app/types/router";
+import { EVENTS, SOURCES } from "@/app/lib/analytics-events";
 
 interface ArtistWithTours extends Artist {
   router_tours: Tour[];
@@ -176,7 +177,13 @@ export default function ArtistDashboardPage({
               <code className="flex-1 bg-muted px-3 py-2 rounded text-sm break-all">
                 {amplifyUrl}
               </code>
-              <Button variant="outline" size="icon" onClick={copyLink}>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={copyLink}
+                data-umami-event={EVENTS.ARTIST_COPY_LINK}
+                data-umami-event-artist={artist.handle}
+              >
                 {copied ? (
                   <Check className="h-4 w-4" />
                 ) : (
@@ -189,6 +196,8 @@ export default function ArtistDashboardPage({
                 variant="outline"
                 className="flex-1"
                 onClick={() => setQrDialogOpen(true)}
+                data-umami-event={EVENTS.ARTIST_OPEN_QR_DIALOG}
+                data-umami-event-artist={artist.handle}
               >
                 <QrCode className="h-4 w-4 mr-2" />
                 Generate QR Code
@@ -198,6 +207,8 @@ export default function ArtistDashboardPage({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1"
+                data-umami-event={EVENTS.ARTIST_VIEW_KIT}
+                data-umami-event-artist={artist.handle}
               >
                 <Button variant="outline" className="w-full">
                   <ExternalLink className="h-4 w-4 mr-2" />
@@ -234,7 +245,12 @@ export default function ArtistDashboardPage({
                   {new Date(activeTour.start_date).toLocaleDateString()} –{" "}
                   {new Date(activeTour.end_date).toLocaleDateString()}
                 </p>
-                <Link href={`/artist/${artistId}/tours/${activeTour.id}`}>
+                <Link
+                  href={`/artist/${artistId}/tours/${activeTour.id}`}
+                  data-umami-event={EVENTS.ARTIST_EDIT_TOUR}
+                  data-umami-event-artist={artist.handle}
+                  data-umami-event-tour={activeTour.name}
+                >
                   <Button variant="outline" size="sm">
                     Manage Tour
                   </Button>
@@ -247,7 +263,12 @@ export default function ArtistDashboardPage({
                   Starts{" "}
                   {new Date(upcomingTour.start_date).toLocaleDateString()}
                 </p>
-                <Link href={`/artist/${artistId}/tours/${upcomingTour.id}`}>
+                <Link
+                  href={`/artist/${artistId}/tours/${upcomingTour.id}`}
+                  data-umami-event={EVENTS.ARTIST_EDIT_TOUR}
+                  data-umami-event-artist={artist.handle}
+                  data-umami-event-tour={upcomingTour.name}
+                >
                   <Button variant="outline" size="sm">
                     Manage Tour
                   </Button>
@@ -258,7 +279,12 @@ export default function ArtistDashboardPage({
                 <p className="text-muted-foreground text-sm mb-4">
                   Add a tour to start routing fans to climate action orgs
                 </p>
-                <Link href={`/artist/${artistId}/tours/new`}>
+                <Link
+                  href={`/artist/${artistId}/tours/new`}
+                  data-umami-event={EVENTS.ARTIST_CREATE_TOUR}
+                  data-umami-event-artist={artist.handle}
+                  data-umami-event-source={SOURCES.DASHBOARD}
+                >
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Tour
