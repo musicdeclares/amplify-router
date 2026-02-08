@@ -12,11 +12,11 @@ function getSiteUrl(): string {
 async function getArtist(handle: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data } = (await (supabaseAdmin.from("router_artists") as any)
-    .select("id, handle, name, enabled")
+    .select("id, handle, name, account_active")
     .eq("handle", handle)
-    .eq("enabled", true)
+    .eq("account_active", true)
     .single()) as {
-    data: { id: string; handle: string; name: string; enabled: boolean } | null;
+    data: { id: string; handle: string; name: string; account_active: boolean } | null;
   };
   return data;
 }
