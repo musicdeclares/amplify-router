@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/popover";
 import { toast } from "sonner";
 import { Artist } from "@/app/types/router";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function NewTourPage() {
@@ -158,9 +158,17 @@ function NewTourForm() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Add Tour</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            Add Tour
+            <Link href="/help/admin/tours#adding-a-tour" className="text-muted-foreground hover:text-foreground">
+              <HelpCircle className="h-4 w-4" />
+            </Link>
+          </CardTitle>
           <CardDescription>
-            Set up a new tour with dates and routing configuration.
+            Set up a new tour with dates and routing configuration.{" "}
+            <Link href="/help/admin/tours#adding-a-tour" className="underline hover:no-underline">
+              Learn more
+            </Link>
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>

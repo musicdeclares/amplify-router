@@ -4,6 +4,7 @@
 import { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateInput } from "@/components/ui/date-input";
@@ -104,9 +105,17 @@ export default function ArtistNewTourPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Add Tour</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            Add Tour
+            <Link href="/help/artist/tours#creating-a-tour" className="text-muted-foreground hover:text-foreground">
+              <HelpCircle className="h-4 w-4" />
+            </Link>
+          </CardTitle>
           <CardDescription>
-            Set up a new tour with dates and routing configuration.
+            Set up a new tour with dates and routing configuration.{" "}
+            <Link href="/help/artist/tours#creating-a-tour" className="underline hover:no-underline">
+              Learn more
+            </Link>
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>

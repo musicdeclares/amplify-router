@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Ban } from "lucide-react";
+import { Ban, HelpCircle } from "lucide-react";
 import { Artist } from "@/app/types/router";
 
 export default function ArtistSettingsPage({
@@ -109,9 +109,17 @@ export default function ArtistSettingsPage({
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-bold">Account Settings</h1>
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          Account Settings
+          <a href="/help/artist/getting-started#account-settings" className="text-muted-foreground hover:text-foreground">
+            <HelpCircle className="h-5 w-5" />
+          </a>
+        </h1>
         <p className="text-muted-foreground mt-1">
-          Manage your profile and account
+          Manage your profile and account.{" "}
+          <a href="/help/artist/getting-started#account-settings" className="underline hover:no-underline">
+            Learn more
+          </a>
         </p>
       </div>
 

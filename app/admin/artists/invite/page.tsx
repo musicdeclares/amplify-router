@@ -1,9 +1,9 @@
-// Documented in: content/help/admin/artists.md#inviting-an-artist
+// Documented in: content/help/admin/artists.md#inviting-an-artist-recommended-recommended
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
-import { Copy, Mail, Check } from "lucide-react";
+import { Copy, Mail, Check, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -271,10 +271,18 @@ Music Declares Emergency`;
 
       <Card>
         <CardHeader>
-          <CardTitle>Invite Artist</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            Invite Artist
+            <Link href="/help/admin/artists#inviting-an-artist-recommended" className="text-muted-foreground hover:text-foreground">
+              <HelpCircle className="h-4 w-4" />
+            </Link>
+          </CardTitle>
           <CardDescription>
             Send an invite link so an artist can set up their own account and
-            choose their handle.
+            choose their handle.{" "}
+            <Link href="/help/admin/artists#inviting-an-artist-recommended" className="underline hover:no-underline">
+              Learn more
+            </Link>
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
