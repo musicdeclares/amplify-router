@@ -16,6 +16,8 @@ export type RouterOrgOverride =
 export type OrgProfile =
   Database["public"]["Tables"]["router_org_profiles"]["Row"];
 export type Invite = Database["public"]["Tables"]["router_invites"]["Row"];
+export type RouterFeedback =
+  Database["public"]["Tables"]["router_feedback"]["Row"];
 
 // View types
 export type OrgPublicView =

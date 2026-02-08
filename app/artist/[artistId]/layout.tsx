@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Menu, X, HelpCircle, ExternalLink, QrCode } from "lucide-react";
+import { FeedbackWidget } from "@/components/feedback";
 
 export default function ArtistLayout({
   children,
@@ -193,6 +194,7 @@ export default function ArtistLayout({
       <main className="mx-auto max-w-7xl py-6 px-4 sm:px-6 lg:px-8">
         {children}
       </main>
+      <FeedbackWidget artistId={artistId} />
     </div>
   );
 }
