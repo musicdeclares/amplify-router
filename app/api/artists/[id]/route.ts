@@ -128,8 +128,8 @@ export async function PUT(
       );
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: artist, error } = await (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       supabaseAdmin.from("router_artists") as any
     )
       .update(updates)

@@ -85,7 +85,7 @@ export default function AdminSettingsPage() {
             <Label>Password</Label>
             <p className="text-sm text-muted-foreground">
               <a
-                href="/admin/forgot-password"
+                href="/forgot-password"
                 className="font-medium underline underline-offset-4 hover:text-foreground"
               >
                 Reset your password

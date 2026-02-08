@@ -1,11 +1,11 @@
 ---
 title: Organizations & Analytics
 description: Configure org recommendations, pause orgs, and understand analytics.
-audience: admin
+audience: staff
 order: 4
 related:
-  - admin/tours
-  - admin/getting-started
+  - staff/tours
+  - staff/getting-started
 ---
 
 ## Overview

@@ -24,8 +24,8 @@ describe("getDocsByAudience", () => {
     const docs = getDocsByAudience("artist");
     const artistDocs = docs.filter((d) => d.frontmatter.audience === "artist");
 
-    // Should include artist-guide.md
-    expect(artistDocs.some((d) => d.slug === "artist-guide")).toBe(true);
+    // Should include artist/getting-started.md
+    expect(artistDocs.some((d) => d.slug === "artist/getting-started")).toBe(true);
   });
 
   it("excludes admin docs from artist audience", () => {
@@ -35,20 +35,21 @@ describe("getDocsByAudience", () => {
     expect(adminDocs.length).toBe(0);
   });
 
-  it("includes admin docs for admin audience", () => {
-    const docs = getDocsByAudience("admin");
-    const adminDocs = docs.filter((d) => d.frontmatter.audience === "admin");
+  it("includes staff docs for staff audience", () => {
+    const docs = getDocsByAudience("staff");
+    const staffDocs = docs.filter((d) => d.frontmatter.audience === "staff");
 
-    // Should include admin-guide.md
-    expect(adminDocs.some((d) => d.slug === "admin-guide")).toBe(true);
+    // Should include staff/getting-started.md
+    expect(staffDocs.some((d) => d.slug === "staff/getting-started")).toBe(true);
   });
 
   it("includes artist docs for admin audience", () => {
     const docs = getDocsByAudience("admin");
     const artistDocs = docs.filter((d) => d.frontmatter.audience === "artist");
 
-    // Admins should NOT see artist docs (they only see admin + public)
-    // Wait, let me check the actual implementation...
+    // getDocsByAudience only returns docs matching the audience or public
+    // So admin audience should NOT include artist docs
+    expect(artistDocs.length).toBe(0);
   });
 });
 

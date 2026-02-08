@@ -25,19 +25,9 @@ export default function AdminLayout({
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Don't show nav on login/auth pages
-  const isAuthPage =
-    pathname.startsWith("/admin/login") ||
-    pathname.startsWith("/admin/forgot-password") ||
-    pathname.startsWith("/admin/reset-password");
-
-  if (isAuthPage) {
-    return <>{children}</>;
-  }
-
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/admin/login");
+    router.push("/login");
     router.refresh();
   }
 

@@ -1,4 +1,4 @@
-import { isAdmin, canAccessArtist, canAccessTourByArtistId } from "../api-auth";
+import { isAdmin, isMdeStaff, isStaff, canAccessArtist, canAccessTourByArtistId } from "../api-auth";
 import type { ApiUser } from "../api-auth";
 
 describe("isAdmin", () => {
@@ -7,9 +7,48 @@ describe("isAdmin", () => {
     expect(isAdmin(user)).toBe(true);
   });
 
+  it("returns false for staff role", () => {
+    const user: ApiUser = { id: "user-1", role: "staff", artistId: null };
+    expect(isAdmin(user)).toBe(false);
+  });
+
   it("returns false for artist role", () => {
     const user: ApiUser = { id: "user-1", role: "artist", artistId: "artist-1" };
     expect(isAdmin(user)).toBe(false);
+  });
+});
+
+describe("isMdeStaff", () => {
+  it("returns true for staff role", () => {
+    const user: ApiUser = { id: "user-1", role: "staff", artistId: null };
+    expect(isMdeStaff(user)).toBe(true);
+  });
+
+  it("returns false for admin role", () => {
+    const user: ApiUser = { id: "user-1", role: "admin", artistId: null };
+    expect(isMdeStaff(user)).toBe(false);
+  });
+
+  it("returns false for artist role", () => {
+    const user: ApiUser = { id: "user-1", role: "artist", artistId: "artist-1" };
+    expect(isMdeStaff(user)).toBe(false);
+  });
+});
+
+describe("isStaff", () => {
+  it("returns true for admin role", () => {
+    const user: ApiUser = { id: "user-1", role: "admin", artistId: null };
+    expect(isStaff(user)).toBe(true);
+  });
+
+  it("returns true for staff role", () => {
+    const user: ApiUser = { id: "user-1", role: "staff", artistId: null };
+    expect(isStaff(user)).toBe(true);
+  });
+
+  it("returns false for artist role", () => {
+    const user: ApiUser = { id: "user-1", role: "artist", artistId: "artist-1" };
+    expect(isStaff(user)).toBe(false);
   });
 });
 
@@ -18,6 +57,12 @@ describe("canAccessArtist", () => {
     const admin: ApiUser = { id: "user-1", role: "admin", artistId: null };
     expect(canAccessArtist(admin, "any-artist-id")).toBe(true);
     expect(canAccessArtist(admin, "another-artist-id")).toBe(true);
+  });
+
+  it("allows staff to access any artist", () => {
+    const staff: ApiUser = { id: "user-1", role: "staff", artistId: null };
+    expect(canAccessArtist(staff, "any-artist-id")).toBe(true);
+    expect(canAccessArtist(staff, "another-artist-id")).toBe(true);
   });
 
   it("allows artist to access their own artist record", () => {
@@ -49,6 +94,11 @@ describe("canAccessTourByArtistId", () => {
   it("allows admin to access any tour", () => {
     const admin: ApiUser = { id: "user-1", role: "admin", artistId: null };
     expect(canAccessTourByArtistId(admin, "any-artist-id")).toBe(true);
+  });
+
+  it("allows staff to access any tour", () => {
+    const staff: ApiUser = { id: "user-1", role: "staff", artistId: null };
+    expect(canAccessTourByArtistId(staff, "any-artist-id")).toBe(true);
   });
 
   it("allows artist to access tours belonging to their artist", () => {

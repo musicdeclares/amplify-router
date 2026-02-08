@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/app/lib/supabase";
-import { getApiUser, isAdmin } from "@/app/lib/api-auth";
+import { getApiUser, isAdmin, isStaff } from "@/app/lib/api-auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -82,12 +82,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Only admins can create artists
-    if (!isAdmin(user)) {
-      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    // Only staff (admin or staff) can create artists
+    if (!isStaff(user)) {
+      return NextResponse.json(
+        { error: "Staff access required" },
+        { status: 403 },
+      );
     }
 
-    const { handle, name, link_active = true, account_active = true } = await request.json();
+    const {
+      handle,
+      name,
+      link_active = true,
+      account_active = true,
+    } = await request.json();
 
     if (!handle || !name) {
       return NextResponse.json(
@@ -107,8 +115,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: artist, error } = await (supabaseAdmin.from("router_artists") as any)
+    const { data: artist, error } = await (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      supabaseAdmin.from("router_artists") as any
+    )
       .insert({ handle, name, link_active, account_active })
       .select()
       .single();

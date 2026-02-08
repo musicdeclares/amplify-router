@@ -1,11 +1,11 @@
 ---
 title: Tours & Country Routing
 description: Create tours and configure how fans are routed by country.
-audience: admin
+audience: staff
 order: 3
 related:
-  - admin/artists
-  - admin/organizations
+  - staff/artists
+  - staff/organizations
 ---
 
 ## Overview

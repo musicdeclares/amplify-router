@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/app/lib/supabase";
-import { getApiUser, isAdmin } from "@/app/lib/api-auth";
+import { getApiUser, isStaff } from "@/app/lib/api-auth";
 
 export async function POST(request: NextRequest) {
   try {
@@ -71,9 +71,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Only admins can list all feedback
-    if (!isAdmin(user)) {
-      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    // Only staff (admin or staff) can list all feedback
+    if (!isStaff(user)) {
+      return NextResponse.json({ error: "Staff access required" }, { status: 403 });
     }
 
     const { searchParams } = new URL(request.url);

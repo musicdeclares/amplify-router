@@ -191,7 +191,7 @@ export interface Database {
         Row: {
           id: string;
           email: string;
-          role: "admin" | "artist";
+          role: "admin" | "staff" | "artist";
           artist_id: string | null;
           enabled: boolean;
           created_at: string;
@@ -199,7 +199,7 @@ export interface Database {
         Insert: {
           id: string;
           email: string;
-          role: "admin" | "artist";
+          role: "admin" | "staff" | "artist";
           artist_id?: string | null;
           enabled?: boolean;
           created_at?: string;
@@ -207,7 +207,7 @@ export interface Database {
         Update: {
           id?: string;
           email?: string;
-          role?: "admin" | "artist";
+          role?: "admin" | "staff" | "artist";
           artist_id?: string | null;
           enabled?: boolean;
           created_at?: string;
