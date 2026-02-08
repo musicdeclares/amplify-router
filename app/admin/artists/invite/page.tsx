@@ -1,3 +1,4 @@
+// Documented in: content/help/admin/artists.md#inviting-an-artist
 "use client";
 
 import { useState } from "react";

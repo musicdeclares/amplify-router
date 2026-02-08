@@ -1,3 +1,4 @@
+// Documented in: content/help/admin/artists.md#adding-an-artist-directly
 "use client";
 
 import { useState } from "react";

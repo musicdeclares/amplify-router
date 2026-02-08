@@ -1,3 +1,4 @@
+// Documented in: content/help/admin/tours.md#adding-a-tour
 "use client";
 
 import { Suspense, useState, useEffect } from "react";

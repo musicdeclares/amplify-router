@@ -15,14 +15,13 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Artist, Invite } from "@/app/types/router";
-import { ArrowUpDown, ArrowUp, ArrowDown, Pause, ChevronRight, Mail, Clock, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, ChevronRight, Mail, Clock, MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface ArtistWithTourCount extends Artist {
   tour_count: number;
@@ -110,8 +109,8 @@ export default function ArtistsPage() {
       case "handle":
         return direction * a.handle.localeCompare(b.handle);
       case "status":
-        // Active (link_active) first when asc
-        return direction * ((a.link_active ? 0 : 1) - (b.link_active ? 0 : 1));
+        // Active (account_active) first when asc
+        return direction * ((a.account_active ? 0 : 1) - (b.account_active ? 0 : 1));
       case "tours":
         return direction * (a.tour_count - b.tour_count);
       default:
@@ -119,13 +118,6 @@ export default function ArtistsPage() {
     }
   });
 
-  // Self-paused artists (link_active=false with link_inactive_reason)
-  const selfPausedArtists = artists.filter(
-    (a) =>
-      !a.link_active &&
-      (a as ArtistWithTourCount & { link_inactive_reason?: string })
-        .link_inactive_reason,
-  );
 
   // Pending invites
   const pendingInvites = invites.filter((i) => i.status === "pending");
@@ -191,45 +183,6 @@ export default function ArtistsPage() {
         </div>
       </div>
 
-      {selfPausedArtists.length > 0 && (
-        <Alert
-          variant="destructive"
-          className="border-destructive/50 bg-destructive/10"
-        >
-          <Pause className="h-4 w-4" />
-          <div>
-            <AlertTitle>Self-Paused Artists</AlertTitle>
-            <AlertDescription>
-              {selfPausedArtists.length === 1 ? (
-                <>
-                  <Link
-                    href={`/admin/artists/${selfPausedArtists[0].id}`}
-                    className="font-medium underline hover:no-underline"
-                  >
-                    {selfPausedArtists[0].name}
-                  </Link>{" "}
-                  has paused their link.
-                </>
-              ) : (
-                <>
-                  {selfPausedArtists.length} artists have paused their links:{" "}
-                  {selfPausedArtists.map((a, i) => (
-                    <span key={a.id}>
-                      {i > 0 && ", "}
-                      <Link
-                        href={`/admin/artists/${a.id}`}
-                        className="font-medium underline hover:no-underline"
-                      >
-                        {a.name}
-                      </Link>
-                    </span>
-                  ))}
-                </>
-              )}
-            </AlertDescription>
-          </div>
-        </Alert>
-      )}
 
       {pendingInvites.length > 0 && (
         <div className="border rounded-lg">
@@ -413,9 +366,7 @@ export default function ArtistsPage() {
                     </code>
                   </TableCell>
                   <TableCell>
-                    {!artist.account_active ? (
-                      <Badge variant="destructive">Inactive</Badge>
-                    ) : artist.link_active ? (
+                    {artist.account_active ? (
                       <Badge
                         variant="secondary"
                         className="bg-secondary text-secondary-foreground"
@@ -423,7 +374,7 @@ export default function ArtistsPage() {
                         Active
                       </Badge>
                     ) : (
-                      <Badge variant="outline">Paused</Badge>
+                      <Badge variant="destructive">Inactive</Badge>
                     )}
                   </TableCell>
                   <TableCell>{artist.tour_count}</TableCell>

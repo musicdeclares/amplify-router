@@ -1,3 +1,4 @@
+// Documented in: content/help/artist/tours.md#creating-a-tour
 "use client";
 
 import { useState, use } from "react";

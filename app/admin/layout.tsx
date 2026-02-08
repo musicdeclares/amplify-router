@@ -83,7 +83,7 @@ export default function AdminLayout({
             </div>
             <div className="flex items-center gap-2">
               <Link
-                href="/help/admin-guide"
+                href="/help"
                 className="hidden sm:inline-flex text-muted-foreground hover:text-foreground"
                 title="Help"
               >
@@ -139,7 +139,7 @@ export default function AdminLayout({
                 );
               })}
               <Link
-                href="/help/admin-guide"
+                href="/help"
                 onClick={() => setMobileMenuOpen(false)}
                 className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
               >
