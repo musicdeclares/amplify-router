@@ -43,6 +43,14 @@ export default async function HelpIndexPage() {
     return false;
   });
 
+  // Check if all docs have the same audience (to customize title and hide badges)
+  const audiences = new Set(docs.map((doc) => doc.frontmatter.audience));
+  const singleAudience = audiences.size === 1 ? [...audiences][0] : null;
+  const showBadges = !singleAudience;
+  const pageTitle = singleAudience
+    ? `${audienceLabels[singleAudience]} Help Center`
+    : "Help Center";
+
   return (
     <main className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-6 py-12">
@@ -56,7 +64,7 @@ export default async function HelpIndexPage() {
             className="w-16 h-auto mx-auto mb-4"
           />
           <h1 className="text-3xl font-bold tracking-tight mb-2">
-            Help Center
+            {pageTitle}
           </h1>
           <p className="text-lg text-muted-foreground max-w-lg mx-auto">
             Guides and documentation for using AMPLIFY
@@ -78,12 +86,14 @@ export default async function HelpIndexPage() {
                       <CardTitle className="text-lg">
                         {doc.frontmatter.title}
                       </CardTitle>
-                      <Badge
-                        variant="outline"
-                        className={audienceColors[doc.frontmatter.audience]}
-                      >
-                        {audienceLabels[doc.frontmatter.audience]}
-                      </Badge>
+                      {showBadges && (
+                        <Badge
+                          variant="outline"
+                          className={audienceColors[doc.frontmatter.audience]}
+                        >
+                          {audienceLabels[doc.frontmatter.audience]}
+                        </Badge>
+                      )}
                     </div>
                     {doc.frontmatter.description && (
                       <CardDescription>
