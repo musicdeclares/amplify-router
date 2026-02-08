@@ -593,7 +593,7 @@ export default function ArtistEditTourPage({
                     <TableRow>
                       <TableHead>Country</TableHead>
                       <TableHead>Organization</TableHead>
-                      <TableHead className="w-[50px]"></TableHead>
+                      <TableHead className="w-12.5"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

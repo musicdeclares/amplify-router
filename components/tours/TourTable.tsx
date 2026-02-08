@@ -181,7 +181,7 @@ export function TourTable({
                   {getSortIcon("status")}
                 </button>
               </TableHead>
-              <TableHead className="w-[60px]"></TableHead>
+              <TableHead className="w-15"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -258,7 +258,7 @@ export function TourTable({
                       {status.label}
                     </Badge>
                   </TableCell>
-                  <TableCell className="w-[60px]">
+                  <TableCell className="w-15">
                     <Link href={`${basePath}/${tour.id}`}>
                       <Button variant="ghost" size="sm">
                         Edit

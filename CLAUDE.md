@@ -255,6 +255,32 @@ Key files have comments pointing to their docs:
 - `content/help/admin/` — Admin guides (getting-started, artists, tours, organizations)
 - `content/help/artist/` — Artist guides (getting-started, tours, troubleshooting)
 
+## Tailwind CSS Conventions
+
+Use **canonical Tailwind classes** instead of arbitrary pixel values for accessibility. Canonical classes use rem units that scale with user font preferences.
+
+### Spacing (pixels ÷ 4)
+
+| Instead of | Use | Calculation |
+|------------|-----|-------------|
+| `w-[50px]` | `w-12.5` | 50 ÷ 4 = 12.5 |
+| `w-[100px]` | `w-25` | 100 ÷ 4 = 25 |
+| `max-w-[300px]` | `max-w-75` | 300 ÷ 4 = 75 |
+
+### Flex utilities (use short form)
+
+| Instead of | Use |
+|------------|-----|
+| `flex-shrink-0` | `shrink-0` |
+| `flex-shrink` | `shrink` |
+| `flex-grow-0` | `grow-0` |
+| `flex-grow` | `grow` |
+
+### Exceptions
+
+- shadcn/ui component defaults (leave as-is)
+- Print-specific styles where exact pixel sizing is intentional
+
 ## Future Considerations
 
 - **Organization self-service**: Let orgs update their own profiles in the directory

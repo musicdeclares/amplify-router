@@ -27,7 +27,6 @@ export function ImageWithFallback({
         style={style}
       >
         <div className="flex items-center justify-center w-full h-full">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={FALLBACK_SVG}
             alt={alt || "Image unavailable"}
@@ -40,7 +39,6 @@ export function ImageWithFallback({
   }
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
       alt={alt}
