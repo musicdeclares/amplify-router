@@ -61,12 +61,28 @@ function LoginForm() {
         return;
       }
 
-      // Role-based redirect
-      if (data.user?.role === "artist" && data.user?.artistId) {
-        router.push(`/artist/${data.user.artistId}`);
-      } else {
-        router.push(redirect);
+      // Determine appropriate redirect based on role
+      const { role, artistId } = data.user || {};
+      const isStaff = role === "admin" || role === "staff";
+
+      let destination = redirect;
+
+      if (role === "artist" && artistId) {
+        // Artists can only access their own artist pages
+        const isOwnArtistPage = redirect.startsWith(`/artist/${artistId}`);
+        destination = isOwnArtistPage ? redirect : `/artist/${artistId}`;
+      } else if (isStaff) {
+        // Staff use admin interface; convert /artist/* to /admin/artists/*
+        if (redirect.startsWith("/artist/")) {
+          destination = redirect.replace("/artist/", "/admin/artists/");
+        } else if (redirect.startsWith("/admin")) {
+          destination = redirect;
+        } else {
+          destination = "/admin";
+        }
       }
+
+      router.push(destination);
       router.refresh();
     } catch {
       setError("An unexpected error occurred");
@@ -128,7 +144,7 @@ function LoginForm() {
               {loading ? "Signing in..." : "Sign in"}
             </Button>
             <Link
-              href="/admin/forgot-password"
+              href="/forgot-password"
               className="text-sm text-muted-foreground hover:text-foreground"
             >
               Forgot your password?

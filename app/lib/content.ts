@@ -4,7 +4,7 @@ import matter from "gray-matter";
 
 const CONTENT_DIR = path.join(process.cwd(), "content/help");
 
-export type DocAudience = "admin" | "artist" | "org" | "public";
+export type DocAudience = "admin" | "staff" | "artist" | "org" | "public";
 
 export interface DocFrontmatter {
   title: string;
@@ -64,12 +64,13 @@ export function getAllDocs(): Omit<Doc, "content">[] {
       };
     })
     .sort((a, b) => {
-      // Sort by audience first (admin before artist), then by order
+      // Sort by audience first (admin before staff before artist), then by order
       const audienceOrder: Record<DocAudience, number> = {
         admin: 1,
-        artist: 2,
-        org: 3,
-        public: 4,
+        staff: 2,
+        artist: 3,
+        org: 4,
+        public: 5,
       };
       const audienceDiff =
         audienceOrder[a.frontmatter.audience] -

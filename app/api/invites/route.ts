@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { supabaseAdmin } from "@/app/lib/supabase";
-import { getApiUser, isAdmin } from "@/app/lib/api-auth";
+import { getApiUser, isStaff } from "@/app/lib/api-auth";
 
 // GET - list all invites (admin only)
 export async function GET() {
@@ -10,8 +10,8 @@ export async function GET() {
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if (!isAdmin(user)) {
-      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    if (!isStaff(user)) {
+      return NextResponse.json({ error: "Staff access required" }, { status: 403 });
     }
 
     const { data: invites, error } = (await supabaseAdmin
@@ -62,8 +62,8 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if (!isAdmin(user)) {
-      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    if (!isStaff(user)) {
+      return NextResponse.json({ error: "Staff access required" }, { status: 403 });
     }
 
     const { email, suggested_name, role = "artist" } = await request.json();

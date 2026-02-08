@@ -1,11 +1,11 @@
 ---
 title: Managing Artists
 description: Invite artists, manage accounts, and understand status controls.
-audience: admin
+audience: staff
 order: 2
 related:
-  - admin/tours
-  - admin/getting-started
+  - staff/tours
+  - staff/getting-started
 ---
 
 ## Overview

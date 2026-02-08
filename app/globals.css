@@ -46,6 +46,8 @@
     /* MDE Brand Colors */
     --color-mde-yellow: #f7ed6a;
     --color-mde-green: #a4cf5d;
+    --color-mde-orange: #cf5c36;
+    --color-mde-red: #9e0031;
     --color-mde-body: #212529;
 
     /* Link color with good contrast on white */
@@ -181,9 +183,15 @@
 }
 
 @keyframes fade-out {
-    0% { opacity: 1; }
-    70% { opacity: 1; }
-    100% { opacity: 0; }
+    0% {
+        opacity: 1;
+    }
+    70% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
 }
 
 .animate-fade-out {

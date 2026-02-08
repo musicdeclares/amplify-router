@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/app/lib/supabase";
-import { getApiUser, isAdmin } from "@/app/lib/api-auth";
+import { getApiUser, isAdmin, isStaff } from "@/app/lib/api-auth";
 
 export async function GET(
   _request: NextRequest,
@@ -12,9 +12,9 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Only admins can view individual feedback
-    if (!isAdmin(user)) {
-      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    // Only staff (admin or staff) can view individual feedback
+    if (!isStaff(user)) {
+      return NextResponse.json({ error: "Staff access required" }, { status: 403 });
     }
 
     const { id } = await params;
@@ -59,7 +59,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Only admins can update feedback
+    // Only admins (developers) can update feedback status/priority
     if (!isAdmin(user)) {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
     }

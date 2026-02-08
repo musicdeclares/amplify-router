@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 
 export interface ApiUser {
   id: string;
-  role: "admin" | "artist";
+  role: "admin" | "staff" | "artist";
   artistId: string | null;
 }
 
@@ -13,7 +13,7 @@ export interface ApiUser {
 export async function getApiUser(): Promise<ApiUser | null> {
   const headerList = await headers();
   const userId = headerList.get("x-user-id");
-  const role = headerList.get("x-user-role") as "admin" | "artist" | null;
+  const role = headerList.get("x-user-role") as "admin" | "staff" | "artist" | null;
   const artistId = headerList.get("x-user-artist-id");
 
   if (!userId || !role) {
@@ -28,18 +28,32 @@ export async function getApiUser(): Promise<ApiUser | null> {
 }
 
 /**
- * Check if the user is an admin.
+ * Check if the user is an admin (developer access).
  */
 export function isAdmin(user: ApiUser): boolean {
   return user.role === "admin";
 }
 
 /**
+ * Check if the user is MDE staff (non-developer internal user).
+ */
+export function isMdeStaff(user: ApiUser): boolean {
+  return user.role === "staff";
+}
+
+/**
+ * Check if the user is staff (admin or staff role).
+ */
+export function isStaff(user: ApiUser): boolean {
+  return user.role === "admin" || user.role === "staff";
+}
+
+/**
  * Check if the user can access an artist's data.
- * Admins can access all artists, artists can only access their own.
+ * Staff can access all artists, artists can only access their own.
  */
 export function canAccessArtist(user: ApiUser, artistId: string): boolean {
-  if (user.role === "admin") {
+  if (isStaff(user)) {
     return true;
   }
   return user.artistId === artistId;
@@ -53,7 +67,7 @@ export function canAccessTourByArtistId(
   user: ApiUser,
   tourArtistId: string,
 ): boolean {
-  if (user.role === "admin") {
+  if (isStaff(user)) {
     return true;
   }
   return user.artistId === tourArtistId;

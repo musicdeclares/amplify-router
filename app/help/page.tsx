@@ -3,7 +3,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { headers } from "next/headers";
 import { getAllDocs, DocAudience } from "@/app/lib/content";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
@@ -13,30 +18,37 @@ export const metadata: Metadata = {
 
 const audienceLabels: Record<DocAudience, string> = {
   admin: "Admin",
+  staff: "Staff",
   artist: "Artist",
   org: "Organization",
   public: "General",
 };
 
 const audienceColors: Record<DocAudience, string> = {
-  admin: "bg-orange-500/10 text-orange-700 border-orange-500/20",
+  admin: "bg-mde-red/10 text-mde-red border-mde-red/20",
+  staff: "bg-mde-orange/10 text-mde-orange border-mde-orange/20",
   artist: "bg-mde-green/10 text-green-800 border-mde-green/20",
-  org: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  org: "bg-mde-yellow/10 text-mde-body border-mde-yellow/20",
   public: "bg-muted text-muted-foreground border-muted",
 };
 
 export default async function HelpIndexPage() {
   const headerList = await headers();
-  const userRole = headerList.get("x-user-role") as "admin" | "artist" | null;
+  const userRole = headerList.get("x-user-role") as
+    | "admin"
+    | "staff"
+    | "artist"
+    | null;
 
   // Filter docs based on user role
   const allDocs = getAllDocs();
+  const isStaff = userRole === "admin" || userRole === "staff";
   const docs = allDocs.filter((doc) => {
     const audience = doc.frontmatter.audience;
     // Public docs visible to everyone
     if (audience === "public") return true;
-    // Admins see all docs
-    if (userRole === "admin") return true;
+    // Staff (admin and staff) see all docs
+    if (isStaff) return true;
     // Artists see artist + public docs
     if (userRole === "artist" && audience === "artist") return true;
     // Unauthenticated users only see public docs

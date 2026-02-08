@@ -4,7 +4,7 @@ import { Database } from "@/app/types/database";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export type UserRole = "admin" | "artist";
+export type UserRole = "admin" | "staff" | "artist";
 
 export interface AuthUser {
   id: string;
@@ -113,7 +113,7 @@ export async function resetPassword(
   const supabase = createAuthClient();
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/admin/reset-password`,
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-password`,
   });
 
   if (error) {
@@ -149,12 +149,17 @@ export function hasRole(
   return requiredRoles.includes(user.role);
 }
 
+// Check if user is staff (admin or staff)
+export function isStaff(user: AuthUser | null): boolean {
+  return user?.role === "admin" || user?.role === "staff";
+}
+
 // Check if user can access artist-specific data
 export function canAccessArtist(
   user: AuthUser | null,
   artistId: string,
 ): boolean {
   if (!user) return false;
-  if (user.role === "admin") return true;
+  if (isStaff(user)) return true;
   return user.artistId === artistId;
 }

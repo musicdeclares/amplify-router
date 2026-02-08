@@ -1,11 +1,11 @@
 ---
 title: Getting Started
 description: Log in and navigate the AMPLIFY admin dashboard.
-audience: admin
+audience: staff
 order: 1
 related:
-  - admin/artists
-  - admin/tours
+  - staff/artists
+  - staff/tours
 ---
 
 ## Welcome to AMPLIFY
@@ -16,7 +16,7 @@ The AMPLIFY admin dashboard lets you manage artists, tours, and routing for the 
 
 ## Logging In
 
-1. Navigate to [`/admin/login`](/admin/login)
+1. Navigate to [`/login`](/login)
 2. Enter your email and password
 3. You'll be redirected to the dashboard
 

@@ -62,7 +62,7 @@ export default function ResetPasswordPage() {
 
       setSuccess(true)
       setTimeout(() => {
-        router.push('/admin/login')
+        router.push('/login')
       }, 2000)
     } catch {
       setError('An unexpected error occurred')
@@ -81,7 +81,7 @@ export default function ResetPasswordPage() {
             </CardDescription>
           </CardHeader>
           <CardFooter className="flex justify-center">
-            <Link href="/admin/forgot-password">
+            <Link href="/forgot-password">
               <Button>Request new reset link</Button>
             </Link>
           </CardFooter>

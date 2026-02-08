@@ -1,1 +1,1 @@
-INSERT INTO router_users (id, email, role, enabled) VALUES ('USER_ID', 'USER_EMAIL', 'admin', true);
+INSERT INTO router_users (id, email, role, enabled) VALUES ('6144d5ec-5320-4775-ab2c-ee809028f67f', 'spiffytiffyting@gmail.com', 'staff', true);
