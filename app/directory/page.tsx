@@ -1,15 +1,17 @@
 import { Metadata } from "next";
 import { getOrganizations } from "@/app/lib/organization-directory";
 import { OrgsClient } from "./orgs-client";
+import { getDirectoryContent } from "@/app/lib/directory-content";
+
+// TODO: When adding i18n, generate metadata dynamically based on locale
+const content = getDirectoryContent("en");
 
 export const metadata: Metadata = {
-  title: "Climate Org Directory | MDE AMPLIFY",
-  description:
-    "Explore vetted climate action organizations partnering with Music Declares Emergency. Find grassroots groups making a difference in your country.",
+  title: content.meta.title,
+  description: content.meta.description,
   openGraph: {
-    title: "Climate Org Directory | MDE AMPLIFY",
-    description:
-      "Explore vetted climate action organizations partnering with Music Declares Emergency.",
+    title: content.meta.title,
+    description: content.meta.ogDescription,
     type: "website",
   },
 };
