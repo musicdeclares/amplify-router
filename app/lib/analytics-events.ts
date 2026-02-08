@@ -2,7 +2,7 @@
  * Umami analytics event names.
  *
  * Usage: Add data attributes to track clicks
- *   <Button data-umami-event={EVENTS.FALLBACK_CTA_CRP}>Take Action</Button>
+ *   <Button data-umami-event={EVENTS.FALLBACK_CTA_GLOBAL}>Take Action</Button>
  *
  * With properties:
  *   <Button
@@ -19,7 +19,7 @@
 
 export const EVENTS = {
   // === Fallback Page ===
-  FALLBACK_CTA_CRP: "fallback-cta-crp",
+  FALLBACK_CTA_GLOBAL: "fallback-cta-global",
   FALLBACK_CTA_DIRECTORY: "fallback-cta-directory",
 
   // === Directory ===
