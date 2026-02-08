@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
+import { EVENTS, SOURCES } from "@/app/lib/analytics-events";
 
 interface CreatedInvite {
   id: string;
@@ -156,6 +157,11 @@ Music Declares Emergency`;
                   onClick={() =>
                     copyToClipboard(createdInvite.invite_url, "link")
                   }
+                  data-umami-event={EVENTS.ADMIN_COPY_INVITE}
+                  data-umami-event-artist={createdInvite.suggested_name}
+                  data-umami-event-invite={createdInvite.id}
+                  data-umami-event-field="link"
+                  data-umami-event-source={SOURCES.INVITE_CREATED}
                 >
                   {copiedField === "link" ? (
                     <Check className="h-4 w-4" />
@@ -172,7 +178,13 @@ Music Declares Emergency`;
             {/* Send via Email */}
             <div className="space-y-4">
               <div className="flex items-center gap-4">
-                <a href={getMailtoLink()}>
+                <a
+                  href={getMailtoLink()}
+                  data-umami-event={EVENTS.ADMIN_EMAIL_INVITE}
+                  data-umami-event-artist={createdInvite.suggested_name}
+                  data-umami-event-invite={createdInvite.id}
+                  data-umami-event-source={SOURCES.INVITE_CREATED}
+                >
                   <Button>
                     <Mail className="h-4 w-4 mr-2" />
                     Send via Email
@@ -201,6 +213,11 @@ Music Declares Emergency`;
                       onClick={() =>
                         copyToClipboard(getEmailSubject(), "subject")
                       }
+                      data-umami-event={EVENTS.ADMIN_COPY_INVITE}
+                      data-umami-event-artist={createdInvite.suggested_name}
+                      data-umami-event-invite={createdInvite.id}
+                      data-umami-event-field="subject"
+                      data-umami-event-source={SOURCES.INVITE_CREATED}
                     >
                       {copiedField === "subject" ? (
                         <Check className="h-4 w-4" />
@@ -223,6 +240,11 @@ Music Declares Emergency`;
                       size="icon"
                       className="shrink-0"
                       onClick={() => copyToClipboard(getEmailBody(), "body")}
+                      data-umami-event={EVENTS.ADMIN_COPY_INVITE}
+                      data-umami-event-artist={createdInvite.suggested_name}
+                      data-umami-event-invite={createdInvite.id}
+                      data-umami-event-field="body"
+                      data-umami-event-source={SOURCES.INVITE_CREATED}
                     >
                       {copiedField === "body" ? (
                         <Check className="h-4 w-4" />
@@ -248,7 +270,7 @@ Music Declares Emergency`;
                 Create Another Invite
               </Button>
               <Link href="/admin/artists">
-                <Button variant="ghost">Done</Button>
+                <Button variant="ghost">Back to Artists</Button>
               </Link>
             </div>
           </CardContent>
@@ -273,14 +295,26 @@ Music Declares Emergency`;
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             Invite Artist
-            <Link href="/help/admin/artists#inviting-an-artist-recommended" className="text-muted-foreground hover:text-foreground">
+            <Link
+              href="/help/admin/artists#inviting-an-artist-recommended"
+              className="text-muted-foreground hover:text-foreground"
+              data-umami-event={EVENTS.NAV_HELP}
+              data-umami-event-topic="inviting-an-artist"
+              data-umami-event-source={SOURCES.INVITE_CREATED}
+            >
               <HelpCircle className="h-4 w-4" />
             </Link>
           </CardTitle>
           <CardDescription>
             Send an invite link so an artist can set up their own account and
             choose their handle.{" "}
-            <Link href="/help/admin/artists#inviting-an-artist-recommended" className="underline hover:no-underline">
+            <Link
+              href="/help/admin/artists#inviting-an-artist-recommended"
+              className="underline hover:no-underline"
+              data-umami-event={EVENTS.NAV_HELP}
+              data-umami-event-topic="inviting-an-artist"
+              data-umami-event-source={SOURCES.INVITE_CREATED}
+            >
               Learn more
             </Link>
           </CardDescription>
@@ -320,7 +354,12 @@ Music Declares Emergency`;
             </div>
 
             <div className="flex gap-4">
-              <Button type="submit" disabled={sending}>
+              <Button
+                type="submit"
+                disabled={sending}
+                data-umami-event={EVENTS.ADMIN_SEND_INVITE}
+                data-umami-event-artist={name}
+              >
                 {sending ? "Creating..." : "Create Invite"}
               </Button>
               <Link href="/admin/artists">

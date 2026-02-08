@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { Artist } from "@/app/types/router";
 import { Check, ChevronsUpDown, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { EVENTS, SOURCES } from "@/app/lib/analytics-events";
 
 export default function NewTourPage() {
   return (
@@ -160,13 +161,25 @@ function NewTourForm() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             Add Tour
-            <Link href="/help/admin/tours#adding-a-tour" className="text-muted-foreground hover:text-foreground">
+            <Link
+              href="/help/admin/tours#adding-a-tour"
+              className="text-muted-foreground hover:text-foreground"
+              data-umami-event={EVENTS.NAV_HELP}
+              data-umami-event-topic="adding-a-tour"
+              data-umami-event-source={SOURCES.ADMIN_TOUR_FORM}
+            >
               <HelpCircle className="h-4 w-4" />
             </Link>
           </CardTitle>
           <CardDescription>
             Set up a new tour with dates and routing configuration.{" "}
-            <Link href="/help/admin/tours#adding-a-tour" className="underline hover:no-underline">
+            <Link
+              href="/help/admin/tours#adding-a-tour"
+              className="underline hover:no-underline"
+              data-umami-event={EVENTS.NAV_HELP}
+              data-umami-event-topic="adding-a-tour"
+              data-umami-event-source={SOURCES.ADMIN_TOUR_FORM}
+            >
               Learn more
             </Link>
           </CardDescription>
@@ -309,7 +322,11 @@ function NewTourForm() {
             </div>
 
             <div className="flex gap-4">
-              <Button type="submit" disabled={saving}>
+              <Button
+                type="submit"
+                disabled={saving}
+                data-umami-event={EVENTS.ADMIN_CREATE_TOUR}
+              >
                 {saving ? "Adding..." : "Add Tour"}
               </Button>
               <Link href="/admin/tours">

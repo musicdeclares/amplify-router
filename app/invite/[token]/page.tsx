@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { EVENTS } from "@/app/lib/analytics-events";
 
 function handleify(text: string): string {
   return text
@@ -312,7 +313,14 @@ export default function InviteAcceptPage({
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full" disabled={submitting}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={submitting}
+              data-umami-event={EVENTS.INVITE_ACCEPT}
+              data-umami-event-artist={name}
+              data-umami-event-token={token}
+            >
               {submitting ? "Creating account..." : "Create Account"}
             </Button>
           </CardFooter>

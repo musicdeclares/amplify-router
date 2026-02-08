@@ -4,12 +4,14 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, Trash2, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+import { EVENTS } from "@/app/lib/analytics-events";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_SIZE = 2 * 1024 * 1024; // 2MB
 
 interface ImageUploadProps {
   orgId: string;
+  orgName?: string;
   currentImageUrl: string | null;
   onImageChange: (url: string | null) => void;
   disabled?: boolean;
@@ -18,6 +20,7 @@ interface ImageUploadProps {
 
 export function ImageUpload({
   orgId,
+  orgName,
   currentImageUrl,
   onImageChange,
   disabled,
@@ -135,6 +138,8 @@ export function ImageUpload({
           size="sm"
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || uploading || removing}
+          data-umami-event={EVENTS.ADMIN_UPLOAD_ORG_IMAGE}
+          data-umami-event-org={orgName}
         >
           <Upload className="h-4 w-4 mr-2" />
           {uploading ? "Uploading..." : currentImageUrl ? "Replace" : "Upload"}
@@ -147,6 +152,8 @@ export function ImageUpload({
             onClick={handleRemove}
             disabled={disabled || uploading || removing}
             className="text-destructive hover:text-destructive"
+            data-umami-event={EVENTS.ADMIN_REMOVE_ORG_IMAGE}
+            data-umami-event-org={orgName}
           >
             <Trash2 className="h-4 w-4 mr-2" />
             {removing ? "Removing..." : "Remove"}

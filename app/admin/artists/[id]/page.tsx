@@ -22,6 +22,7 @@ import { TourTable, TourWithArtist } from "@/components/tours/TourTable";
 import { QrCodeDialog } from "@/components/shared/QrCodeDialog";
 import { useUnsavedChanges } from "@/app/lib/hooks/use-unsaved-changes";
 import { UnsavedChangesIndicator } from "@/components/shared/UnsavedChangesIndicator";
+import { EVENTS } from "@/app/lib/analytics-events";
 
 interface ArtistWithTours extends Artist {
   router_tours: Tour[];
@@ -266,7 +267,13 @@ export default function EditArtistPage({
               </div>
 
               <div className="flex items-center gap-4">
-                <Button onClick={handleSave} disabled={saving}>
+                <Button
+                  onClick={handleSave}
+                  disabled={saving}
+                  data-umami-event={EVENTS.ADMIN_SAVE_ARTIST}
+                  data-umami-event-artist={artist.handle}
+                  data-umami-event-account-active={accountActive ? "true" : "false"}
+                >
                   {saving ? "Saving..." : "Save Changes"}
                 </Button>
                 <UnsavedChangesIndicator

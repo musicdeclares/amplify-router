@@ -53,11 +53,11 @@ import {
 import { toast } from "sonner";
 import { Tour, Artist, TourOverride, CountryDefault } from "@/app/types/router";
 import { getCountryLabel, COUNTRY_OPTIONS } from "@/app/lib/countries";
-import { X, AlertTriangle } from "lucide-react";
+import { X, AlertTriangle, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUnsavedChanges } from "@/app/lib/hooks/use-unsaved-changes";
 import { UnsavedChangesIndicator } from "@/components/shared/UnsavedChangesIndicator";
-import { EVENTS } from "@/app/lib/analytics-events";
+import { EVENTS, SOURCES } from "@/app/lib/analytics-events";
 
 interface OrgInfo {
   id: string;
@@ -410,8 +410,30 @@ export default function ArtistEditTourPage({
         {/* Tour Details Card */}
         <Card className="xl:col-start-1">
           <CardHeader>
-            <CardTitle>Tour Details</CardTitle>
-            <CardDescription>Update tour information</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              Tour Details
+              <Link
+                href="/help/artist/tours"
+                className="text-muted-foreground hover:text-foreground"
+                data-umami-event={EVENTS.NAV_HELP}
+                data-umami-event-topic="tour-edit"
+                data-umami-event-source={SOURCES.TOUR_FORM}
+              >
+                <HelpCircle className="h-4 w-4" />
+              </Link>
+            </CardTitle>
+            <CardDescription>
+              Update tour information.{" "}
+              <Link
+                href="/help/artist/tours"
+                className="underline hover:no-underline"
+                data-umami-event={EVENTS.NAV_HELP}
+                data-umami-event-topic="tour-edit"
+                data-umami-event-source={SOURCES.TOUR_FORM}
+              >
+                Learn more
+              </Link>
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {error && (

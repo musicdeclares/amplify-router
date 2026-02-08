@@ -16,6 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
+import { EVENTS, SOURCES } from "@/app/lib/analytics-events";
 
 function handleify(text: string): string {
   return text
@@ -110,13 +111,25 @@ export default function NewArtistPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             Add Artist
-            <Link href="/help/admin/artists#adding-an-artist-directly" className="text-muted-foreground hover:text-foreground">
+            <Link
+              href="/help/admin/artists#adding-an-artist-directly"
+              className="text-muted-foreground hover:text-foreground"
+              data-umami-event={EVENTS.NAV_HELP}
+              data-umami-event-topic="adding-an-artist"
+              data-umami-event-source={SOURCES.ARTIST_FORM}
+            >
               <HelpCircle className="h-4 w-4" />
             </Link>
           </CardTitle>
           <CardDescription>
             Add a new artist to set up their AMPLIFY link and tours.{" "}
-            <Link href="/help/admin/artists#adding-an-artist-directly" className="underline hover:no-underline">
+            <Link
+              href="/help/admin/artists#adding-an-artist-directly"
+              className="underline hover:no-underline"
+              data-umami-event={EVENTS.NAV_HELP}
+              data-umami-event-topic="adding-an-artist"
+              data-umami-event-source={SOURCES.ARTIST_FORM}
+            >
               Learn more
             </Link>
           </CardDescription>
@@ -161,7 +174,11 @@ export default function NewArtistPage() {
             </div>
 
             <div className="flex gap-4">
-              <Button type="submit" disabled={saving}>
+              <Button
+                type="submit"
+                disabled={saving}
+                data-umami-event={EVENTS.ADMIN_CREATE_ARTIST}
+              >
                 {saving ? "Adding..." : "Add Artist"}
               </Button>
               <Link href="/admin/artists">

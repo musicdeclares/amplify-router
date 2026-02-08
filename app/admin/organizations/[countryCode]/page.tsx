@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { OrgPublicView } from "@/app/types/router";
 import { PauseOrgDialog } from "@/components/shared/PauseOrgDialog";
+import { EVENTS } from "@/app/lib/analytics-events";
 
 interface Organization extends OrgPublicView {
   router_enabled: boolean;
@@ -497,6 +498,9 @@ export default function CountryDetailPage({
                         {!isPermanentRec && (
                           <DropdownMenuItem
                             onClick={() => setAsRecommendation(org)}
+                            data-umami-event={EVENTS.ADMIN_SET_COUNTRY_DEFAULT}
+                            data-umami-event-org={org.org_name}
+                            data-umami-event-country={countryCode}
                           >
                             <Star className="h-4 w-4 mr-2 text-amber-600" />
                             Set as recommended
@@ -600,7 +604,13 @@ export default function CountryDetailPage({
             >
               Cancel
             </Button>
-            <Button onClick={handleDateSpecificSave} disabled={updating}>
+            <Button
+              onClick={handleDateSpecificSave}
+              disabled={updating}
+              data-umami-event={EVENTS.ADMIN_ADD_DATE_SPECIFIC_REC}
+              data-umami-event-org={dateSpecificOrg?.org_name}
+              data-umami-event-country={countryCode}
+            >
               {updating ? "Saving..." : "Add Recommendation"}
             </Button>
           </DialogFooter>
@@ -632,6 +642,10 @@ export default function CountryDetailPage({
               variant="destructive"
               onClick={removeRecommendation}
               disabled={updating}
+              data-umami-event={EVENTS.ADMIN_REMOVE_COUNTRY_DEFAULT}
+              data-umami-event-org={removeRecTarget?.org?.org_name}
+              data-umami-event-country={countryCode}
+              data-umami-event-type={removeRecTarget?.effective_from ? "date-specific" : "permanent"}
             >
               {updating ? "Removing..." : "Remove"}
             </Button>
