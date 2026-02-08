@@ -395,6 +395,29 @@ Avoid storing personally identifiable information (PII) in event properties:
 - Artist names are acceptable (public/stage names, not personal names)
 - Tokens can be used for correlation with app database
 
+### Infrastructure
+
+**Decision: Keep Umami database separate from app database.**
+
+| Component | Host | Database |
+|-----------|------|----------|
+| App (AMPLIFY Router) | Vercel | Supabase (PostgreSQL) |
+| Analytics (Umami) | Vercel | Neon (PostgreSQL) |
+
+**Why separate:**
+- Umami manages its own schema and migrations
+- Analytics issues don't affect app database
+- Leverages two free tiers
+- Simpler Umami upgrades (just redeploy)
+
+**Tradeoff:** Can't directly join analytics with app data. For correlation:
+1. Use IDs in event properties (invite_id, token, artist handle)
+2. Query Umami API or database for events
+3. Query Supabase for app data
+4. Join in application code or notebook when investigating
+
+**Revisit if:** You find yourself frequently needing real-time joins between analytics and app data. Consolidating to Supabase is straightforward—just point Umami's `DATABASE_URL` to Supabase.
+
 ## Future Considerations
 
 - **Organization self-service**: Let orgs update their own profiles in the directory
