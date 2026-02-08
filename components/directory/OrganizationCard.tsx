@@ -34,7 +34,6 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
           />
         ) : (
           <div className="flex items-center justify-center w-full h-full bg-gray-100">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo.png"
               alt="MDE AMPLIFY"
@@ -66,7 +65,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
 
         {organization.mission && (
           <div className="flex items-start gap-2 mb-3">
-            <Target className="size-4 mt-0.5 flex-shrink-0 text-mde-green" />
+            <Target className="size-4 mt-0.5 shrink-0 text-mde-green" />
             <p className="text-sm text-muted-foreground line-clamp-3">
               {organization.mission}
             </p>

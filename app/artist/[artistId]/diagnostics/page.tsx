@@ -171,7 +171,7 @@ Please share this with your MDE contact for assistance.`;
           </p>
         </div>
         <Select value={days} onValueChange={setDays}>
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="w-35">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

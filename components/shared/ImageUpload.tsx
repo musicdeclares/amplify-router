@@ -104,7 +104,6 @@ export function ImageUpload({
     <div className="space-y-3">
       {currentImageUrl ? (
         <div className="relative">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={currentImageUrl}
             alt="Organization"
