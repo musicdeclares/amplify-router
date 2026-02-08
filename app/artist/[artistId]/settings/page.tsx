@@ -2,9 +2,11 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { EVENTS, SOURCES } from "@/app/lib/analytics-events";
 import {
   Card,
   CardContent,
@@ -111,15 +113,27 @@ export default function ArtistSettingsPage({
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           Account Settings
-          <a href="/help/artist/getting-started#account-settings" className="text-muted-foreground hover:text-foreground">
+          <Link
+            href="/help/artist/getting-started#account-settings"
+            className="text-muted-foreground hover:text-foreground"
+            data-umami-event={EVENTS.NAV_HELP}
+            data-umami-event-topic="account-settings"
+            data-umami-event-source={SOURCES.SETTINGS}
+          >
             <HelpCircle className="h-5 w-5" />
-          </a>
+          </Link>
         </h1>
         <p className="text-muted-foreground mt-1">
           Manage your profile and account.{" "}
-          <a href="/help/artist/getting-started#account-settings" className="underline hover:no-underline">
+          <Link
+            href="/help/artist/getting-started#account-settings"
+            className="underline hover:no-underline"
+            data-umami-event={EVENTS.NAV_HELP}
+            data-umami-event-topic="account-settings"
+            data-umami-event-source={SOURCES.SETTINGS}
+          >
             Learn more
-          </a>
+          </Link>
         </p>
       </div>
 
@@ -167,7 +181,12 @@ export default function ArtistSettingsPage({
             </div>
           </div>
 
-          <Button onClick={handleSaveName} disabled={saving || !hasNameChanges}>
+          <Button
+            onClick={handleSaveName}
+            disabled={saving || !hasNameChanges}
+            data-umami-event={EVENTS.ARTIST_UPDATE_NAME}
+            data-umami-event-artist={artist.handle}
+          >
             {saving ? "Saving..." : "Save Changes"}
           </Button>
         </CardContent>

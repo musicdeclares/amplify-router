@@ -17,6 +17,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
+import { EVENTS, SOURCES } from "@/app/lib/analytics-events";
 
 export default function ArtistNewTourPage({
   params,
@@ -107,13 +108,25 @@ export default function ArtistNewTourPage({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             Add Tour
-            <Link href="/help/artist/tours#creating-a-tour" className="text-muted-foreground hover:text-foreground">
+            <Link
+              href="/help/artist/tours#creating-a-tour"
+              className="text-muted-foreground hover:text-foreground"
+              data-umami-event={EVENTS.NAV_HELP}
+              data-umami-event-topic="creating-a-tour"
+              data-umami-event-source={SOURCES.TOUR_FORM}
+            >
               <HelpCircle className="h-4 w-4" />
             </Link>
           </CardTitle>
           <CardDescription>
             Set up a new tour with dates and routing configuration.{" "}
-            <Link href="/help/artist/tours#creating-a-tour" className="underline hover:no-underline">
+            <Link
+              href="/help/artist/tours#creating-a-tour"
+              className="underline hover:no-underline"
+              data-umami-event={EVENTS.NAV_HELP}
+              data-umami-event-topic="creating-a-tour"
+              data-umami-event-source={SOURCES.TOUR_FORM}
+            >
               Learn more
             </Link>
           </CardDescription>
@@ -205,7 +218,13 @@ export default function ArtistNewTourPage({
             </div>
 
             <div className="flex gap-4">
-              <Button type="submit" disabled={saving}>
+              <Button
+                type="submit"
+                disabled={saving}
+                data-umami-event={EVENTS.ARTIST_CREATE_TOUR}
+                data-umami-event-tour={name || undefined}
+                data-umami-event-source={SOURCES.TOUR_FORM}
+              >
                 {saving ? "Adding..." : "Add Tour"}
               </Button>
               <Link href={`/artist/${artistId}/tours`}>

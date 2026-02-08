@@ -42,6 +42,8 @@ export const EVENTS = {
   ARTIST_SAVE_TOUR: "artist-save-tour",
   ARTIST_ADD_COUNTRY: "artist-add-country",
   ARTIST_REMOVE_COUNTRY: "artist-remove-country",
+  ARTIST_UPDATE_NAME: "artist-update-name",
+  ARTIST_DELETE_TOUR: "artist-delete-tour",
 
   // === Admin Dashboard ===
   ADMIN_CREATE_ARTIST: "admin-create-artist",
@@ -64,3 +66,27 @@ export const EVENTS = {
 } as const;
 
 export type AnalyticsEvent = (typeof EVENTS)[keyof typeof EVENTS];
+
+/**
+ * Source values for tracking where an action originated.
+ * Use with data-umami-event-source attribute.
+ */
+export const SOURCES = {
+  // Artist pages
+  DASHBOARD: "dashboard",
+  TOURS_LIST: "tours-list",
+  TOURS_EMPTY_STATE: "tours-empty-state",
+  TOUR_FORM: "tour-form",
+  DIAGNOSTICS: "diagnostics",
+  SETTINGS: "settings",
+
+  // Admin pages
+  ARTIST_FORM: "artist-form",
+  INVITE_FORM: "invite-form",
+  ADMIN_TOUR_FORM: "admin-tour-form",
+
+  // Navigation
+  NAV: "nav",
+} as const;
+
+export type AnalyticsSource = (typeof SOURCES)[keyof typeof SOURCES];
