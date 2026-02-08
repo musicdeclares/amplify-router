@@ -91,7 +91,8 @@ export function FallbackPageClient() {
                       href={primaryCtaUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      data-umami-event={EVENTS.FALLBACK_CTA_CRP}
+                      data-umami-event={EVENTS.FALLBACK_CTA_GLOBAL}
+                      data-umami-event-partner="Climate Reality Project"
                       data-umami-event-ref={refParam || "landing"}
                       data-umami-event-artist={artistName || undefined}
                     >
