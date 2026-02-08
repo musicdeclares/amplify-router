@@ -159,6 +159,58 @@ SUPABASE_SERVICE_ROLE_KEY
 NEXT_PUBLIC_SITE_URL          # For canonical URLs in kit page
 ```
 
+## Deployment
+
+Hosted on Vercel. Only `main` and `staging` branches trigger deployments (configured via Ignored Build Step).
+
+### Environments
+
+| Branch | Environment | URL |
+|--------|-------------|-----|
+| `main` | Production | `amplify.musicdeclares.net` (configured in Vercel project settings) |
+| `staging` | Preview | `amplify-router-git-staging-musicdeclares.vercel.app` |
+| Other branches | Not deployed | Push to GitHub for PRs, but no Vercel build |
+
+### Setup (one-time)
+
+Create the staging branch:
+```bash
+git branch staging
+git push origin staging
+```
+
+### Development Workflow
+
+```bash
+# 1. Create feature branch
+git checkout -b my-feature
+
+# 2. Work and commit as usual
+git add . && git commit -m "Add feature"
+
+# 3. Push to staging for preview (stable URL)
+git push origin HEAD:staging -f
+
+# 4. Test at: amplify-router-git-staging-musicdeclares.vercel.app
+
+# 5. Push feature branch to GitHub for PR
+git push origin my-feature
+
+# 6. Create PR: my-feature → main
+
+# 7. Merge PR when ready (deploys to production)
+```
+
+### Notes
+
+- The `-f` (force push) to staging is intentional—it's a throwaway branch
+- Never merge staging → main; merge your feature branch → main
+- Feature branches are pushed to GitHub for version control and PRs, but don't trigger Vercel builds
+- Vercel config: Settings → Build and Deployment → Ignored Build Step → Custom:
+  ```
+  [ "$VERCEL_GIT_COMMIT_REF" = "main" ] || [ "$VERCEL_GIT_COMMIT_REF" = "staging" ] && exit 1 || exit 0
+  ```
+
 ## Project Structure
 
 ```
