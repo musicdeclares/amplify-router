@@ -196,6 +196,7 @@ export default function ArtistDashboardPage({
               <Link
                 href={`/kit/${artist.handle}`}
                 target="_blank"
+                rel="noopener noreferrer"
                 className="flex-1"
               >
                 <Button variant="outline" className="w-full">

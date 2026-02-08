@@ -97,6 +97,7 @@ export default function ArtistLayout({
                 <Link
                   href={`/kit/${artistHandle}`}
                   target="_blank"
+                  rel="noopener noreferrer"
                   className="hidden sm:inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
                   title="Starter Kit"
                 >
@@ -164,6 +165,7 @@ export default function ArtistLayout({
                 <Link
                   href={`/kit/${artistHandle}`}
                   target="_blank"
+                  rel="noopener noreferrer"
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center gap-1 px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
                 >
