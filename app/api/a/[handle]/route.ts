@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { routeRequest, getCountryFromRequest, DEFAULT_FALLBACK_URL } from "@/app/lib/router-logic";
+import { routeRequest, getCountryFromRequest, getFallbackBaseUrl } from "@/app/lib/router-logic";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ handle: string }> },
 ) {
   const { handle } = await params;
+  const fallbackBase = getFallbackBaseUrl();
 
   if (!handle) {
-    return NextResponse.redirect(
-      `${DEFAULT_FALLBACK_URL}?ref=no_handle`,
-      302,
-    );
+    return NextResponse.redirect(`${fallbackBase}/?ref=no_handle`, 302);
   }
 
   try {
@@ -28,10 +26,7 @@ export async function GET(
     console.error("Router API error:", error);
 
     // Fallback to default AMPLIFY page on any error
-    return NextResponse.redirect(
-      `${DEFAULT_FALLBACK_URL}?ref=api_error`,
-      302,
-    );
+    return NextResponse.redirect(`${fallbackBase}/?ref=api_error`, 302);
   }
 }
 

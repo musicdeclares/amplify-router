@@ -21,8 +21,38 @@ interface CountryDefaultWithOrg extends CountryDefault {
   org: OrgPublicView | null;
 }
 
-export const DEFAULT_FALLBACK_URL =
-  "https://www.musicdeclares.net/us/take-action/amplify";
+/**
+ * Get the base URL for fallback redirects.
+ * Uses environment-specific URL to avoid polluting production analytics with dev/staging events.
+ */
+export function getFallbackBaseUrl(): string {
+  return process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+}
+
+/**
+ * Build a fallback URL with query parameters.
+ * Includes artist display name when available for personalized messages.
+ */
+function buildFallbackUrl(params: {
+  ref: string;
+  artistHandle?: string;
+  artistName?: string;
+  countryCode?: string;
+}): string {
+  const base = getFallbackBaseUrl();
+  const searchParams = new URLSearchParams();
+  searchParams.set("ref", params.ref);
+  if (params.artistHandle) {
+    searchParams.set("artist", params.artistHandle);
+  }
+  if (params.artistName) {
+    searchParams.set("name", params.artistName);
+  }
+  if (params.countryCode) {
+    searchParams.set("country", params.countryCode);
+  }
+  return `${base}/?${searchParams.toString()}`;
+}
 
 export async function routeRequest(
   request: RouterRequest,
@@ -44,7 +74,7 @@ export async function routeRequest(
       return createFallbackResult(
         request,
         "artist_not_found",
-        `${DEFAULT_FALLBACK_URL}?ref=artist_not_found`,
+        buildFallbackUrl({ ref: "artist_not_found" }),
       );
     }
 
@@ -106,7 +136,11 @@ export async function routeRequest(
       return createFallbackResult(
         request,
         "no_tour",
-        `${DEFAULT_FALLBACK_URL}?artist=${artist.handle}&ref=no_tour`,
+        buildFallbackUrl({
+          ref: "no_tour",
+          artistHandle: artist.handle,
+          artistName: artist.name,
+        }),
         undefined,
         artist.id,
       );
@@ -120,7 +154,11 @@ export async function routeRequest(
       return createFallbackResult(
         request,
         "no_country",
-        `${DEFAULT_FALLBACK_URL}?artist=${artist.handle}&ref=no_country`,
+        buildFallbackUrl({
+          ref: "no_country",
+          artistHandle: artist.handle,
+          artistName: artist.name,
+        }),
         activeTour.id,
         artist.id,
       );
@@ -160,7 +198,12 @@ export async function routeRequest(
         return createFallbackResult(
           request,
           "org_not_found",
-          `${DEFAULT_FALLBACK_URL}?artist=${artist.handle}&country=${countryCode}&ref=org_not_found`,
+          buildFallbackUrl({
+            ref: "org_not_found",
+            artistHandle: artist.handle,
+            artistName: artist.name,
+            countryCode,
+          }),
           activeTour.id,
           artist.id,
           overrideOrgFallthrough,
@@ -174,7 +217,12 @@ export async function routeRequest(
       return createFallbackResult(
         request,
         "org_not_specified",
-        `${DEFAULT_FALLBACK_URL}?artist=${artist.handle}&country=${countryCode}&ref=org_not_specified`,
+        buildFallbackUrl({
+          ref: "org_not_specified",
+          artistHandle: artist.handle,
+          artistName: artist.name,
+          countryCode,
+        }),
         activeTour.id,
         artist.id,
         overrideOrgFallthrough,
@@ -197,7 +245,12 @@ export async function routeRequest(
       return createFallbackResult(
         request,
         "org_paused",
-        `${DEFAULT_FALLBACK_URL}?artist=${artist.handle}&country=${countryCode}&ref=org_paused`,
+        buildFallbackUrl({
+          ref: "org_paused",
+          artistHandle: artist.handle,
+          artistName: artist.name,
+          countryCode,
+        }),
         activeTour.id,
         artist.id,
         overrideOrgFallthrough,
@@ -221,7 +274,12 @@ export async function routeRequest(
       return createFallbackResult(
         request,
         "org_no_website",
-        `${DEFAULT_FALLBACK_URL}?artist=${artist.handle}&country=${countryCode}&ref=org_no_website`,
+        buildFallbackUrl({
+          ref: "org_no_website",
+          artistHandle: artist.handle,
+          artistName: artist.name,
+          countryCode,
+        }),
         activeTour.id,
         artist.id,
         overrideOrgFallthrough,
@@ -257,7 +315,7 @@ export async function routeRequest(
     return createFallbackResult(
       request,
       "error",
-      `${DEFAULT_FALLBACK_URL}?ref=error`,
+      buildFallbackUrl({ ref: "error" }),
     );
   }
 }
