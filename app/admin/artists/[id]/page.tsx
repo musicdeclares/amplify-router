@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use, useMemo } from "react";
-import { QrCode, Play, Pause } from "lucide-react";
+import { QrCode } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,6 @@ export default function EditArtistPage({
 
   // Form state
   const [name, setName] = useState("");
-  const [linkActive, setLinkActive] = useState(true);
   const [accountActive, setAccountActive] = useState(true);
   const [accountInactiveReason, setAccountInactiveReason] = useState("");
 
@@ -50,15 +49,14 @@ export default function EditArtistPage({
   const initialValues = useMemo(
     () => ({
       name: artist?.name ?? "",
-      linkActive: artist?.link_active ?? true,
       accountActive: artist?.account_active ?? true,
       accountInactiveReason: artist?.account_inactive_reason ?? "",
     }),
     [artist],
   );
   const currentValues = useMemo(
-    () => ({ name, linkActive, accountActive, accountInactiveReason }),
-    [name, linkActive, accountActive, accountInactiveReason],
+    () => ({ name, accountActive, accountInactiveReason }),
+    [name, accountActive, accountInactiveReason],
   );
   const { hasUnsavedChanges, savedAt, markSaved } = useUnsavedChanges(
     initialValues,
@@ -83,7 +81,6 @@ export default function EditArtistPage({
       const data = await res.json();
       setArtist(data.artist);
       setName(data.artist.name);
-      setLinkActive(data.artist.link_active);
       setAccountActive(data.artist.account_active ?? true);
       setAccountInactiveReason(data.artist.account_inactive_reason ?? "");
     } catch (error) {
@@ -110,7 +107,6 @@ export default function EditArtistPage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: name.trim(),
-          link_active: linkActive,
           account_active: accountActive,
           account_inactive_reason: accountActive
             ? null
@@ -221,45 +217,6 @@ export default function EditArtistPage({
                 <p className="text-sm text-muted-foreground">
                   Handle cannot be changed after creation.
                 </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Link Status</Label>
-                <div className="flex items-center gap-3 p-3 border rounded-md">
-                  <div
-                    className={`p-1.5 rounded-full ${linkActive ? "bg-green-100 text-green-600" : "bg-muted text-muted-foreground"}`}
-                  >
-                    {linkActive ? (
-                      <Play className="h-4 w-4" />
-                    ) : (
-                      <Pause className="h-4 w-4" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">
-                      {linkActive ? "Link is active" : "Link is paused"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {linkActive
-                        ? "Fans are being routed to organizations"
-                        : "Fans see a fallback page"}
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setLinkActive(!linkActive)}
-                    disabled={saving}
-                  >
-                    {linkActive ? "Pause" : "Resume"}
-                  </Button>
-                </div>
-                {artist.link_inactive_reason && !linkActive && (
-                  <p className="text-sm text-muted-foreground">
-                    Reason: {artist.link_inactive_reason}
-                  </p>
-                )}
               </div>
 
               <div className="space-y-3">

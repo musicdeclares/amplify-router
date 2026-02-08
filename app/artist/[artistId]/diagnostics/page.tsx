@@ -1,3 +1,4 @@
+// Documented in: content/help/artist/troubleshooting.md#understanding-fallback-diagnostics
 "use client";
 
 import { useState, useEffect, use } from "react";

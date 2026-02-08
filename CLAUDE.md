@@ -17,7 +17,7 @@ Historically, artists promoted orgs via static links or one-off QR codes. This b
 ## User Types
 
 - **Fans**: Scan QR codes or click links at shows, on social media, etc.
-- **Artists / managers**: Configure their own tours, country routing, and link status via self-service dashboard
+- **Artists / managers**: Configure their own tours and country routing via self-service dashboard
 - **MDE admins**: Manage artists, tours, orgs, safety overrides, and send artist invites
 
 ## Product Constraints (from MOU)
@@ -63,7 +63,7 @@ The directory shares data with the router — both read from `org_public_view` (
 | `/directory` | Public org directory with search and country filter |
 | `/kit/{handle}` | Artist starter kit page with AMPLIFY link, QR code, sample captions |
 | `/help` | Help center with documentation (filtered by user role) |
-| `/help/{slug}` | Individual help articles (admin-guide, artist-guide) |
+| `/help/{audience}/{slug}` | Individual help articles (e.g., `/help/admin/tours`) |
 | `/invite/{token}` | Artist onboarding page for accepting invites |
 
 ### Artist Routes (require artist authentication)
@@ -74,7 +74,7 @@ The directory shares data with the router — both read from `org_public_view` (
 | `/artist/{artistId}/tours/new` | Create new tour |
 | `/artist/{artistId}/tours/{tourId}` | Edit tour and country routing |
 | `/artist/{artistId}/diagnostics` | Fallback diagnostics and troubleshooting |
-| `/artist/{artistId}/settings` | Account settings (name, email, link status) |
+| `/artist/{artistId}/settings` | Account settings (name, email) |
 
 ### Admin Routes (require admin authentication)
 | Route | Description |
@@ -107,7 +107,7 @@ All router tables are prefixed with `router_` for namespace separation.
 
 | Table | Purpose |
 |-------|---------|
-| `router_artists` | Artist profiles with handles, link status, and account status |
+| `router_artists` | Artist profiles with handles and account status |
 | `router_tours` | Tour dates with pre/post windows |
 | `router_tour_overrides` | Artist-selected orgs per tour + country |
 | `router_country_defaults` | MDE-recommended orgs per country |
@@ -149,7 +149,6 @@ All router tables are prefixed with `router_` for namespace separation.
 - Dashboard with AMPLIFY link, QR code, and stats
 - Create and manage tours with country routing
 - View fallback diagnostics with actionable guidance
-- Pause/resume their own link
 
 ## Environment Variables
 
@@ -199,6 +198,7 @@ content/
 - **Artist handles are permanent** — once created, they become public URLs that shouldn't be deleted
 - **Home page redirects to MDE site** (interim) — will switch to org directory when ready for launch
 - **Org directory integrated** — lives in same codebase, shares data with router via `router_org_profiles`
+- **No artist link pause** — Tour windows already control when routing is active; a separate "pause link" toggle added confusion without value. DB columns (`link_active`, `link_inactive_reason`) retained for potential future use
 
 ## Terminology Conventions
 
@@ -208,10 +208,9 @@ Use consistent, inclusive language throughout user-facing text and documentation
 
 | Context | On State | Off State | Who Controls | Rationale |
 |---------|----------|-----------|--------------|-----------|
-| Artist link | **Active** / **Resume** | **Paused** | Artist or Admin | Media control metaphor familiar to musicians (play/pause) |
-| Artist account | **Active** | **Inactive** / **Deactivated** | Admin only | More permanent; "deactivated" implies admin action |
-| Tour | **Active** | **Inactive** | Artist or Admin | Aligns with artist link terminology |
-| Organization | **Active** / **Resume** | **Paused** | Admin only | Orgs can be temporarily paused, not permanently disabled |
+| Artist account | **Active** | **Inactive** / **Deactivated** | Admin only | "Deactivated" implies admin action; used for ending partnerships |
+| Tour | **Active** | **Inactive** | Artist or Admin | Tours control when routing is active |
+| Organization | **Active** / **Resume** | **Paused** | Admin only | Orgs can be temporarily paused per MOU requirements |
 
 ### Words to Avoid
 
@@ -220,16 +219,16 @@ Use consistent, inclusive language throughout user-facing text and documentation
 
 ### Icons
 
-- **Link status**: Play icon (active), Pause icon (paused)
 - **Account status**: Ban icon (deactivated by admin)
 
 ### Database Fields
 
 Database column names use `enabled` for boolean flags (e.g., `router_tours.enabled`). This is acceptable for internal schema — the convention applies to user-facing text only.
 
-For artist status specifically:
-- `link_active` + `link_inactive_reason`: Artist/admin can toggle
-- `account_active` + `account_inactive_reason`: Admin only
+For artist status:
+- `account_active` + `account_inactive_reason`: Admin only (for ending partnerships)
+
+Note: `link_active` and `link_inactive_reason` columns exist in the database but are not exposed in the UI. They were removed because tour windows already handle routing activation, and the feature was not requested by artists. The columns are retained for potential future use.
 
 ## Launch Checklist (Org Directory)
 
@@ -242,6 +241,19 @@ When ready to make `/directory` the public-facing home page:
 - [ ] Consider structured data (JSON-LD) for organizations
 - [ ] Switch home page from MDE redirect to org directory
 - [ ] Update Umami `data-domains` if domain changes from mde-amplify.vercel.app
+
+## Keeping Docs in Sync
+
+Help documentation lives in `content/help/` and describes UI flows step-by-step. When changing UI text (button labels, field names, navigation), update the corresponding help doc.
+
+Key files have comments pointing to their docs:
+```tsx
+// Documented in: content/help/admin/artists.md#inviting-an-artist
+```
+
+**Help doc structure:**
+- `content/help/admin/` — Admin guides (getting-started, artists, tours, organizations)
+- `content/help/artist/` — Artist guides (getting-started, tours, troubleshooting)
 
 ## Future Considerations
 
