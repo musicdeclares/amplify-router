@@ -5,6 +5,7 @@ import { Copy, Check, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { QrCodeDialog } from "@/components/shared/QrCodeDialog";
+import { EVENTS } from "@/app/lib/analytics-events";
 
 function getSampleCaptions(artistName: string, url: string) {
   return [
@@ -115,6 +116,8 @@ export function KitClientSection({
           size="sm"
           onClick={handleCopy}
           className="shrink-0 print:hidden"
+          data-umami-event={EVENTS.KIT_COPY_LINK}
+          data-umami-event-artist={artistHandle}
         >
           {copied ? (
             <Check className="h-4 w-4" />
@@ -132,6 +135,8 @@ export function KitClientSection({
         variant="outline"
         className="w-full print:hidden"
         onClick={() => setQrOpen(true)}
+        data-umami-event={EVENTS.KIT_OPEN_QR_DIALOG}
+        data-umami-event-artist={artistHandle}
       >
         <QrCode className="h-4 w-4 mr-2" />
         Download QR Code
@@ -168,6 +173,9 @@ export function KitClientSection({
                   size="sm"
                   onClick={() => handleCopyCaption(index, caption.text)}
                   className="shrink-0"
+                  data-umami-event={EVENTS.KIT_COPY_CAPTION}
+                  data-umami-event-artist={artistHandle}
+                  data-umami-event-caption={caption.label}
                 >
                   {copiedCaption === index ? (
                     <Check className="h-4 w-4" />

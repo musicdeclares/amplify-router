@@ -284,15 +284,16 @@ Note: `link_active` and `link_inactive_reason` columns exist in the database but
 
 ## Launch Checklist (Org Directory)
 
-When ready to make `/directory` the public-facing home page:
+When ready to promote the org directory for public discovery:
 
 - [ ] Add OpenGraph image (1200×630px branded image for social sharing)
 - [ ] Add Twitter card metadata
 - [ ] Add `robots.txt` allowing crawling
 - [ ] Add `sitemap.xml` for search engines
 - [ ] Consider structured data (JSON-LD) for organizations
-- [ ] Switch home page from MDE redirect to org directory
-- [ ] Update Umami `data-domains` if domain changes from mde-amplify.vercel.app
+- [ ] Update Umami `data-domains` if domain changes from amplify.musicdeclares.net
+
+Note: Home page (`/`) is now the fallback page with Climate Reality Project CTA. Directory remains at `/directory`.
 
 ## Keeping Docs in Sync
 
@@ -333,6 +334,60 @@ Use **canonical Tailwind classes** instead of arbitrary pixel values for accessi
 - shadcn/ui component defaults (leave as-is)
 - Print-specific styles where exact pixel sizing is intentional
 
+## Analytics Tracking
+
+We use Umami for client-side analytics. Event tracking is defined in `app/lib/analytics-events.ts`.
+
+### Adding Event Tracking
+
+Use `data-umami-event` attributes on clickable elements:
+
+```tsx
+import { EVENTS } from "@/app/lib/analytics-events";
+
+// Simple event
+<Button data-umami-event={EVENTS.KIT_COPY_LINK}>
+  Copy Link
+</Button>
+
+// With properties (for context like org name, artist, etc.)
+<Button
+  data-umami-event={EVENTS.DIRECTORY_ORG_CTA}
+  data-umami-event-org={org.name}
+  data-umami-event-country={org.country}
+>
+  Take Action
+</Button>
+```
+
+### Naming Convention
+
+Event names follow `{area}-{action}[-{detail}]`:
+- **area**: page or feature (fallback, directory, kit, artist, admin)
+- **action**: what the user did (cta, click, copy, download, create)
+- **detail**: optional specificity (crp, directory, qr)
+
+### When to Add Tracking
+
+Track user-initiated actions that indicate engagement:
+- CTA button clicks
+- Form submissions
+- Copy/download actions
+- Navigation to key pages
+- External link clicks
+
+Do NOT track:
+- Page views (Umami handles automatically)
+- Hover states or passive interactions
+- Internal navigation within the same flow
+
+### Verification
+
+1. Open browser DevTools → Network tab
+2. Filter for requests to `umami`
+3. Click the tracked element
+4. Verify the event payload includes expected name and properties
+
 ## Future Considerations
 
 - **Organization self-service**: Let orgs update their own profiles in the directory
@@ -340,3 +395,4 @@ Use **canonical Tailwind classes** instead of arbitrary pixel values for accessi
 - **Audit trail**: Log configuration changes for compliance
 - **Emergency controls**: "Pause all routing" button with safeguards
 - **Branded email invites**: Replace mailto links with server-sent emails via Resend
+- **A/B test sample captions**: Track which caption types get copied most (`kit-copy-caption` event with `caption` property), then test variant copy to optimize messaging. Add a `variant` property when ready to test alternatives.

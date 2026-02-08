@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { EVENTS } from "@/app/lib/analytics-events";
 
 const LOGO_PATH = "/logo.png";
 
@@ -235,11 +236,26 @@ export function QrCodeDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => downloadFile("svg")}>
+          <Button
+            variant="outline"
+            onClick={() => downloadFile("svg")}
+            data-umami-event={EVENTS.KIT_DOWNLOAD_QR}
+            data-umami-event-artist={artistHandle}
+            data-umami-event-format="svg"
+            data-umami-event-mode={darkMode ? "dark" : "light"}
+            data-umami-event-background={solidBg ? "solid" : "transparent"}
+          >
             <Download className="h-4 w-4 mr-2" />
             Download SVG
           </Button>
-          <Button onClick={() => downloadFile("png")}>
+          <Button
+            onClick={() => downloadFile("png")}
+            data-umami-event={EVENTS.KIT_DOWNLOAD_QR}
+            data-umami-event-artist={artistHandle}
+            data-umami-event-format="png"
+            data-umami-event-mode={darkMode ? "dark" : "light"}
+            data-umami-event-background={solidBg ? "solid" : "transparent"}
+          >
             <Download className="h-4 w-4 mr-2" />
             Download PNG
           </Button>
