@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { getCountryLabel } from "@/app/lib/countries";
-import { AlertTriangle, CheckCircle2, Copy, ExternalLink } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Copy, ExternalLink, HelpCircle } from "lucide-react";
 
 interface FallbackEvent {
   id: string;
@@ -164,10 +164,18 @@ Please share this with your MDE contact for assistance.`;
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Fallback Diagnostics</h1>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            Fallback Diagnostics
+            <Link href="/help/artist/troubleshooting" className="text-muted-foreground hover:text-foreground">
+              <HelpCircle className="h-5 w-5" />
+            </Link>
+          </h1>
           <p className="text-muted-foreground mt-1">
             Understand why some fans see the fallback page instead of being
-            routed to an organization
+            routed to an organization.{" "}
+            <Link href="/help/artist/troubleshooting" className="underline hover:no-underline">
+              Learn more
+            </Link>
           </p>
         </div>
         <Select value={days} onValueChange={setDays}>

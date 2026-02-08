@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -107,9 +108,17 @@ export default function NewArtistPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Add Artist</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            Add Artist
+            <Link href="/help/admin/artists#adding-an-artist-directly" className="text-muted-foreground hover:text-foreground">
+              <HelpCircle className="h-4 w-4" />
+            </Link>
+          </CardTitle>
           <CardDescription>
-            Add a new artist to set up their AMPLIFY link and tours.
+            Add a new artist to set up their AMPLIFY link and tours.{" "}
+            <Link href="/help/admin/artists#adding-an-artist-directly" className="underline hover:no-underline">
+              Learn more
+            </Link>
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
