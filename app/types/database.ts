@@ -318,6 +318,83 @@ export interface Database {
           updated_at?: string;
         };
       };
+      router_feedback: {
+        Row: {
+          id: string;
+          user_id: string;
+          artist_id: string | null;
+          page_url: string;
+          page_path: string;
+          page_context: string | null;
+          category: "bug" | "suggestion" | "question" | "praise" | null;
+          message: string;
+          screenshot_url: string | null;
+          browser_info: Record<string, unknown> | null;
+          status:
+            | "new"
+            | "triaging"
+            | "in_progress"
+            | "completed"
+            | "blocked"
+            | "wont_fix";
+          priority: "low" | "medium" | "high" | "critical" | null;
+          assigned_to: string | null;
+          related_to: string | null;
+          admin_notes: string | null;
+          resolution_notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          artist_id?: string | null;
+          page_url: string;
+          page_path: string;
+          page_context?: string | null;
+          category?: "bug" | "suggestion" | "question" | "praise" | null;
+          message: string;
+          screenshot_url?: string | null;
+          browser_info?: Record<string, unknown> | null;
+          status?:
+            | "new"
+            | "triaging"
+            | "in_progress"
+            | "completed"
+            | "blocked"
+            | "wont_fix";
+          priority?: "low" | "medium" | "high" | "critical" | null;
+          assigned_to?: string | null;
+          related_to?: string | null;
+          admin_notes?: string | null;
+          resolution_notes?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          artist_id?: string | null;
+          page_url?: string;
+          page_path?: string;
+          page_context?: string | null;
+          category?: "bug" | "suggestion" | "question" | "praise" | null;
+          message?: string;
+          screenshot_url?: string | null;
+          browser_info?: Record<string, unknown> | null;
+          status?:
+            | "new"
+            | "triaging"
+            | "in_progress"
+            | "completed"
+            | "blocked"
+            | "wont_fix";
+          priority?: "low" | "medium" | "high" | "critical" | null;
+          assigned_to?: string | null;
+          related_to?: string | null;
+          admin_notes?: string | null;
+          resolution_notes?: string | null;
+          created_at?: string;
+        };
+      };
       org: {
         Row: {
           id: string;
