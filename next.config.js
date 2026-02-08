@@ -8,6 +8,25 @@ const nextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: "/admin/login",
+        destination: "/login",
+        permanent: true,
+      },
+      {
+        source: "/admin/forgot-password",
+        destination: "/forgot-password",
+        permanent: true,
+      },
+      {
+        source: "/admin/reset-password",
+        destination: "/reset-password",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
