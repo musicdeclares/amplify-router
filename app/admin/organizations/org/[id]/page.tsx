@@ -38,6 +38,7 @@ import {
 import { ImageUpload } from "@/components/shared/ImageUpload";
 import { PauseOrgDialog } from "@/components/shared/PauseOrgDialog";
 import { useUnsavedChanges } from "@/app/lib/hooks/use-unsaved-changes";
+import { EVENTS } from "@/app/lib/analytics-events";
 import { UnsavedChangesIndicator } from "@/components/shared/UnsavedChangesIndicator";
 import { getCountryLabel, getCountryFlag } from "@/app/lib/countries";
 import { isSamePrimaryDomain } from "@/app/lib/url-utils";
@@ -392,6 +393,8 @@ export default function OrgProfilePage({
             variant="outline"
             onClick={handleResume}
             disabled={togglingPause}
+            data-umami-event={EVENTS.ADMIN_RESUME_ORG}
+            data-umami-event-org={org.org_name}
           >
             {togglingPause ? "Activating..." : "Activate"}
           </Button>
@@ -555,7 +558,12 @@ export default function OrgProfilePage({
               </div>
 
               <div className="flex items-center gap-4">
-                <Button onClick={handleSave} disabled={saving}>
+                <Button
+                  onClick={handleSave}
+                  disabled={saving}
+                  data-umami-event={EVENTS.ADMIN_SAVE_ORG_PROFILE}
+                  data-umami-event-org={org.org_name}
+                >
                   {saving ? "Saving..." : "Save Profile"}
                 </Button>
                 <UnsavedChangesIndicator
@@ -578,6 +586,7 @@ export default function OrgProfilePage({
             <CardContent>
               <ImageUpload
                 orgId={orgId}
+                orgName={org.org_name}
                 currentImageUrl={profile?.image_url || null}
                 placeholder="Upload an image to customize"
                 onImageChange={(url) => {
@@ -604,34 +613,30 @@ export default function OrgProfilePage({
             </CardContent>
           </Card>
 
-          {/* Danger Zone */}
-          <Card className="border-destructive/50">
-            <CardHeader>
-              <CardTitle className="text-base text-destructive">
-                Danger Zone
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Reset all profile overrides. The organization will revert to its
-                MDEDB data for fan-facing display, and routing will use the
-                org&apos;s website URL.
-              </p>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => setResetDialogOpen(true)}
-                disabled={!profile}
-              >
-                Reset Profile
-              </Button>
-              {!profile && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  No profile to reset.
+          {/* Danger Zone - only show when there's a profile to reset */}
+          {profile && (
+            <Card className="border-destructive/50">
+              <CardHeader>
+                <CardTitle className="text-base text-destructive">
+                  Danger Zone
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Reset all profile overrides. The organization will revert to its
+                  MDEDB data for fan-facing display, and routing will use the
+                  org&apos;s website URL.
                 </p>
-              )}
-            </CardContent>
-          </Card>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setResetDialogOpen(true)}
+                >
+                  Reset Profile
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Right column: Live preview */}
@@ -902,6 +907,8 @@ export default function OrgProfilePage({
               variant="destructive"
               onClick={handleReset}
               disabled={resetting}
+              data-umami-event={EVENTS.ADMIN_RESET_ORG_PROFILE}
+              data-umami-event-org={org.org_name}
             >
               {resetting ? "Resetting..." : "Reset Profile"}
             </Button>

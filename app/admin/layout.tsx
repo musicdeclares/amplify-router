@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Menu, X, HelpCircle } from "lucide-react";
 import { FeedbackWidget } from "@/components/feedback";
+import { EVENTS, SOURCES } from "@/app/lib/analytics-events";
 
 const navigation = [
   { name: "Dashboard", href: "/admin" },
@@ -77,6 +78,8 @@ export default function AdminLayout({
                 href="/help"
                 className="hidden sm:inline-flex text-muted-foreground hover:text-foreground"
                 title="Help"
+                data-umami-event={EVENTS.NAV_HELP}
+                data-umami-event-source={SOURCES.NAV}
               >
                 <HelpCircle className="h-5 w-5" />
               </Link>
@@ -133,6 +136,8 @@ export default function AdminLayout({
                 href="/help"
                 onClick={() => setMobileMenuOpen(false)}
                 className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                data-umami-event={EVENTS.NAV_HELP}
+                data-umami-event-source={SOURCES.NAV}
               >
                 Help
               </Link>

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Artist, Invite } from "@/app/types/router";
+import { EVENTS, SOURCES } from "@/app/lib/analytics-events";
 import { ArrowUpDown, ArrowUp, ArrowDown, ChevronRight, Mail, Clock, MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
@@ -244,12 +245,22 @@ export default function ArtistsPage() {
                                   View invite
                                 </Link>
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleExtendInvite(invite.id)}>
+                              <DropdownMenuItem
+                                onClick={() => handleExtendInvite(invite.id)}
+                                data-umami-event={EVENTS.ADMIN_EXTEND_INVITE}
+                                data-umami-event-artist={invite.suggested_name}
+                                data-umami-event-invite={invite.id}
+                                data-umami-event-source={SOURCES.ARTISTS_LIST}
+                              >
                                 Extend 7 days
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleRevokeInvite(invite.id)}
                                 className="text-destructive"
+                                data-umami-event={EVENTS.ADMIN_REVOKE_INVITE}
+                                data-umami-event-artist={invite.suggested_name}
+                                data-umami-event-invite={invite.id}
+                                data-umami-event-source={SOURCES.ARTISTS_LIST}
                               >
                                 Revoke invite
                               </DropdownMenuItem>

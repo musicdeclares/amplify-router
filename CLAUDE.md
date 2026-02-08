@@ -363,9 +363,9 @@ import { EVENTS } from "@/app/lib/analytics-events";
 ### Naming Convention
 
 Event names follow `{area}-{action}[-{detail}]`:
-- **area**: page or feature (fallback, directory, kit, artist, admin)
+- **area**: page or role (fallback, directory, kit; artist, admin)
 - **action**: what the user did (cta, click, copy, download, create)
-- **detail**: optional specificity (crp, directory, qr)
+- **detail**: optional specificity (global, directory, qr)
 
 ### When to Add Tracking
 
@@ -387,6 +387,13 @@ Do NOT track:
 2. Filter for requests to `umami`
 3. Click the tracked element
 4. Verify the event payload includes expected name and properties
+
+### Privacy
+
+Avoid storing personally identifiable information (PII) in event properties:
+- Use IDs (invite ID, artist ID) instead of emails
+- Artist names are acceptable (public/stage names, not personal names)
+- Tokens can be used for correlation with app database
 
 ## Future Considerations
 

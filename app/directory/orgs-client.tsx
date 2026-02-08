@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, ChevronRight, AlertCircle, Globe } from "lucide-react";
 import type { DirectoryOrganization } from "@/app/types/router";
+import { EVENTS } from "@/app/lib/analytics-events";
 
 interface OrgsClientProps {
   organizations: DirectoryOrganization[];
@@ -155,6 +156,7 @@ export function OrgsClient({ organizations, error }: OrgsClientProps) {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 border-gray-300"
+                  data-umami-event={EVENTS.DIRECTORY_SEARCH}
                 />
               </div>
 
@@ -170,7 +172,12 @@ export function OrgsClient({ organizations, error }: OrgsClientProps) {
                   <SelectContent>
                     <SelectItem value="all">All Countries</SelectItem>
                     {availableCountries.map((country) => (
-                      <SelectItem key={country} value={country}>
+                      <SelectItem
+                        key={country}
+                        value={country}
+                        data-umami-event={EVENTS.DIRECTORY_FILTER_COUNTRY}
+                        data-umami-event-country={country}
+                      >
                         {country}
                       </SelectItem>
                     ))}

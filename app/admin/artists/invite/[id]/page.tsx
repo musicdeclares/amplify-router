@@ -16,6 +16,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Invite } from "@/app/types/router";
+import { EVENTS, SOURCES } from "@/app/lib/analytics-events";
 
 export default function ViewInvitePage({
   params,
@@ -259,6 +260,11 @@ Music Declares Emergency`;
                 variant="outline"
                 size="icon"
                 onClick={() => copyToClipboard(getInviteUrl(), "link")}
+                data-umami-event={EVENTS.ADMIN_COPY_INVITE}
+                data-umami-event-artist={invite.suggested_name}
+                data-umami-event-invite={invite.id}
+                data-umami-event-field="link"
+                data-umami-event-source={SOURCES.INVITE_PAGE}
               >
                 {copiedField === "link" ? (
                   <Check className="h-4 w-4" />
@@ -276,7 +282,13 @@ Music Declares Emergency`;
           {isActive && (
             <div className="space-y-4">
               <div className="flex items-center gap-4">
-                <a href={getMailtoLink()}>
+                <a
+                  href={getMailtoLink()}
+                  data-umami-event={EVENTS.ADMIN_EMAIL_INVITE}
+                  data-umami-event-artist={invite.suggested_name}
+                  data-umami-event-invite={invite.id}
+                  data-umami-event-source={SOURCES.INVITE_PAGE}
+                >
                   <Button>
                     <Mail className="h-4 w-4 mr-2" />
                     {isExpired ? "Send via Email" : "Resend via Email"}
@@ -303,6 +315,11 @@ Music Declares Emergency`;
                       variant="outline"
                       size="icon"
                       onClick={() => copyToClipboard(getEmailSubject(), "subject")}
+                      data-umami-event={EVENTS.ADMIN_COPY_INVITE}
+                      data-umami-event-artist={invite.suggested_name}
+                      data-umami-event-invite={invite.id}
+                      data-umami-event-field="subject"
+                      data-umami-event-source={SOURCES.INVITE_PAGE}
                     >
                       {copiedField === "subject" ? (
                         <Check className="h-4 w-4" />
@@ -325,6 +342,11 @@ Music Declares Emergency`;
                       size="icon"
                       className="shrink-0"
                       onClick={() => copyToClipboard(getEmailBody(), "body")}
+                      data-umami-event={EVENTS.ADMIN_COPY_INVITE}
+                      data-umami-event-artist={invite.suggested_name}
+                      data-umami-event-invite={invite.id}
+                      data-umami-event-field="body"
+                      data-umami-event-source={SOURCES.INVITE_PAGE}
                     >
                       {copiedField === "body" ? (
                         <Check className="h-4 w-4" />
@@ -342,10 +364,24 @@ Music Declares Emergency`;
           <div className="flex gap-4 pt-4 border-t">
             {isActive && (
               <>
-                <Button variant="outline" onClick={handleExtend}>
+                <Button
+                  variant="outline"
+                  onClick={handleExtend}
+                  data-umami-event={EVENTS.ADMIN_EXTEND_INVITE}
+                  data-umami-event-artist={invite.suggested_name}
+                  data-umami-event-invite={invite.id}
+                  data-umami-event-source={SOURCES.INVITE_PAGE}
+                >
                   Extend 7 Days
                 </Button>
-                <Button variant="destructive" onClick={handleRevoke}>
+                <Button
+                  variant="destructive"
+                  onClick={handleRevoke}
+                  data-umami-event={EVENTS.ADMIN_REVOKE_INVITE}
+                  data-umami-event-artist={invite.suggested_name}
+                  data-umami-event-invite={invite.id}
+                  data-umami-event-source={SOURCES.INVITE_PAGE}
+                >
                   Revoke Invite
                 </Button>
               </>

@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { EVENTS } from "@/app/lib/analytics-events";
 
 interface PauseOrgDialogProps {
   open: boolean;
@@ -108,6 +109,8 @@ export function PauseOrgDialog({
             variant="destructive"
             onClick={handlePause}
             disabled={isPausing}
+            data-umami-event={EVENTS.ADMIN_PAUSE_ORG}
+            data-umami-event-org={orgName}
           >
             {isPausing ? "Pausing..." : "Pause"}
           </Button>

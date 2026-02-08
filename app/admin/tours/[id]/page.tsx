@@ -54,10 +54,11 @@ import {
 import { toast } from "sonner";
 import { Tour, Artist, TourOverride, CountryDefault } from "@/app/types/router";
 import { getCountryLabel, COUNTRY_OPTIONS } from "@/app/lib/countries";
-import { X, AlertTriangle } from "lucide-react";
+import { X, AlertTriangle, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUnsavedChanges } from "@/app/lib/hooks/use-unsaved-changes";
 import { UnsavedChangesIndicator } from "@/components/shared/UnsavedChangesIndicator";
+import { EVENTS, SOURCES } from "@/app/lib/analytics-events";
 
 interface OrgInfo {
   id: string;
@@ -417,8 +418,30 @@ export default function EditTourPage({
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Tour Details</CardTitle>
-                <CardDescription>Update tour information</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  Tour Details
+                  <Link
+                    href="/help/admin/tours"
+                    className="text-muted-foreground hover:text-foreground"
+                    data-umami-event={EVENTS.NAV_HELP}
+                    data-umami-event-topic="tour-edit"
+                    data-umami-event-source={SOURCES.ADMIN_TOUR_FORM}
+                  >
+                    <HelpCircle className="h-4 w-4" />
+                  </Link>
+                </CardTitle>
+                <CardDescription>
+                  Update tour information.{" "}
+                  <Link
+                    href="/help/admin/tours"
+                    className="underline hover:no-underline"
+                    data-umami-event={EVENTS.NAV_HELP}
+                    data-umami-event-topic="tour-edit"
+                    data-umami-event-source={SOURCES.ADMIN_TOUR_FORM}
+                  >
+                    Learn more
+                  </Link>
+                </CardDescription>
               </div>
               <div className="flex items-center gap-2">
                 {!tour.enabled ? (
@@ -544,7 +567,13 @@ export default function EditTourPage({
             </div>
 
             <div className="flex items-center gap-4">
-              <Button onClick={handleSave} disabled={saving}>
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                data-umami-event={EVENTS.ADMIN_SAVE_TOUR}
+                data-umami-event-artist={tour.router_artists.handle}
+                data-umami-event-tour={tour.name}
+              >
                 {saving ? "Saving..." : "Save Changes"}
               </Button>
               <UnsavedChangesIndicator
@@ -604,6 +633,10 @@ export default function EditTourPage({
                               <CommandItem
                                 key={country.value}
                                 onSelect={() => handleAddCountry(country.value)}
+                                data-umami-event={EVENTS.ADMIN_ADD_COUNTRY}
+                                data-umami-event-artist={tour.router_artists.handle}
+                                data-umami-event-tour={tour.name}
+                                data-umami-event-country={country.value}
                               >
                                 {country.label}
                                 <span className="ml-2 text-muted-foreground text-xs">
@@ -633,6 +666,10 @@ export default function EditTourPage({
                             <CommandItem
                               key={country.value}
                               onSelect={() => handleAddCountry(country.value)}
+                              data-umami-event={EVENTS.ADMIN_ADD_COUNTRY}
+                              data-umami-event-artist={tour.router_artists.handle}
+                              data-umami-event-tour={tour.name}
+                              data-umami-event-country={country.value}
                             >
                               {country.label}
                               <span className="ml-2 text-muted-foreground text-xs">
@@ -693,6 +730,10 @@ export default function EditTourPage({
                                 countryCode: override.country_code,
                               })
                             }
+                            data-umami-event={EVENTS.ADMIN_REMOVE_COUNTRY}
+                            data-umami-event-artist={tour.router_artists.handle}
+                            data-umami-event-tour={tour.name}
+                            data-umami-event-country={override.country_code}
                           >
                             <X className="h-4 w-4" />
                           </Button>
@@ -848,6 +889,10 @@ export default function EditTourPage({
                                     countryCode: override.country_code,
                                   })
                                 }
+                                data-umami-event={EVENTS.ADMIN_REMOVE_COUNTRY}
+                                data-umami-event-artist={tour.router_artists.handle}
+                                data-umami-event-tour={tour.name}
+                                data-umami-event-country={override.country_code}
                               >
                                 <X className="h-4 w-4" />
                               </Button>
@@ -911,6 +956,9 @@ export default function EditTourPage({
               variant="destructive"
               onClick={handleDelete}
               disabled={deleting}
+              data-umami-event={EVENTS.ADMIN_DELETE_TOUR}
+              data-umami-event-artist={tour.router_artists.handle}
+              data-umami-event-tour={tour.name}
             >
               {deleting ? "Deleting..." : "Delete Tour"}
             </Button>

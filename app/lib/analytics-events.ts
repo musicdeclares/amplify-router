@@ -47,17 +47,29 @@ export const EVENTS = {
 
   // === Admin Dashboard ===
   ADMIN_CREATE_ARTIST: "admin-create-artist",
+  ADMIN_SAVE_ARTIST: "admin-save-artist",
   ADMIN_SEND_INVITE: "admin-send-invite",
-  ADMIN_COPY_INVITE: "admin-copy-invite",
+  ADMIN_COPY_INVITE: "admin-copy-invite", // Use with field property: link, subject, body
+  ADMIN_EMAIL_INVITE: "admin-email-invite",
+  ADMIN_EXTEND_INVITE: "admin-extend-invite",
   ADMIN_REVOKE_INVITE: "admin-revoke-invite",
-  ADMIN_DEACTIVATE_ARTIST: "admin-deactivate-artist",
-  ADMIN_REACTIVATE_ARTIST: "admin-reactivate-artist",
   ADMIN_CREATE_TOUR: "admin-create-tour",
-  ADMIN_EDIT_TOUR: "admin-edit-tour",
+  ADMIN_SAVE_TOUR: "admin-save-tour",
+  ADMIN_DELETE_TOUR: "admin-delete-tour",
+  ADMIN_ADD_COUNTRY: "admin-add-country",
+  ADMIN_REMOVE_COUNTRY: "admin-remove-country",
   ADMIN_SET_COUNTRY_DEFAULT: "admin-set-country-default",
+  ADMIN_REMOVE_COUNTRY_DEFAULT: "admin-remove-country-default",
+  ADMIN_ADD_DATE_SPECIFIC_REC: "admin-add-date-specific-rec",
   ADMIN_PAUSE_ORG: "admin-pause-org",
   ADMIN_RESUME_ORG: "admin-resume-org",
   ADMIN_SAVE_ORG_PROFILE: "admin-save-org-profile",
+  ADMIN_RESET_ORG_PROFILE: "admin-reset-org-profile",
+  ADMIN_UPLOAD_ORG_IMAGE: "admin-upload-org-image",
+  ADMIN_REMOVE_ORG_IMAGE: "admin-remove-org-image",
+
+  // === Invite Acceptance ===
+  INVITE_ACCEPT: "invite-accept",
 
   // === Shared / Navigation ===
   NAV_HELP: "nav-help",
@@ -82,7 +94,9 @@ export const SOURCES = {
 
   // Admin pages
   ARTIST_FORM: "artist-form",
-  INVITE_FORM: "invite-form",
+  INVITE_CREATED: "invite-created",
+  INVITE_PAGE: "invite-page",
+  ARTISTS_LIST: "artists-list",
   ADMIN_TOUR_FORM: "admin-tour-form",
 
   // Navigation
