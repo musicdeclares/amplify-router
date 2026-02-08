@@ -418,6 +418,62 @@ Avoid storing personally identifiable information (PII) in event properties:
 
 **Revisit if:** You find yourself frequently needing real-time joins between analytics and app data. Consolidating to Supabase is straightforward—just point Umami's `DATABASE_URL` to Supabase.
 
+## Internationalization (i18n)
+
+The directory (`/directory`) is i18n-ready with a content dictionary pattern.
+
+### Structure
+
+```
+app/lib/directory-content.ts  # All translatable strings
+```
+
+Content is organized by page section:
+- `meta`: Page title, description, OG tags
+- `header`: Page header text
+- `about`: "About the AMPLIFY Program" section
+- `search`: Search placeholder, results count
+- `filters`: Country filter labels
+- `card`: Organization card labels
+- `empty`: Empty/error state messages
+- `footer`: Footer text
+
+### Adding a New Language
+
+1. Add the locale to the `Locale` type:
+   ```typescript
+   export type Locale = "en" | "fr";
+   ```
+
+2. Add the translations object (copy `en` and translate):
+   ```typescript
+   export const directoryContent = {
+     en: { ... },
+     fr: { ... },
+   } as const;
+   ```
+
+3. Pass locale to components:
+   ```tsx
+   <OrgsClient organizations={orgs} locale="fr" />
+   ```
+
+4. For dynamic metadata, convert `page.tsx` to use `generateMetadata()`:
+   ```typescript
+   export async function generateMetadata({ params }): Promise<Metadata> {
+     const content = getDirectoryContent(params.locale);
+     return { title: content.meta.title, ... };
+   }
+   ```
+
+### Locale Detection (not yet implemented)
+
+Options for determining user locale:
+- URL path prefix (`/fr/directory`)
+- Cookie preference
+- `Accept-Language` header
+- Query param (`?lang=fr`)
+
 ## Future Considerations
 
 - **Organization self-service**: Let orgs update their own profiles in the directory

@@ -7,6 +7,7 @@ import { MapPin, Target, ExternalLink } from "lucide-react";
 import { ImageWithFallback } from "@/components/directory/ImageWithFallback";
 import type { DirectoryOrganization } from "@/app/types/router";
 import { EVENTS } from "@/app/lib/analytics-events";
+import { getDirectoryContent, type Locale } from "@/app/lib/directory-content";
 
 function appendUtmParams(url: string): string {
   try {
@@ -21,9 +22,11 @@ function appendUtmParams(url: string): string {
 
 interface OrganizationCardProps {
   organization: DirectoryOrganization;
+  locale?: Locale;
 }
 
-export function OrganizationCard({ organization }: OrganizationCardProps) {
+export function OrganizationCard({ organization, locale = "en" }: OrganizationCardProps) {
+  const content = getDirectoryContent(locale);
   return (
     <Card className="overflow-hidden border-gray-200 bg-white">
       <div className="relative h-48 overflow-hidden bg-gray-100">
@@ -76,7 +79,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
         {organization.fanActions.length > 0 && (
           <div className="mb-4">
             <p className="text-xs font-semibold text-muted-foreground mb-2">
-              FANS CAN
+              {content.card.fansCanLabel}
             </p>
             <div className="flex flex-wrap gap-2">
               {organization.fanActions.map((action, index) => (
