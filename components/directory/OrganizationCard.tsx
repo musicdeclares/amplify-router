@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Target, ExternalLink } from "lucide-react";
 import { ImageWithFallback } from "@/components/directory/ImageWithFallback";
 import type { DirectoryOrganization } from "@/app/types/router";
+import { EVENTS } from "@/app/lib/analytics-events";
 
 function appendUtmParams(url: string): string {
   try {
@@ -101,6 +102,9 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2"
+              data-umami-event={EVENTS.DIRECTORY_ORG_CTA}
+              data-umami-event-org={organization.name}
+              data-umami-event-country={organization.country}
             >
               {organization.ctaText}
               <ExternalLink className="size-4" />

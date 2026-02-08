@@ -12,6 +12,7 @@ import {
   isFallbackReason,
   type FallbackReason,
 } from "@/app/lib/fallback-content";
+import { EVENTS } from "@/app/lib/analytics-events";
 
 export function FallbackPageClient() {
   const searchParams = useSearchParams();
@@ -90,6 +91,9 @@ export function FallbackPageClient() {
                       href={primaryCtaUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      data-umami-event={EVENTS.FALLBACK_CTA_CRP}
+                      data-umami-event-ref={refParam || "landing"}
+                      data-umami-event-artist={artistName || undefined}
                     >
                       {content.cta.primary.buttonText}
                       <ExternalLink className="ml-2 size-4" />
@@ -117,7 +121,12 @@ export function FallbackPageClient() {
                     size="lg"
                     className="shrink-0"
                   >
-                    <Link href={content.cta.secondary.url}>
+                    <Link
+                      href={content.cta.secondary.url}
+                      data-umami-event={EVENTS.FALLBACK_CTA_DIRECTORY}
+                      data-umami-event-ref={refParam || "landing"}
+                      data-umami-event-artist={artistName || undefined}
+                    >
                       {content.cta.secondary.buttonText}
                       <Search className="ml-2 size-4" />
                     </Link>
