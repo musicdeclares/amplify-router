@@ -1,5 +1,17 @@
-import { redirect } from "next/navigation";
+import { Metadata } from "next";
+import { Suspense } from "react";
+import { FallbackPageClient } from "./fallback-client";
 
-export default function Home() {
-  redirect("https://www.musicdeclares.net/us/campaigns/mde-us-amplify-program");
+export const metadata: Metadata = {
+  title: "Take Climate Action | MDE AMPLIFY",
+  description:
+    "Join the climate movement with Music Declares Emergency and our global partners.",
+};
+
+export default function FallbackPage() {
+  return (
+    <Suspense>
+      <FallbackPageClient />
+    </Suspense>
+  );
 }

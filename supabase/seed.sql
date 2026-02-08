@@ -193,31 +193,31 @@ INSERT INTO public.router_analytics (id, artist_handle, country_code, org_id, to
 
 -- === FALLBACK EVENTS (destination_url contains ref= → fallback_ref is generated) ===
 -- artist_not_found
-('aa000000-0000-0000-0000-000000000041', 'unknown-artist', NULL, NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?ref=artist_not_found', false, NULL, CURRENT_TIMESTAMP - INTERVAL '1 day'),
-('aa000000-0000-0000-0000-000000000042', 'typo-artsit', NULL, NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?ref=artist_not_found', false, NULL, CURRENT_TIMESTAMP - INTERVAL '4 days'),
-('aa000000-0000-0000-0000-000000000043', 'inactive-artist', NULL, NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?ref=artist_not_found', false, NULL, CURRENT_TIMESTAMP - INTERVAL '7 days'),
+('aa000000-0000-0000-0000-000000000041', 'unknown-artist', NULL, NULL, NULL, 'https://amplify.musicdeclares.net/?ref=artist_not_found', false, NULL, CURRENT_TIMESTAMP - INTERVAL '1 day'),
+('aa000000-0000-0000-0000-000000000042', 'typo-artsit', NULL, NULL, NULL, 'https://amplify.musicdeclares.net/?ref=artist_not_found', false, NULL, CURRENT_TIMESTAMP - INTERVAL '4 days'),
+('aa000000-0000-0000-0000-000000000043', 'inactive-artist', NULL, NULL, NULL, 'https://amplify.musicdeclares.net/?ref=artist_not_found', false, NULL, CURRENT_TIMESTAMP - INTERVAL '7 days'),
 -- no_tour
-('aa000000-0000-0000-0000-000000000044', 'coldplay', 'DE', NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?artist=coldplay&ref=no_tour', false, NULL, CURRENT_TIMESTAMP - INTERVAL '2 days'),
-('aa000000-0000-0000-0000-000000000045', 'billie-eilish', 'AU', NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?artist=billie-eilish&ref=no_tour', false, NULL, CURRENT_TIMESTAMP - INTERVAL '3 days'),
-('aa000000-0000-0000-0000-000000000046', 'taylor-swift', 'US', NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?artist=taylor-swift&ref=no_tour', false, NULL, CURRENT_TIMESTAMP - INTERVAL '6 days'),
-('aa000000-0000-0000-0000-000000000047', 'coldplay', 'GB', NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?artist=coldplay&ref=no_tour', false, NULL, CURRENT_TIMESTAMP - INTERVAL '9 days'),
+('aa000000-0000-0000-0000-000000000044', 'coldplay', 'DE', NULL, NULL, 'https://amplify.musicdeclares.net/?artist=coldplay&name=Coldplay&ref=no_tour', false, NULL, CURRENT_TIMESTAMP - INTERVAL '2 days'),
+('aa000000-0000-0000-0000-000000000045', 'billie-eilish', 'AU', NULL, NULL, 'https://amplify.musicdeclares.net/?artist=billie-eilish&name=Billie%20Eilish&ref=no_tour', false, NULL, CURRENT_TIMESTAMP - INTERVAL '3 days'),
+('aa000000-0000-0000-0000-000000000046', 'taylor-swift', 'US', NULL, NULL, 'https://amplify.musicdeclares.net/?artist=taylor-swift&name=Taylor%20Swift&ref=no_tour', false, NULL, CURRENT_TIMESTAMP - INTERVAL '6 days'),
+('aa000000-0000-0000-0000-000000000047', 'coldplay', 'GB', NULL, NULL, 'https://amplify.musicdeclares.net/?artist=coldplay&name=Coldplay&ref=no_tour', false, NULL, CURRENT_TIMESTAMP - INTERVAL '9 days'),
 -- no_country
-('aa000000-0000-0000-0000-000000000048', 'radiohead', NULL, NULL, 'aaaa1111-1111-1111-1111-111111111111', 'https://www.musicdeclares.net/us/take-action/amplify?artist=radiohead&ref=no_country', false, NULL, CURRENT_TIMESTAMP - INTERVAL '1 day'),
-('aa000000-0000-0000-0000-000000000049', 'tame-impala', NULL, NULL, 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'https://www.musicdeclares.net/us/take-action/amplify?artist=tame-impala&ref=no_country', false, NULL, CURRENT_TIMESTAMP - INTERVAL '5 days'),
+('aa000000-0000-0000-0000-000000000048', 'radiohead', NULL, NULL, 'aaaa1111-1111-1111-1111-111111111111', 'https://amplify.musicdeclares.net/?artist=radiohead&name=Radiohead&ref=no_country', false, NULL, CURRENT_TIMESTAMP - INTERVAL '1 day'),
+('aa000000-0000-0000-0000-000000000049', 'tame-impala', NULL, NULL, 'ddddaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'https://amplify.musicdeclares.net/?artist=tame-impala&name=Tame%20Impala&ref=no_country', false, NULL, CURRENT_TIMESTAMP - INTERVAL '5 days'),
 -- org_not_specified
-('aa000000-0000-0000-0000-000000000050', 'bjork', 'IS', NULL, 'eeeebbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'https://www.musicdeclares.net/us/take-action/amplify?artist=bjork&country=IS&ref=org_not_specified', false, NULL, CURRENT_TIMESTAMP - INTERVAL '1 day'),
-('aa000000-0000-0000-0000-000000000051', 'bjork', 'IS', NULL, 'eeeebbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'https://www.musicdeclares.net/us/take-action/amplify?artist=bjork&country=IS&ref=org_not_specified', false, NULL, CURRENT_TIMESTAMP - INTERVAL '3 days'),
-('aa000000-0000-0000-0000-000000000052', 'radiohead', 'JP', NULL, 'aaaa1111-1111-1111-1111-111111111111', 'https://www.musicdeclares.net/us/take-action/amplify?artist=radiohead&country=JP&ref=org_not_specified', false, NULL, CURRENT_TIMESTAMP - INTERVAL '8 days'),
+('aa000000-0000-0000-0000-000000000050', 'bjork', 'IS', NULL, 'eeeebbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'https://amplify.musicdeclares.net/?artist=bjork&name=Björk&country=IS&ref=org_not_specified', false, NULL, CURRENT_TIMESTAMP - INTERVAL '1 day'),
+('aa000000-0000-0000-0000-000000000051', 'bjork', 'IS', NULL, 'eeeebbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'https://amplify.musicdeclares.net/?artist=bjork&name=Björk&country=IS&ref=org_not_specified', false, NULL, CURRENT_TIMESTAMP - INTERVAL '3 days'),
+('aa000000-0000-0000-0000-000000000052', 'radiohead', 'JP', NULL, 'aaaa1111-1111-1111-1111-111111111111', 'https://amplify.musicdeclares.net/?artist=radiohead&name=Radiohead&country=JP&ref=org_not_specified', false, NULL, CURRENT_TIMESTAMP - INTERVAL '8 days'),
 -- org_paused
-('aa000000-0000-0000-0000-000000000053', 'arctic-monkeys', 'DE', NULL, 'bbbb8888-8888-8888-8888-888888888888', 'https://www.musicdeclares.net/us/take-action/amplify?artist=arctic-monkeys&country=DE&ref=org_paused', false, NULL, CURRENT_TIMESTAMP - INTERVAL '2 days'),
-('aa000000-0000-0000-0000-000000000054', 'arctic-monkeys', 'DE', NULL, 'bbbb8888-8888-8888-8888-888888888888', 'https://www.musicdeclares.net/us/take-action/amplify?artist=arctic-monkeys&country=DE&ref=org_paused', false, NULL, CURRENT_TIMESTAMP - INTERVAL '6 days'),
+('aa000000-0000-0000-0000-000000000053', 'arctic-monkeys', 'DE', NULL, 'bbbb8888-8888-8888-8888-888888888888', 'https://amplify.musicdeclares.net/?artist=arctic-monkeys&name=Arctic%20Monkeys&country=DE&ref=org_paused', false, NULL, CURRENT_TIMESTAMP - INTERVAL '2 days'),
+('aa000000-0000-0000-0000-000000000054', 'arctic-monkeys', 'DE', NULL, 'bbbb8888-8888-8888-8888-888888888888', 'https://amplify.musicdeclares.net/?artist=arctic-monkeys&name=Arctic%20Monkeys&country=DE&ref=org_paused', false, NULL, CURRENT_TIMESTAMP - INTERVAL '6 days'),
 -- org_no_website
-('aa000000-0000-0000-0000-000000000055', 'daft-punk', 'FR', NULL, 'ffff6666-6666-6666-6666-666666666666', 'https://www.musicdeclares.net/us/take-action/amplify?artist=daft-punk&country=FR&ref=org_no_website', false, NULL, CURRENT_TIMESTAMP - INTERVAL '3 days'),
-('aa000000-0000-0000-0000-000000000056', 'daft-punk', 'FR', NULL, 'ffff6666-6666-6666-6666-666666666666', 'https://www.musicdeclares.net/us/take-action/amplify?artist=daft-punk&country=FR&ref=org_no_website', false, NULL, CURRENT_TIMESTAMP - INTERVAL '7 days'),
+('aa000000-0000-0000-0000-000000000055', 'daft-punk', 'FR', NULL, 'ffff6666-6666-6666-6666-666666666666', 'https://amplify.musicdeclares.net/?artist=daft-punk&name=Daft%20Punk&country=FR&ref=org_no_website', false, NULL, CURRENT_TIMESTAMP - INTERVAL '3 days'),
+('aa000000-0000-0000-0000-000000000056', 'daft-punk', 'FR', NULL, 'ffff6666-6666-6666-6666-666666666666', 'https://amplify.musicdeclares.net/?artist=daft-punk&name=Daft%20Punk&country=FR&ref=org_no_website', false, NULL, CURRENT_TIMESTAMP - INTERVAL '7 days'),
 -- org_not_found (org exists but not in org_public_view — e.g. pending approval)
-('aa000000-0000-0000-0000-000000000057', 'gorillaz', 'US', NULL, 'aaaa7777-7777-7777-7777-777777777777', 'https://www.musicdeclares.net/us/take-action/amplify?artist=gorillaz&country=US&ref=org_not_found', true, '00000000-0000-0000-0000-000000000005', CURRENT_TIMESTAMP - INTERVAL '11 days'),
+('aa000000-0000-0000-0000-000000000057', 'gorillaz', 'US', NULL, 'aaaa7777-7777-7777-7777-777777777777', 'https://amplify.musicdeclares.net/?artist=gorillaz&name=Gorillaz&country=US&ref=org_not_found', true, '00000000-0000-0000-0000-000000000005', CURRENT_TIMESTAMP - INTERVAL '11 days'),
 -- error
-('aa000000-0000-0000-0000-000000000058', 'radiohead', 'US', NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?ref=error', false, NULL, CURRENT_TIMESTAMP - INTERVAL '10 days'),
+('aa000000-0000-0000-0000-000000000058', 'radiohead', 'US', NULL, NULL, 'https://amplify.musicdeclares.net/?ref=error', false, NULL, CURRENT_TIMESTAMP - INTERVAL '10 days'),
 -- Additional successful routes for volume/shape
 ('aa000000-0000-0000-0000-000000000059', 'radiohead', 'US', '00000000-0000-0000-0000-000000000001', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.com', false, NULL, CURRENT_TIMESTAMP - INTERVAL '2 days' - INTERVAL '5 hours'),
 ('aa000000-0000-0000-0000-000000000060', 'radiohead', 'GB', '00000000-0000-0000-0000-000000000002', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.co.uk', false, NULL, CURRENT_TIMESTAMP - INTERVAL '4 days'),
@@ -227,14 +227,14 @@ INSERT INTO public.router_analytics (id, artist_handle, country_code, org_id, to
 ('aa000000-0000-0000-0000-000000000064', 'radiohead', 'US', '00000000-0000-0000-0000-000000000001', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.com', false, NULL, CURRENT_TIMESTAMP - INTERVAL '13 days'),
 ('aa000000-0000-0000-0000-000000000065', 'radiohead', 'GB', '00000000-0000-0000-0000-000000000002', 'aaaa1111-1111-1111-1111-111111111111', 'https://example.co.uk', false, NULL, CURRENT_TIMESTAMP - INTERVAL '14 days'),
 -- More fallbacks for additional shape
-('aa000000-0000-0000-0000-000000000066', 'bjork', 'IS', NULL, 'eeeebbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'https://www.musicdeclares.net/us/take-action/amplify?artist=bjork&country=IS&ref=org_not_specified', false, NULL, CURRENT_TIMESTAMP - INTERVAL '10 days'),
-('aa000000-0000-0000-0000-000000000067', 'coldplay', 'US', NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?artist=coldplay&ref=no_tour', false, NULL, CURRENT_TIMESTAMP - INTERVAL '12 days'),
-('aa000000-0000-0000-0000-000000000068', 'arctic-monkeys', 'DE', NULL, 'bbbb8888-8888-8888-8888-888888888888', 'https://www.musicdeclares.net/us/take-action/amplify?artist=arctic-monkeys&country=DE&ref=org_paused', false, NULL, CURRENT_TIMESTAMP - INTERVAL '11 days'),
-('aa000000-0000-0000-0000-000000000069', 'unknown-band', NULL, NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?ref=artist_not_found', false, NULL, CURRENT_TIMESTAMP - INTERVAL '13 days'),
-('aa000000-0000-0000-0000-000000000070', 'daft-punk', 'FR', NULL, 'ffff6666-6666-6666-6666-666666666666', 'https://www.musicdeclares.net/us/take-action/amplify?artist=daft-punk&country=FR&ref=org_no_website', false, NULL, CURRENT_TIMESTAMP - INTERVAL '14 days'),
+('aa000000-0000-0000-0000-000000000066', 'bjork', 'IS', NULL, 'eeeebbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'https://amplify.musicdeclares.net/?artist=bjork&name=Björk&country=IS&ref=org_not_specified', false, NULL, CURRENT_TIMESTAMP - INTERVAL '10 days'),
+('aa000000-0000-0000-0000-000000000067', 'coldplay', 'US', NULL, NULL, 'https://amplify.musicdeclares.net/?artist=coldplay&name=Coldplay&ref=no_tour', false, NULL, CURRENT_TIMESTAMP - INTERVAL '12 days'),
+('aa000000-0000-0000-0000-000000000068', 'arctic-monkeys', 'DE', NULL, 'bbbb8888-8888-8888-8888-888888888888', 'https://amplify.musicdeclares.net/?artist=arctic-monkeys&name=Arctic%20Monkeys&country=DE&ref=org_paused', false, NULL, CURRENT_TIMESTAMP - INTERVAL '11 days'),
+('aa000000-0000-0000-0000-000000000069', 'unknown-band', NULL, NULL, NULL, 'https://amplify.musicdeclares.net/?ref=artist_not_found', false, NULL, CURRENT_TIMESTAMP - INTERVAL '13 days'),
+('aa000000-0000-0000-0000-000000000070', 'daft-punk', 'FR', NULL, 'ffff6666-6666-6666-6666-666666666666', 'https://amplify.musicdeclares.net/?artist=daft-punk&name=Daft%20Punk&country=FR&ref=org_no_website', false, NULL, CURRENT_TIMESTAMP - INTERVAL '14 days'),
 -- Recent org_not_found and error events (within default 7-day window)
-('aa000000-0000-0000-0000-000000000071', 'gorillaz', 'US', NULL, 'aaaa7777-7777-7777-7777-777777777777', 'https://www.musicdeclares.net/us/take-action/amplify?artist=gorillaz&country=US&ref=org_not_found', true, '00000000-0000-0000-0000-000000000005', CURRENT_TIMESTAMP - INTERVAL '2 days'),
-('aa000000-0000-0000-0000-000000000072', 'radiohead', 'US', NULL, NULL, 'https://www.musicdeclares.net/us/take-action/amplify?ref=error', false, NULL, CURRENT_TIMESTAMP - INTERVAL '4 days')
+('aa000000-0000-0000-0000-000000000071', 'gorillaz', 'US', NULL, 'aaaa7777-7777-7777-7777-777777777777', 'https://amplify.musicdeclares.net/?artist=gorillaz&name=Gorillaz&country=US&ref=org_not_found', true, '00000000-0000-0000-0000-000000000005', CURRENT_TIMESTAMP - INTERVAL '2 days'),
+('aa000000-0000-0000-0000-000000000072', 'radiohead', 'US', NULL, NULL, 'https://amplify.musicdeclares.net/?ref=error', false, NULL, CURRENT_TIMESTAMP - INTERVAL '4 days')
 ON CONFLICT (id) DO NOTHING;
 
 -- Copy of production org db for local testing
