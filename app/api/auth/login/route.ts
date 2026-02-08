@@ -27,10 +27,12 @@ export async function POST(request: NextRequest) {
       });
 
     if (authError || !authData.user) {
-      return NextResponse.json(
-        { error: authError?.message || "Invalid credentials" },
-        { status: 401 },
-      );
+      // Replace Supabase's technical error with a user-friendly message
+      const friendlyMessage =
+        authError?.message === "Invalid login credentials"
+          ? "Incorrect email or password"
+          : authError?.message || "Unable to sign in";
+      return NextResponse.json({ error: friendlyMessage }, { status: 401 });
     }
 
     // Use service role client to bypass RLS for router_users lookup

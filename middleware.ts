@@ -8,9 +8,9 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 // Routes that don't require authentication
 const publicRoutes = [
-  "/admin/login",
-  "/admin/reset-password",
-  "/admin/forgot-password",
+  "/login",
+  "/reset-password",
+  "/forgot-password",
 ];
 
 // Routes that allow unauthenticated access but should set user headers if authenticated
@@ -27,7 +27,7 @@ const publicApiRoutes = [
   "/api/org-profiles",
 ];
 
-// Routes that require admin role
+// Routes that require staff role (admin or staff)
 const adminOnlyRoutes = ["/admin/recommended", "/admin/organizations"];
 
 export async function middleware(request: NextRequest) {
@@ -38,7 +38,10 @@ export async function middleware(request: NextRequest) {
     !pathname.startsWith("/admin") &&
     !pathname.startsWith("/artist") &&
     !pathname.startsWith("/api") &&
-    !pathname.startsWith("/help")
+    !pathname.startsWith("/help") &&
+    !pathname.startsWith("/login") &&
+    !pathname.startsWith("/forgot-password") &&
+    !pathname.startsWith("/reset-password")
   ) {
     return NextResponse.next();
   }
@@ -79,7 +82,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     // Redirect to login for page routes
-    const loginUrl = new URL("/admin/login", request.url);
+    const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
@@ -102,7 +105,7 @@ export async function middleware(request: NextRequest) {
       if (pathname.startsWith("/api")) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
-      const loginUrl = new URL("/admin/login", request.url);
+      const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
     }
@@ -123,7 +126,7 @@ export async function middleware(request: NextRequest) {
       if (pathname.startsWith("/api")) {
         return NextResponse.json({ error: "Not authorized" }, { status: 403 });
       }
-      const loginUrl = new URL("/admin/login", request.url);
+      const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("error", "not_authorized");
       return NextResponse.redirect(loginUrl);
     }
@@ -139,42 +142,49 @@ export async function middleware(request: NextRequest) {
           { status: 403 },
         );
       }
-      const loginUrl = new URL("/admin/login", request.url);
+      const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("error", "account_deactivated");
       return NextResponse.redirect(loginUrl);
     }
 
-    // Check admin-only routes
+    // Check admin-only routes (admin and staff can access)
     if (adminOnlyRoutes.some((route) => pathname.startsWith(route))) {
-      if (routerUser.role !== "admin") {
+      if (routerUser.role !== "admin" && routerUser.role !== "staff") {
         if (pathname.startsWith("/api")) {
           return NextResponse.json(
-            { error: "Admin access required" },
+            { error: "Staff access required" },
             { status: 403 },
           );
         }
-        // Redirect non-admins to dashboard
+        // Redirect non-staff to dashboard
         return NextResponse.redirect(new URL("/admin", request.url));
       }
     }
 
-    // Check artist routes - must be the correct artist or an admin
+    // Check artist routes
     if (pathname.startsWith("/artist/")) {
-      const artistPathMatch = pathname.match(/^\/artist\/([^/]+)/);
+      const artistPathMatch = pathname.match(/^\/artist\/([^/]+)(.*)/);
       if (artistPathMatch) {
         const requestedArtistId = artistPathMatch[1];
-        if (
-          routerUser.role !== "admin" &&
-          routerUser.artist_id !== requestedArtistId
-        ) {
-          // Redirect to their own artist page
+        const restOfPath = artistPathMatch[2] || "";
+        const isStaff = routerUser.role === "admin" || routerUser.role === "staff";
+
+        if (isStaff) {
+          // Redirect staff to admin artist view
+          return NextResponse.redirect(
+            new URL(`/admin/artists/${requestedArtistId}${restOfPath}`, request.url),
+          );
+        }
+
+        if (routerUser.artist_id !== requestedArtistId) {
+          // Redirect artists to their own page
           if (routerUser.artist_id) {
             return NextResponse.redirect(
               new URL(`/artist/${routerUser.artist_id}`, request.url),
             );
           }
           // No artist_id, redirect to login
-          return NextResponse.redirect(new URL("/admin/login", request.url));
+          return NextResponse.redirect(new URL("/login", request.url));
         }
       }
     }
@@ -196,11 +206,19 @@ export async function middleware(request: NextRequest) {
         { status: 401 },
       );
     }
-    const loginUrl = new URL("/admin/login", request.url);
+    const loginUrl = new URL("/login", request.url);
     return NextResponse.redirect(loginUrl);
   }
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/artist/:path*", "/api/:path*", "/help/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/artist/:path*",
+    "/api/:path*",
+    "/help/:path*",
+    "/login",
+    "/forgot-password",
+    "/reset-password",
+  ],
 };
