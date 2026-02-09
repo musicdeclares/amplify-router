@@ -52,7 +52,7 @@ export default async function KitPage({
       <main className="flex min-h-screen flex-col items-center justify-center p-6 sm:p-8">
         <Image
           src="/logo.png"
-          alt="AMPLIFY"
+          alt=""
           width={500}
           height={396}
           className="w-20 h-auto mb-4"
@@ -85,7 +85,7 @@ export default async function KitPage({
         <div className="flex flex-col items-center text-center pt-8 print:pt-2">
           <Image
             src="/logo.png"
-            alt="AMPLIFY"
+            alt=""
             width={500}
             height={396}
             className="w-20 h-auto mb-4 print:w-12 print:mb-2"
