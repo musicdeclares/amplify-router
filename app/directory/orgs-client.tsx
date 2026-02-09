@@ -140,6 +140,7 @@ export function OrgsClient({
           <button
             type="button"
             onClick={() => setAboutOpen((o) => !o)}
+            aria-expanded={aboutOpen}
             className="w-full py-4 flex items-center justify-between"
           >
             <span className="font-semibold text-lg text-mde-body">
