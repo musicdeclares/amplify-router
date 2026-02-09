@@ -81,9 +81,9 @@ export default function ResetPasswordPage() {
             </CardDescription>
           </CardHeader>
           <CardFooter className="flex justify-center">
-            <Link href="/forgot-password">
-              <Button>Request new reset link</Button>
-            </Link>
+            <Button asChild>
+              <Link href="/forgot-password">Request new reset link</Link>
+            </Button>
           </CardFooter>
         </Card>
       </div>

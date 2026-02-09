@@ -202,19 +202,18 @@ export default function ArtistDashboardPage({
                 <QrCode className="h-4 w-4 mr-2" />
                 Generate QR Code
               </Button>
-              <Link
-                href={`/kit/${artist.handle}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1"
-                data-umami-event={EVENTS.ARTIST_VIEW_KIT}
-                data-umami-event-artist={artist.handle}
-              >
-                <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full flex-1" asChild>
+                <Link
+                  href={`/kit/${artist.handle}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-umami-event={EVENTS.ARTIST_VIEW_KIT}
+                  data-umami-event-artist={artist.handle}
+                >
                   <ExternalLink className="h-4 w-4 mr-2" />
                   View Starter Kit
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -245,16 +244,16 @@ export default function ArtistDashboardPage({
                   {new Date(activeTour.start_date).toLocaleDateString()} –{" "}
                   {new Date(activeTour.end_date).toLocaleDateString()}
                 </p>
-                <Link
-                  href={`/artist/${artistId}/tours/${activeTour.id}`}
-                  data-umami-event={EVENTS.ARTIST_EDIT_TOUR}
-                  data-umami-event-artist={artist.handle}
-                  data-umami-event-tour={activeTour.name}
-                >
-                  <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" asChild>
+                  <Link
+                    href={`/artist/${artistId}/tours/${activeTour.id}`}
+                    data-umami-event={EVENTS.ARTIST_EDIT_TOUR}
+                    data-umami-event-artist={artist.handle}
+                    data-umami-event-tour={activeTour.name}
+                  >
                     Manage Tour
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </div>
             ) : upcomingTour ? (
               <div className="space-y-2">
@@ -263,33 +262,33 @@ export default function ArtistDashboardPage({
                   Starts{" "}
                   {new Date(upcomingTour.start_date).toLocaleDateString()}
                 </p>
-                <Link
-                  href={`/artist/${artistId}/tours/${upcomingTour.id}`}
-                  data-umami-event={EVENTS.ARTIST_EDIT_TOUR}
-                  data-umami-event-artist={artist.handle}
-                  data-umami-event-tour={upcomingTour.name}
-                >
-                  <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" asChild>
+                  <Link
+                    href={`/artist/${artistId}/tours/${upcomingTour.id}`}
+                    data-umami-event={EVENTS.ARTIST_EDIT_TOUR}
+                    data-umami-event-artist={artist.handle}
+                    data-umami-event-tour={upcomingTour.name}
+                  >
                     Manage Tour
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </div>
             ) : (
               <div className="text-center py-4">
                 <p className="text-muted-foreground text-sm mb-4">
                   Add a tour to start routing fans to climate action orgs
                 </p>
-                <Link
-                  href={`/artist/${artistId}/tours/new`}
-                  data-umami-event={EVENTS.ARTIST_CREATE_TOUR}
-                  data-umami-event-artist={artist.handle}
-                  data-umami-event-source={SOURCES.DASHBOARD}
-                >
-                  <Button>
+                <Button asChild>
+                  <Link
+                    href={`/artist/${artistId}/tours/new`}
+                    data-umami-event={EVENTS.ARTIST_CREATE_TOUR}
+                    data-umami-event-artist={artist.handle}
+                    data-umami-event-source={SOURCES.DASHBOARD}
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Tour
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </div>
             )}
           </CardContent>

@@ -227,11 +227,11 @@ export default function ArtistNewTourPage({
               >
                 {saving ? "Adding..." : "Add Tour"}
               </Button>
-              <Link href={`/artist/${artistId}/tours`}>
-                <Button type="button" variant="outline" disabled={saving}>
+              <Button type="button" variant="outline" disabled={saving} asChild>
+                <Link href={`/artist/${artistId}/tours`}>
                   Cancel
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </CardContent>
         </form>

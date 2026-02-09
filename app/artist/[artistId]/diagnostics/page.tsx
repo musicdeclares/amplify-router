@@ -263,11 +263,11 @@ Please share this with your MDE contact for assistance.`;
                           {info.description}
                         </p>
                       </div>
-                      <Link href={`/artist/${artistId}/tours`}>
-                        <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" asChild>
+                        <Link href={`/artist/${artistId}/tours`}>
                           {"action" in info ? info.action : "View Tours"}
-                        </Button>
-                      </Link>
+                        </Link>
+                      </Button>
                     </div>
                   );
                 })}
@@ -351,11 +351,11 @@ Please share this with your MDE contact for assistance.`;
                         </div>
                         <div className="flex items-center gap-2">
                           {info.actionable && (
-                            <Link href={`/artist/${artistId}/tours`}>
-                              <Button size="sm" variant="ghost">
+                            <Button size="sm" variant="ghost" asChild>
+                              <Link href={`/artist/${artistId}/tours`}>
                                 <ExternalLink className="h-4 w-4" />
-                              </Button>
-                            </Link>
+                              </Link>
+                            </Button>
                           )}
                           <Button
                             size="sm"

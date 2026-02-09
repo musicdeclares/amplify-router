@@ -269,9 +269,9 @@ Music Declares Emergency`;
               >
                 Create Another Invite
               </Button>
-              <Link href="/admin/artists">
-                <Button variant="ghost">Back to Artists</Button>
-              </Link>
+              <Button variant="ghost" asChild>
+                <Link href="/admin/artists">Back to Artists</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -362,11 +362,9 @@ Music Declares Emergency`;
               >
                 {sending ? "Creating..." : "Create Invite"}
               </Button>
-              <Link href="/admin/artists">
-                <Button type="button" variant="outline" disabled={sending}>
-                  Cancel
-                </Button>
-              </Link>
+              <Button type="button" variant="outline" disabled={sending} asChild>
+                <Link href="/admin/artists">Cancel</Link>
+              </Button>
             </div>
           </CardContent>
         </form>

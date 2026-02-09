@@ -182,11 +182,9 @@ export default function NewArtistPage() {
               >
                 {saving ? "Adding..." : "Add Artist"}
               </Button>
-              <Link href="/admin/artists">
-                <Button type="button" variant="outline" disabled={saving}>
-                  Cancel
-                </Button>
-              </Link>
+              <Button type="button" variant="outline" disabled={saving} asChild>
+                <Link href="/admin/artists">Cancel</Link>
+              </Button>
             </div>
           </CardContent>
         </form>

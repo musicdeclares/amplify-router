@@ -55,14 +55,16 @@ export default function ArtistToursPage({
             Manage your tour dates and fan routing
           </p>
         </div>
-        <Link
-          href={`/artist/${artistId}/tours/new`}
-          data-umami-event={EVENTS.ARTIST_CREATE_TOUR}
-          data-umami-event-artist={artistHandle || undefined}
-          data-umami-event-source={SOURCES.TOURS_LIST}
-        >
-          <Button>Add Tour</Button>
-        </Link>
+        <Button asChild>
+          <Link
+            href={`/artist/${artistId}/tours/new`}
+            data-umami-event={EVENTS.ARTIST_CREATE_TOUR}
+            data-umami-event-artist={artistHandle || undefined}
+            data-umami-event-source={SOURCES.TOURS_LIST}
+          >
+            Add Tour
+          </Link>
+        </Button>
       </div>
 
       {loading ? (
@@ -75,14 +77,16 @@ export default function ArtistToursPage({
           <p className="text-sm text-muted-foreground mt-1">
             Add your first tour to start routing fans to climate action organizations.
           </p>
-          <Link
-            href={`/artist/${artistId}/tours/new`}
-            data-umami-event={EVENTS.ARTIST_CREATE_TOUR}
-            data-umami-event-artist={artistHandle || undefined}
-            data-umami-event-source={SOURCES.TOURS_EMPTY_STATE}
-          >
-            <Button variant="link">Add Tour</Button>
-          </Link>
+          <Button variant="link" asChild>
+            <Link
+              href={`/artist/${artistId}/tours/new`}
+              data-umami-event={EVENTS.ARTIST_CREATE_TOUR}
+              data-umami-event-artist={artistHandle || undefined}
+              data-umami-event-source={SOURCES.TOURS_EMPTY_STATE}
+            >
+              Add Tour
+            </Link>
+          </Button>
         </div>
       ) : (
         <TourTable
