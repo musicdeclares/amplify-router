@@ -40,7 +40,7 @@ export function OrganizationCard({ organization, locale = "en" }: OrganizationCa
           <div className="flex items-center justify-center w-full h-full bg-gray-100">
             <img
               src="/logo.png"
-              alt="MDE AMPLIFY"
+              alt=""
               className="w-20 h-auto object-contain opacity-60"
             />
           </div>
@@ -109,7 +109,7 @@ export function OrganizationCard({ organization, locale = "en" }: OrganizationCa
               data-umami-event-org={organization.name}
               data-umami-event-country={organization.country}
             >
-              {organization.ctaText}
+              {organization.ctaText || content.card.defaultCtaText}
               <ExternalLink className="size-4" />
             </a>
           </Button>

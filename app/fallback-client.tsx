@@ -65,7 +65,7 @@ export function FallbackPageClient({ initialLocale }: FallbackPageClientProps) {
               <Image
                 className="self-start"
                 src="/logo.png"
-                alt="MDE AMPLIFY logo"
+                alt=""
                 width={500}
                 height={396}
                 priority

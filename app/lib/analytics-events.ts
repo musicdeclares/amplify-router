@@ -27,6 +27,7 @@ export const EVENTS = {
   DIRECTORY_ORG_CTA: "directory-org-cta",
   DIRECTORY_SEARCH: "directory-search",
   DIRECTORY_FILTER_COUNTRY: "directory-filter-country",
+  DIRECTORY_SWITCH_LANG: "directory-switch-lang",
 
   // === Kit Page ===
   KIT_COPY_LINK: "kit-copy-link",

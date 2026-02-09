@@ -68,7 +68,7 @@ export async function getOrganizations(): Promise<DirectoryOrganization[]> {
         fanActions: profile?.fan_actions || [],
         website: org.website || "",
         ctaUrl: profile?.cta_url || org.website || "",
-        ctaText: profile?.cta_text || "Get involved",
+        ctaText: profile?.cta_text || "", // Default applied in component for i18n
         imageUrl: profile?.image_url || org.banner || org.logo || "",
       };
     })
