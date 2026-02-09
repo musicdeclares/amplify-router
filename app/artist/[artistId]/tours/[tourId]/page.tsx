@@ -415,9 +415,8 @@ export default function ArtistEditTourPage({
               <Link
                 href="/help/artist/tours"
                 className="text-muted-foreground hover:text-foreground"
-                data-umami-event={EVENTS.NAV_HELP}
-                data-umami-event-topic="tour-edit"
-                data-umami-event-source={SOURCES.TOUR_FORM}
+                aria-hidden="true"
+                tabIndex={-1}
               >
                 <HelpCircle className="h-4 w-4" />
               </Link>

@@ -111,9 +111,8 @@ export default function ArtistNewTourPage({
             <Link
               href="/help/artist/tours#creating-a-tour"
               className="text-muted-foreground hover:text-foreground"
-              data-umami-event={EVENTS.NAV_HELP}
-              data-umami-event-topic="creating-a-tour"
-              data-umami-event-source={SOURCES.TOUR_FORM}
+              aria-hidden="true"
+              tabIndex={-1}
             >
               <HelpCircle className="h-4 w-4" />
             </Link>

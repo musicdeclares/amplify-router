@@ -116,9 +116,8 @@ export default function ArtistSettingsPage({
           <Link
             href="/help/artist/getting-started#account-settings"
             className="text-muted-foreground hover:text-foreground"
-            data-umami-event={EVENTS.NAV_HELP}
-            data-umami-event-topic="account-settings"
-            data-umami-event-source={SOURCES.SETTINGS}
+            aria-hidden="true"
+            tabIndex={-1}
           >
             <HelpCircle className="h-5 w-5" />
           </Link>

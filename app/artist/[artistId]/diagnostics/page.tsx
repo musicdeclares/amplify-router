@@ -170,9 +170,8 @@ Please share this with your MDE contact for assistance.`;
             <Link
               href="/help/artist/troubleshooting"
               className="text-muted-foreground hover:text-foreground"
-              data-umami-event={EVENTS.NAV_HELP}
-              data-umami-event-topic="troubleshooting"
-              data-umami-event-source={SOURCES.DIAGNOSTICS}
+              aria-hidden="true"
+              tabIndex={-1}
             >
               <HelpCircle className="h-5 w-5" />
             </Link>
