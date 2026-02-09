@@ -298,9 +298,8 @@ Music Declares Emergency`;
             <Link
               href="/help/admin/artists#inviting-an-artist-recommended"
               className="text-muted-foreground hover:text-foreground"
-              data-umami-event={EVENTS.NAV_HELP}
-              data-umami-event-topic="inviting-an-artist"
-              data-umami-event-source={SOURCES.INVITE_CREATED}
+              aria-hidden="true"
+              tabIndex={-1}
             >
               <HelpCircle className="h-4 w-4" />
             </Link>
