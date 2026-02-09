@@ -301,18 +301,18 @@ export default function EditArtistPage({
                     Tours associated with this artist
                   </CardDescription>
                 </div>
-                <Link href={`/admin/tours/new?artist=${id}`}>
-                  <Button size="sm">Add Tour</Button>
-                </Link>
+                <Button size="sm" asChild>
+                  <Link href={`/admin/tours/new?artist=${id}`}>Add Tour</Link>
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
               {tours.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <p>No tours added yet.</p>
-                  <Link href={`/admin/tours/new?artist=${id}`}>
-                    <Button variant="link">Add Tour</Button>
-                  </Link>
+                  <Button variant="link" asChild>
+                    <Link href={`/admin/tours/new?artist=${id}`}>Add Tour</Link>
+                  </Button>
                 </div>
               ) : (
                 <TourTable tours={toursWithArtist} />

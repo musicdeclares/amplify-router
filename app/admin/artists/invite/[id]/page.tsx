@@ -386,9 +386,9 @@ Music Declares Emergency`;
                 </Button>
               </>
             )}
-            <Link href="/admin/artists">
-              <Button variant="ghost">Back to Artists</Button>
-            </Link>
+            <Button variant="ghost" asChild>
+              <Link href="/admin/artists">Back to Artists</Link>
+            </Button>
           </div>
         </CardContent>
       </Card>

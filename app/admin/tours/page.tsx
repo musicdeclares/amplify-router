@@ -54,9 +54,9 @@ export default function ToursPage() {
             Configure tour dates and organization routing
           </p>
         </div>
-        <Link href="/admin/tours/new">
-          <Button>Add Tour</Button>
-        </Link>
+        <Button asChild>
+          <Link href="/admin/tours/new">Add Tour</Link>
+        </Button>
       </div>
 
       {tours.length > 0 && (
@@ -94,11 +94,11 @@ export default function ToursPage() {
                 : "Add your first tour to start setting up redirects."}
           </p>
           {!search && (
-            <Link href={hasArtists ? "/admin/tours/new" : "/admin/artists/new"}>
-              <Button variant="link">
+            <Button variant="link" asChild>
+              <Link href={hasArtists ? "/admin/tours/new" : "/admin/artists/new"}>
                 {hasArtists ? "Add Tour" : "Create Artist"}
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           )}
         </div>
       ) : (

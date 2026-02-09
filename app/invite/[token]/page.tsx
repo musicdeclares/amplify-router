@@ -198,9 +198,9 @@ export default function InviteAcceptPage({
           <CardContent className="space-y-4 text-center">
             <p className="text-muted-foreground">{pageError.message}</p>
             {pageError.code === "already_accepted" && (
-              <Link href="/login">
-                <Button variant="outline">Sign In</Button>
-              </Link>
+              <Button variant="outline" asChild>
+                <Link href="/login">Sign In</Link>
+              </Button>
             )}
           </CardContent>
           <CardFooter className="justify-center">

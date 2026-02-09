@@ -38,11 +38,11 @@ export default function NotFound() {
           </p>
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
-          <Link href="/directory" className="w-full">
-            <Button variant="default" className="w-full">
+          <Button variant="default" className="w-full" asChild>
+            <Link href="/directory">
               Browse Climate Organizations
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <a
             href="https://www.musicdeclares.net/"
             target="_blank"

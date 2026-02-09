@@ -329,11 +329,9 @@ function NewTourForm() {
               >
                 {saving ? "Adding..." : "Add Tour"}
               </Button>
-              <Link href="/admin/tours">
-                <Button type="button" variant="outline" disabled={saving}>
-                  Cancel
-                </Button>
-              </Link>
+              <Button type="button" variant="outline" disabled={saving} asChild>
+                <Link href="/admin/tours">Cancel</Link>
+              </Button>
             </div>
           </CardContent>
         </form>

@@ -175,12 +175,12 @@ export default function ArtistsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Link href="/admin/artists/invite">
-            <Button variant="outline">Invite Artist</Button>
-          </Link>
-          <Link href="/admin/artists/new">
-            <Button>Add Artist</Button>
-          </Link>
+          <Button variant="outline" asChild>
+            <Link href="/admin/artists/invite">Invite Artist</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/admin/artists/new">Add Artist</Link>
+          </Button>
         </div>
       </div>
 
@@ -311,9 +311,9 @@ export default function ArtistsPage() {
               <p className="text-sm text-muted-foreground mt-1">
                 Add your first artist to start setting up tours.
               </p>
-              <Link href="/admin/artists/new">
-                <Button variant="link">Add Artist</Button>
-              </Link>
+              <Button variant="link" asChild>
+                <Link href="/admin/artists/new">Add Artist</Link>
+              </Button>
             </>
           )}
         </div>
@@ -390,11 +390,11 @@ export default function ArtistsPage() {
                   </TableCell>
                   <TableCell>{artist.tour_count}</TableCell>
                   <TableCell>
-                    <Link href={`/admin/artists/${artist.id}`}>
-                      <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={`/admin/artists/${artist.id}`}>
                         Edit
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

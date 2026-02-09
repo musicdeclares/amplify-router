@@ -259,11 +259,11 @@ export function TourTable({
                     </Badge>
                   </TableCell>
                   <TableCell className="w-15">
-                    <Link href={`${basePath}/${tour.id}`}>
-                      <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={`${basePath}/${tour.id}`}>
                         Edit
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                   </TableCell>
                 </TableRow>
               );
