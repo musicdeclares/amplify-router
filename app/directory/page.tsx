@@ -1,9 +1,13 @@
 import { Metadata } from "next";
+import { headers } from "next/headers";
 import { getOrganizations } from "@/app/lib/organization-directory";
 import { OrgsClient } from "./orgs-client";
-import { getDirectoryContent } from "@/app/lib/directory-content";
+import {
+  getDirectoryContent,
+  detectLocaleFromHeader,
+} from "@/app/lib/directory-content";
 
-// TODO: When adding i18n, generate metadata dynamically based on locale
+// TODO: Generate metadata dynamically based on detected locale
 const content = getDirectoryContent("en");
 
 export const metadata: Metadata = {
@@ -17,6 +21,10 @@ export const metadata: Metadata = {
 };
 
 export default async function OrgsPage() {
+  const headersList = await headers();
+  const acceptLanguage = headersList.get("accept-language");
+  const detectedLocale = detectLocaleFromHeader(acceptLanguage);
+
   let organizations: Awaited<ReturnType<typeof getOrganizations>> = [];
   let error: string | undefined;
 
@@ -27,5 +35,11 @@ export default async function OrgsPage() {
     error = "Failed to load organizations";
   }
 
-  return <OrgsClient organizations={organizations} error={error} />;
+  return (
+    <OrgsClient
+      organizations={organizations}
+      error={error}
+      initialLocale={detectedLocale}
+    />
+  );
 }

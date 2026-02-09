@@ -1,5 +1,35 @@
-// Add "fr" here when French translations are ready
-export type Locale = "en";
+export type Locale = "en" | "fr";
+
+/** Available locales with display names */
+export const localeNames: Record<Locale, string> = {
+  en: "English",
+  fr: "Français",
+};
+
+/** localStorage key for persisted locale preference */
+export const LOCALE_STORAGE_KEY = "mde-amplify-locale";
+
+/**
+ * Detect locale from Accept-Language header.
+ * Returns 'fr' if French is preferred, otherwise 'en'.
+ */
+export function detectLocaleFromHeader(acceptLanguage: string | null): Locale {
+  if (!acceptLanguage) return "en";
+
+  const languages = acceptLanguage
+    .split(",")
+    .map((lang) => {
+      const [code, qValue] = lang.trim().split(";q=");
+      return {
+        code: code.split("-")[0].toLowerCase(),
+        q: qValue ? parseFloat(qValue) : 1.0,
+      };
+    })
+    .sort((a, b) => b.q - a.q);
+
+  const preferred = languages[0]?.code;
+  return preferred === "fr" ? "fr" : "en";
+}
 
 export const directoryContent = {
   en: {
@@ -44,6 +74,7 @@ export const directoryContent = {
     },
     card: {
       fansCanLabel: "FANS CAN",
+      defaultCtaText: "Get involved",
     },
     empty: {
       noResults: {
@@ -68,9 +99,75 @@ export const directoryContent = {
       tagline: "No music on a dead planet.",
     },
   },
-  // When adding French, copy the `en` object and translate all strings:
-  // fr: { ... },
-} as const;
+  fr: {
+    meta: {
+      title: "Répertoire des organisations | MDE AMPLIFY",
+      description:
+        "Découvrez les organisations climatiques vérifiées partenaires de Music Declares Emergency. Trouvez des groupes locaux qui font la différence dans votre pays.",
+      ogDescription:
+        "Découvrez les organisations climatiques vérifiées partenaires de Music Declares Emergency.",
+    },
+    header: {
+      title: "MDE AMPLIFY",
+      titleSuffix: "Répertoire des organisations",
+      subtitle:
+        "Connecter les fans de musique aux organisations climatiques du monde entier",
+    },
+    about: {
+      heading: "À propos du programme AMPLIFY",
+      intro:
+        "AMPLIFY donne aux artistes des outils simples pour inciter leurs fans à agir concrètement pour le climat via des partenaires vérifiés à fort impact. L'action collective par le bénévolat est l'un des moyens les plus puissants pour faire face à l'urgence climatique et écologique.",
+      mission: {
+        heading: "Notre mission",
+        text: "Faciliter l'engagement des artistes dans le mouvement climatique en alimentant le réseau de bénévoles des programmes partenaires efficaces avec des appels à l'action soigneusement sélectionnés. AMPLIFY recommande des organisations partenaires par pays et suggère des approches pour mobiliser les fans.",
+      },
+      howItWorks: {
+        heading: "Comment ça marche",
+        steps: [
+          "Music Declares Emergency (MDE) fournit un lien d'action avec une boîte à outils comprenant des codes QR pour les concerts, des exemples de publications et des messages clairs pour inciter les fans à agir via nos partenaires climatiques.",
+          "Les artistes partagent le lien avec leurs fans lors des concerts, sur les réseaux sociaux, par email ou par SMS.",
+          "MDE partage régulièrement les résultats avec les artistes et collabore pour une amélioration continue et un impact maximal.",
+        ],
+      },
+    },
+    search: {
+      placeholder: "Rechercher des organisations...",
+      resultsCount: (showing: number, total: number) =>
+        `Affichage de ${showing} sur ${total} organisations`,
+    },
+    filters: {
+      selectCountry: "Choisir un pays",
+      allCountries: "Tous les pays",
+    },
+    card: {
+      fansCanLabel: "LES FANS PEUVENT",
+      defaultCtaText: "S'impliquer",
+    },
+    empty: {
+      noResults: {
+        title: "Aucune organisation trouvée",
+        description: "Essayez de modifier votre recherche ou vos filtres",
+      },
+      noData: {
+        title: "Aucune organisation disponible pour l'instant",
+        description:
+          "Nous construisons encore notre réseau d'organisations climatiques. Revenez bientôt !",
+      },
+      error: {
+        title: "Une erreur s'est produite",
+        description:
+          "Nous n'avons pas pu charger les organisations. Veuillez réessayer.",
+        retry: "Réessayer",
+      },
+    },
+    footer: {
+      partOf: "Une initiative de",
+      mde: "Music Declares Emergency",
+      initiative: "",
+      tagline: "Pas de musique sur une planète morte.",
+    },
+  },
+};
 
 export function getDirectoryContent(locale: Locale = "en") {
   return directoryContent[locale] || directoryContent.en;

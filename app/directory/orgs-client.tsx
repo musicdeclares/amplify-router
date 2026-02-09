@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { OrganizationCard } from "@/components/directory/OrganizationCard";
 import {
@@ -15,15 +15,41 @@ import { Button } from "@/components/ui/button";
 import { Search, ChevronRight, AlertCircle, Globe } from "lucide-react";
 import type { DirectoryOrganization } from "@/app/types/router";
 import { EVENTS } from "@/app/lib/analytics-events";
-import { getDirectoryContent, type Locale } from "@/app/lib/directory-content";
+import {
+  getDirectoryContent,
+  localeNames,
+  LOCALE_STORAGE_KEY,
+  type Locale,
+} from "@/app/lib/directory-content";
 
 interface OrgsClientProps {
   organizations: DirectoryOrganization[];
   error?: string;
-  locale?: Locale;
+  initialLocale?: Locale;
 }
 
-export function OrgsClient({ organizations, error, locale = "en" }: OrgsClientProps) {
+export function OrgsClient({
+  organizations,
+  error,
+  initialLocale = "en",
+}: OrgsClientProps) {
+  // Initialize with server-detected locale, then check localStorage
+  const [locale, setLocale] = useState<Locale>(initialLocale);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(LOCALE_STORAGE_KEY) as Locale | null;
+    if (saved && (saved === "en" || saved === "fr")) {
+      setLocale(saved);
+    }
+    setMounted(true);
+  }, []);
+
+  function handleLocaleChange(newLocale: Locale) {
+    setLocale(newLocale);
+    localStorage.setItem(LOCALE_STORAGE_KEY, newLocale);
+  }
+
   const content = getDirectoryContent(locale);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCountry, setSelectedCountry] = useState<string>("all");
@@ -55,25 +81,55 @@ export function OrgsClient({ organizations, error, locale = "en" }: OrgsClientPr
       {/* Header */}
       <header className="border-b border-gray-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex items-center gap-3">
-            <Image
-              className="self-start"
-              src="/logo.png"
-              alt="MDE AMPLIFY logo"
-              width={500}
-              height={396}
-              priority
-              style={{ width: 100, height: "auto" }}
-            />
-            <div>
-              <h1 className="text-2xl font-bold mb-3 text-foreground">
-                {content.header.title}{" "}
-                <span className="whitespace-nowrap">{content.header.titleSuffix}</span>
-              </h1>
-              <p className="text-lg text-muted-foreground">
-                {content.header.subtitle}
-              </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Image
+                className="self-start"
+                src="/logo.png"
+                alt=""
+                width={500}
+                height={396}
+                priority
+                style={{ width: 100, height: "auto" }}
+              />
+              <div>
+                <h1 className="text-2xl font-bold mb-3 text-foreground">
+                  {content.header.title}{" "}
+                  <span className="whitespace-nowrap">
+                    {content.header.titleSuffix}
+                  </span>
+                </h1>
+                <p className="text-lg text-muted-foreground">
+                  {content.header.subtitle}
+                </p>
+              </div>
             </div>
+
+            {/* Language Switcher */}
+            {mounted && (
+              <div className="flex items-center gap-1 text-sm shrink-0">
+                <Globe className="size-4 text-muted-foreground" />
+                {(Object.keys(localeNames) as Locale[]).map((loc, i) => (
+                  <span key={loc} className="flex items-center">
+                    {i > 0 && (
+                      <span className="text-muted-foreground mx-1">|</span>
+                    )}
+                    <button
+                      onClick={() => handleLocaleChange(loc)}
+                      className={`hover:underline ${
+                        locale === loc
+                          ? "font-semibold text-foreground"
+                          : "text-muted-foreground"
+                      }`}
+                      data-umami-event={EVENTS.DIRECTORY_SWITCH_LANG}
+                      data-umami-event-lang={loc}
+                    >
+                      {localeNames[loc]}
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </header>
