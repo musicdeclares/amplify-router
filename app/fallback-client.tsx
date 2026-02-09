@@ -1,30 +1,56 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ExternalLink, Search } from "lucide-react";
+import { ExternalLink, Search, Globe } from "lucide-react";
 import {
   fallbackContent,
   getMessage,
   isFallbackReason,
+  localeNames,
+  LOCALE_STORAGE_KEY,
   type FallbackReason,
+  type Locale,
 } from "@/app/lib/fallback-content";
 import { EVENTS } from "@/app/lib/analytics-events";
 
-export function FallbackPageClient() {
+interface FallbackPageClientProps {
+  initialLocale: Locale;
+}
+
+export function FallbackPageClient({ initialLocale }: FallbackPageClientProps) {
   const searchParams = useSearchParams();
   const refParam = searchParams.get("ref");
   const artistName = searchParams.get("name");
+
+  // Initialize with server-detected locale, then check localStorage
+  const [locale, setLocale] = useState<Locale>(initialLocale);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // Check localStorage for saved preference
+    const saved = localStorage.getItem(LOCALE_STORAGE_KEY) as Locale | null;
+    if (saved && (saved === "en" || saved === "fr")) {
+      setLocale(saved);
+    }
+    setMounted(true);
+  }, []);
+
+  function handleLocaleChange(newLocale: Locale) {
+    setLocale(newLocale);
+    localStorage.setItem(LOCALE_STORAGE_KEY, newLocale);
+  }
 
   const reason = isFallbackReason(refParam)
     ? (refParam as FallbackReason)
     : null;
   const isLandingPage = !reason;
-  const content = fallbackContent.en;
-  const message = getMessage(reason, artistName);
+  const content = fallbackContent[locale];
+  const message = getMessage(reason, artistName, locale);
 
   // Add UTM params to external CTA
   const primaryCtaUrl = `${content.cta.primary.url}?utm_source=mde_amplify_rtr&utm_medium=referral`;
@@ -34,24 +60,54 @@ export function FallbackPageClient() {
       {/* Header */}
       <header className="border-b border-gray-200 bg-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex items-center gap-3">
-            <Image
-              className="self-start"
-              src="/logo.png"
-              alt="MDE AMPLIFY logo"
-              width={500}
-              height={396}
-              priority
-              style={{ width: 80, height: "auto" }}
-            />
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">
-                MDE AMPLIFY
-              </h1>
-              <p className="text-muted-foreground">
-                Connecting music lovers with climate action
-              </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Image
+                className="self-start"
+                src="/logo.png"
+                alt="MDE AMPLIFY logo"
+                width={500}
+                height={396}
+                priority
+                style={{ width: 80, height: "auto" }}
+              />
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">
+                  MDE AMPLIFY
+                </h1>
+                <p className="text-muted-foreground">
+                  {locale === "fr"
+                    ? "Connecter les fans de musique à l'action climatique"
+                    : "Connecting music lovers with climate action"}
+                </p>
+              </div>
             </div>
+
+            {/* Language Switcher */}
+            {mounted && (
+              <div className="flex items-center gap-1 text-sm">
+                <Globe className="size-4 text-muted-foreground" />
+                {(Object.keys(localeNames) as Locale[]).map((loc, i) => (
+                  <span key={loc} className="flex items-center">
+                    {i > 0 && (
+                      <span className="text-muted-foreground mx-1">|</span>
+                    )}
+                    <button
+                      onClick={() => handleLocaleChange(loc)}
+                      className={`hover:underline ${
+                        locale === loc
+                          ? "font-semibold text-foreground"
+                          : "text-muted-foreground"
+                      }`}
+                      data-umami-event={EVENTS.FALLBACK_SWITCH_LANG}
+                      data-umami-event-lang={loc}
+                    >
+                      {localeNames[loc]}
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -144,7 +200,7 @@ export function FallbackPageClient() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             <p className="text-muted-foreground">
-              Part of the{" "}
+              {locale === "fr" ? "Une initiative de " : "Part of the "}
               <a
                 href="https://www.musicdeclares.net/"
                 target="_blank"
@@ -152,8 +208,8 @@ export function FallbackPageClient() {
                 className="underline hover:text-foreground"
               >
                 {content.footer.mdeLink}
-              </a>{" "}
-              initiative
+              </a>
+              {locale === "en" && " initiative"}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               {content.footer.tagline}

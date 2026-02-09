@@ -21,6 +21,7 @@ export const EVENTS = {
   // === Fallback Page ===
   FALLBACK_CTA_GLOBAL: "fallback-cta-global",
   FALLBACK_CTA_DIRECTORY: "fallback-cta-directory",
+  FALLBACK_SWITCH_LANG: "fallback-switch-lang",
 
   // === Directory ===
   DIRECTORY_ORG_CTA: "directory-org-cta",
