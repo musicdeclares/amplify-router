@@ -2,6 +2,7 @@ import {
   getMessage,
   isFallbackReason,
   fallbackContent,
+  detectLocaleFromHeader,
   type FallbackReason,
 } from "../fallback-content";
 
@@ -87,11 +88,79 @@ describe("fallback-content", () => {
       expect(en.footer).toBeDefined();
     });
 
+    it("has all required fields for French locale", () => {
+      const fr = fallbackContent.fr;
+
+      expect(fr.title).toBeDefined();
+      expect(fr.subtitle).toBeDefined();
+      expect(fr.encouragement).toBeDefined();
+      expect(fr.messages).toBeDefined();
+      expect(fr.cta.primary).toBeDefined();
+      expect(fr.cta.secondary).toBeDefined();
+      expect(fr.footer).toBeDefined();
+    });
+
     it("has valid CTA URLs", () => {
       const { primary, secondary } = fallbackContent.en.cta;
 
       expect(primary.url).toMatch(/^https:\/\//);
       expect(secondary.url).toBe("/directory");
+    });
+
+    it("French translations are different from English", () => {
+      expect(fallbackContent.fr.title).not.toBe(fallbackContent.en.title);
+      expect(fallbackContent.fr.encouragement).not.toBe(
+        fallbackContent.en.encouragement
+      );
+      expect(fallbackContent.fr.cta.primary.buttonText).not.toBe(
+        fallbackContent.en.cta.primary.buttonText
+      );
+    });
+  });
+
+  describe("detectLocaleFromHeader", () => {
+    it("returns 'en' for null header", () => {
+      expect(detectLocaleFromHeader(null)).toBe("en");
+    });
+
+    it("returns 'en' for empty header", () => {
+      expect(detectLocaleFromHeader("")).toBe("en");
+    });
+
+    it("returns 'fr' when French is primary language", () => {
+      expect(detectLocaleFromHeader("fr-FR,fr;q=0.9,en;q=0.8")).toBe("fr");
+      expect(detectLocaleFromHeader("fr")).toBe("fr");
+      expect(detectLocaleFromHeader("fr-CA")).toBe("fr");
+    });
+
+    it("returns 'en' when English is primary language", () => {
+      expect(detectLocaleFromHeader("en-US,en;q=0.9,fr;q=0.8")).toBe("en");
+      expect(detectLocaleFromHeader("en")).toBe("en");
+      expect(detectLocaleFromHeader("en-GB")).toBe("en");
+    });
+
+    it("returns 'en' for unsupported primary languages", () => {
+      expect(detectLocaleFromHeader("de-DE,de;q=0.9,en;q=0.8")).toBe("en");
+      expect(detectLocaleFromHeader("es,en;q=0.9")).toBe("en");
+    });
+
+    it("respects q-values for priority", () => {
+      // French has higher priority
+      expect(detectLocaleFromHeader("en;q=0.8,fr;q=0.9")).toBe("fr");
+      // English has higher priority
+      expect(detectLocaleFromHeader("fr;q=0.8,en;q=0.9")).toBe("en");
+    });
+  });
+
+  describe("getMessage with locale", () => {
+    it("returns French message for French locale", () => {
+      const message = getMessage(null, null, "fr");
+      expect(message).toBe(fallbackContent.fr.messages.default);
+    });
+
+    it("returns French artist-specific message", () => {
+      const message = getMessage("no_tour", "Stromae", "fr");
+      expect(message).toBe("Stromae n'a pas de tournée active en ce moment.");
     });
   });
 });
