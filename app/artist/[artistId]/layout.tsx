@@ -63,7 +63,7 @@ export default function ArtistLayout({
               >
                 <Image
                   src="/logo.png"
-                  alt="AMPLIFY"
+                  alt=""
                   width={500}
                   height={396}
                   className="w-10 h-auto"

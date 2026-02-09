@@ -661,7 +661,7 @@ export default function OrgProfilePage({
                       <div className="flex items-center justify-center w-full h-full bg-gray-100">
                         <img
                           src="/logo.png"
-                          alt="MDE AMPLIFY"
+                          alt=""
                           className="size-20 object-contain opacity-60"
                         />
                       </div>

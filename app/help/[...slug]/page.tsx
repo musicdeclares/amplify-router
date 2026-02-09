@@ -84,7 +84,7 @@ export default async function HelpPage({
           <Link href="/help" className="inline-flex items-center gap-2">
             <Image
               src="/logo.png"
-              alt="AMPLIFY"
+              alt=""
               width={500}
               height={396}
               className="w-8 h-auto"
