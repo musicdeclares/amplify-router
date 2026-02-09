@@ -71,13 +71,15 @@ function QuickLinks({ compact }: { compact?: boolean }) {
     return (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {links.map((link) => (
-          <Link key={link.href} href={link.href}>
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 flex items-center gap-3">
-                <span className="text-xl shrink-0">{link.icon}</span>
-                <span className="font-medium text-md">{link.label}</span>
-              </CardContent>
-            </Card>
+          <Link
+            key={link.href}
+            href={link.href}
+            className="focus-card block rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="p-4 flex items-center gap-3">
+              <span className="text-xl shrink-0">{link.icon}</span>
+              <span className="font-medium text-md">{link.label}</span>
+            </div>
           </Link>
         ))}
       </div>
@@ -87,9 +89,10 @@ function QuickLinks({ compact }: { compact?: boolean }) {
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {links.map((link) => (
-        <div
+        <Link
           key={link.href}
-          className="bg-white overflow-hidden shadow rounded-lg"
+          href={link.href}
+          className="focus-card block bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
         >
           <div className="p-5">
             <div className="flex items-center">
@@ -107,16 +110,11 @@ function QuickLinks({ compact }: { compact?: boolean }) {
             </div>
           </div>
           <div className="bg-gray-50 px-5 py-3">
-            <div className="text-sm">
-              <Link
-                href={link.href}
-                className="font-medium text-mde-body hover:text-mde-body/70"
-              >
-                See all {link.label.toLowerCase()}
-              </Link>
-            </div>
+            <span className="text-sm font-medium text-mde-body">
+              See all {link.label.toLowerCase()}
+            </span>
           </div>
-        </div>
+        </Link>
       ))}
     </div>
   );
@@ -166,9 +164,16 @@ export default function AdminDashboard() {
   }, []);
 
   const handleDateChange = (newStart: string, newEnd: string) => {
-    setStartDate(newStart);
-    setEndDate(newEnd);
-    fetchData(newStart, newEnd);
+    // Swap if end date is before start date
+    if (newEnd < newStart) {
+      setStartDate(newEnd);
+      setEndDate(newStart);
+      fetchData(newEnd, newStart);
+    } else {
+      setStartDate(newStart);
+      setEndDate(newEnd);
+      fetchData(newStart, newEnd);
+    }
   };
 
   // Loading state
@@ -363,7 +368,7 @@ export default function AdminDashboard() {
               <CardHeader>
                 <CardTitle>Fallback Diagnostics</CardTitle>
                 <CardDescription>
-                  Reason breakdown and recent fallback events
+                  Reason breakdown{data.recentFallbacks.length > 0 ? " and recent fallback events" : ""}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -374,27 +379,30 @@ export default function AdminDashboard() {
                     totalFallbacks={data.fallbackRoutes}
                   />
                 </div>
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => setFallbacksOpen((o) => !o)}
-                    className="flex items-center gap-1.5 text-sm font-medium cursor-pointer select-none hover:text-foreground/80"
-                  >
-                    <ChevronRight
-                      className={`h-4 w-4 transition-transform duration-200 ${fallbacksOpen ? "rotate-90" : ""}`}
-                    />
-                    Recent Fallback Events (last 50)
-                  </button>
-                  <div
-                    className={`grid transition-[grid-template-rows] duration-200 ease-out ${fallbacksOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
-                  >
-                    <div className="overflow-hidden">
-                      <div className="mt-3">
-                        <FallbackTable fallbacks={data.recentFallbacks} />
+                {data.recentFallbacks.length > 0 && (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setFallbacksOpen((o) => !o)}
+                      className="flex items-center gap-1.5 text-sm font-medium cursor-pointer select-none hover:text-foreground/80"
+                      aria-expanded={fallbacksOpen}
+                    >
+                      <ChevronRight
+                        className={`h-4 w-4 transition-transform duration-200 ${fallbacksOpen ? "rotate-90" : ""}`}
+                      />
+                      Recent Fallback Events ({data.recentFallbacks.length})
+                    </button>
+                    <div
+                      className={`grid transition-[grid-template-rows] duration-200 ease-out ${fallbacksOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+                    >
+                      <div className="overflow-hidden">
+                        <div className="mt-3">
+                          <FallbackTable fallbacks={data.recentFallbacks} />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
 

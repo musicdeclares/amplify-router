@@ -238,3 +238,9 @@
 .animate-fade-out {
     animation: fade-out 2s ease-out forwards;
 }
+
+/* Focus styles for card-like links */
+.focus-card:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+}
