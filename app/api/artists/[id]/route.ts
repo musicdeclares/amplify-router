@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/app/lib/supabase";
 import { Database } from "@/app/types/database";
-import { getApiUser, isAdmin, canAccessArtist } from "@/app/lib/api-auth";
+import { getApiUser, isAdmin, isStaff, canAccessArtist } from "@/app/lib/api-auth";
 
 type ArtistUpdate = Database["public"]["Tables"]["router_artists"]["Update"];
 
@@ -100,11 +100,11 @@ export async function PUT(
       updates.link_inactive_reason = body.link_inactive_reason;
     }
 
-    // Only admins can set account_active and account_inactive_reason
+    // Only staff can set account_active and account_inactive_reason
     if (body.account_active !== undefined) {
-      if (!isAdmin(user)) {
+      if (!isStaff(user)) {
         return NextResponse.json(
-          { error: "Only admins can deactivate accounts" },
+          { error: "Only staff can deactivate accounts" },
           { status: 403 },
         );
       }
@@ -112,9 +112,9 @@ export async function PUT(
     }
 
     if (body.account_inactive_reason !== undefined) {
-      if (!isAdmin(user)) {
+      if (!isStaff(user)) {
         return NextResponse.json(
-          { error: "Only admins can set account inactive reason" },
+          { error: "Only staff can set account inactive reason" },
           { status: 403 },
         );
       }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/app/lib/supabase";
-import { getApiUser, isAdmin } from "@/app/lib/api-auth";
+import { getApiUser, isStaff } from "@/app/lib/api-auth";
 
 // GET - get a single invite (admin only)
 export async function GET(
@@ -13,8 +13,8 @@ export async function GET(
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if (!isAdmin(user)) {
-      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    if (!isStaff(user)) {
+      return NextResponse.json({ error: "Staff access required" }, { status: 403 });
     }
 
     const { data: invite, error } = (await supabaseAdmin
@@ -73,8 +73,8 @@ export async function PUT(
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if (!isAdmin(user)) {
-      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    if (!isStaff(user)) {
+      return NextResponse.json({ error: "Staff access required" }, { status: 403 });
     }
 
     const body = await request.json();
@@ -143,8 +143,8 @@ export async function DELETE(
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if (!isAdmin(user)) {
-      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    if (!isStaff(user)) {
+      return NextResponse.json({ error: "Staff access required" }, { status: 403 });
     }
 
     // Get current invite to check status

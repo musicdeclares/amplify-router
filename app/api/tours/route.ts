@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/app/lib/supabase";
-import { getApiUser, isAdmin, canAccessArtist } from "@/app/lib/api-auth";
+import { getApiUser, isAdmin, isStaff, canAccessArtist } from "@/app/lib/api-auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1);
 
     // Artists can only see their own tours
-    if (!isAdmin(user)) {
+    if (!isStaff(user)) {
       if (user.artistId) {
         query = query.eq("artist_id", user.artistId);
       } else {
