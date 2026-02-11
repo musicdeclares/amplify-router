@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1);
 
     // Artists can only see their own artist record
-    if (!isAdmin(user)) {
+    if (!isStaff(user)) {
       if (user.artistId) {
         query = query.eq("id", user.artistId);
       } else {
