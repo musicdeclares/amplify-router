@@ -93,8 +93,8 @@ export default function ViewInvitePage({
   }
 
   function getInviteUrl() {
-    if (typeof window === "undefined") return "";
-    return `${window.location.origin}/invite/${invite?.token}`;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== "undefined" ? window.location.origin : "");
+    return `${siteUrl}/invite/${invite?.token}`;
   }
 
   function getEmailSubject() {
