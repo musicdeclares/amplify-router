@@ -287,6 +287,9 @@ export default function InviteAcceptPage({
                   Your link: {siteUrl}/a/{handle}
                 </p>
               )}
+              <p className="text-xs text-muted-foreground">
+                Choose carefully: your handle cannot be changed later.
+              </p>
             </div>
 
             <div className="space-y-2">
