@@ -51,6 +51,7 @@ interface Organization extends OrgPublicView {
   router_enabled: boolean;
   router_pause_reason: string | null;
   has_profile: boolean;
+  cta_url: string | null;
 }
 
 interface CountryDefault {
@@ -461,15 +462,15 @@ export default function CountryDetailPage({
                         )}
                       </div>
 
-                      {org.website && (
+                      {(org.cta_url || org.website) && (
                         <a
-                          href={org.website}
+                          href={org.cta_url || org.website!}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm text-[--color-link] hover:text-[--color-link-hover] underline inline-flex items-center gap-1 mt-1"
+                          className="text-sm text-[--color-link] hover:text-[--color-link-hover] underline flex items-center gap-1 mt-1 min-w-0"
                         >
-                          <span className="truncate max-w-62.5">
-                            {org.website}
+                          <span className="truncate min-w-0">
+                            {org.cta_url || org.website}
                           </span>
                           <ExternalLink className="h-3 w-3 shrink-0" />
                         </a>

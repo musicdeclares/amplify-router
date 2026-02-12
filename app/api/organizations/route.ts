@@ -40,22 +40,24 @@ export async function GET(request: NextRequest) {
 
     const { data: profiles } = await supabaseAdmin
       .from('router_org_profiles')
-      .select('org_id')
+      .select('org_id, cta_url')
       .in('org_id', orgIds) as {
-        data: Array<{ org_id: string }> | null
+        data: Array<{ org_id: string; cta_url: string | null }> | null
         error: unknown
       }
 
-    const profileOrgIds = new Set(profiles?.map(p => p.org_id) || [])
+    const profilesByOrgId = new Map(profiles?.map(p => [p.org_id, p]) || [])
 
     // Merge override data and profile status with organizations
     const orgsWithOverrides = organizations?.map(org => {
       const override = overrides?.find(o => o.org_id === org.id)
+      const profile = profilesByOrgId.get(org.id)
       return {
         ...org,
         router_enabled: override?.enabled ?? true, // Default to enabled if no override
         router_pause_reason: override?.reason ?? null,
-        has_profile: profileOrgIds.has(org.id)
+        has_profile: !!profile,
+        cta_url: profile?.cta_url ?? null
       }
     })
 
